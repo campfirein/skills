@@ -71,7 +71,7 @@ topic — it's a placeholder.
 
 | Element | Attributes | Purpose |
 |---|---|---|
-| `<bv-topic>` | `path`*, `title`*, `summary?`, `keywords?`, `tags?`, `related?`, `id?` | The outer wrapper. Exactly one per topic file. |
+| `<bv-topic>` | `path`*, `title`*, `summary?`, `keywords?`, `tags?`, `related?`, `id?`, `visibility?` | The outer wrapper. Exactly one per topic file. |
 
 > **Required attributes on `<bv-topic>`:** `path` AND `title` must both be
 > present and non-empty, or the writer rejects the call with
@@ -89,6 +89,10 @@ topic — it's a placeholder.
 - `tags` — comma-separated tags for categorical retrieval.
 - `summary` — one-sentence prose summary; surfaces in search snippets.
 - `path` should match the positional argument you passed to `record.mjs`.
+- `visibility` — `"public"` or `"restricted"`. **Informational only.** It does
+  NOT change which facts a redacted-view recipient sees; only each fact's own
+  `disclosure` attribute does that. See the **Sensitivity and the disclosure
+  model** section below. Absent or misspelled → coerced to `"restricted"`.
 
 ### NOT `<bv-topic>` attributes (forbidden)
 
@@ -131,7 +135,7 @@ and will overwrite any value you set.
 
 | Element | Attributes | Use for |
 |---|---|---|
-| `<bv-fact>` | `subject`*, `category`*, `value?` | A discrete factual statement. **Element text is the canonical natural-language statement**; attributes are the structured extraction. One fact per element. |
+| `<bv-fact>` | `subject`*, `category`*, `value?`, `disclosure?` | A discrete factual statement. **Element text is the canonical natural-language statement**; attributes are the structured extraction. One fact per element. `disclosure` controls whether the fact survives a redacted-view share (see **Sensitivity** section below). |
 
 ```html
 <bv-fact subject="user_name" category="personal" value="Andy">My name is Andy.</bv-fact>
@@ -159,6 +163,108 @@ results that look right but rank wrong:
 **Standalone-facts topics.** When facts don't belong to any domain (general
 personal preferences, environment notes), use a `facts/` domain:
 `facts/personal`, `facts/project`, `facts/conventions`.
+
+## Sensitivity and the disclosure model
+
+A topic can be shared at three views: **full** (everything), **redacted**
+(only facts marked `disclosure="public"`, plus public-by-contract structural
+prose), and **metadata** (an opaque catalog handle — no content). When the
+user shares a topic at the redacted view, content NOT marked public is
+stripped before delivery.
+
+Sharing itself is initiated by the user in the ByteRover desktop app, not by
+you. **Your** job is to mark each fact correctly so the user's sharing
+intent is honored: an authored topic carries the policy that determines what
+a recipient sees at each view. Read these rules before authoring sensitive
+content:
+
+- **`<bv-fact>` is the SOLE unit of per-item restriction.** Mark a fact as
+  shareable with `disclosure="public"`. Without that explicit attribute, the
+  fact is treated as **restricted** — even if you didn't intend it.
+- **The topic `title` is public-by-contract.** Anyone who can see the topic
+  at any layer sees the title. **Never put a secret in the title.**
+- **All prose text is public-by-contract.** Text inside `<bv-structure>`,
+  `<p>`, `<ul>`/`<li>`, `<bv-flow>`, `<bv-highlights>`, diagram bodies, etc.
+  survives the redacted view verbatim. **Never put a secret in prose** —
+  extract it into a `<bv-fact>` (which can then default to restricted).
+- **Topic-level `summary`, `keywords`, `tags`, and `related` are stripped
+  at redacted but visible at full.** Treat them as "internal but not
+  secret": good for search hints and cross-references, indefensible for
+  credentials, PII, or sensitive identifying context. Anything that needs
+  protection from a redacted-view recipient goes in a `<bv-fact>` (which
+  can default to restricted), never in a topic-level attribute.
+- **Absent or misspelled `disclosure` is treated as restricted.** Fail-closed:
+  the schema coerces `disclosure="publci"` (typo) → restricted, and an absent
+  attribute → restricted. You CANNOT accidentally publish a fact by omission;
+  you CAN accidentally hide one by forgetting to mark it public.
+- **`<bv-topic visibility>` does NOT make facts public.** It is an
+  informational label only. Setting `visibility="public"` on a topic does
+  not change which facts the redacted view returns; only each fact's own
+  `disclosure="public"` does.
+
+### Example — the preference + reason split
+
+This is the canonical pattern for a topic where the public, actionable form
+of a fact is safe to share but the underlying sensitive context is not.
+Split it into two `<bv-fact>` siblings: the actionable form marked
+`disclosure="public"`, the sensitive context unmarked (defaulting to
+restricted). At the redacted view the recipient acts on the public fact
+without learning the restricted one.
+
+```html
+<bv-topic path="travel/floor_preference"
+          title="Hotel floor preference">
+  <bv-task>Personal accommodation preference for hotel booking.</bv-task>
+  <bv-reason>
+    Anchor for a preference whose public meaning ("lower floors") is safe
+    to share, while the personal reason for it is not.
+  </bv-reason>
+
+  <bv-fact subject="floor_preference"
+           category="preference"
+           disclosure="public"
+           value="lower">
+    Prefers lower floors when booking hotels.
+  </bv-fact>
+
+  <bv-fact subject="floor_aversion_reason"
+           category="personal"
+           value="acrophobia">
+    Avoids upper floors because of acrophobia.
+  </bv-fact>
+</bv-topic>
+```
+
+At the **full** view, both facts are returned. At the **redacted** view,
+only the first survives — a recipient sees the actionable preference but
+not the personal reason. At the **metadata** view, neither fact is
+returned; the recipient sees only that the topic exists.
+
+This example is pinned by a test in
+`packages/core/test/disclosure.test.ts` — if you change the example here,
+update the test (or the engine, if the example drifted from current
+behavior).
+
+### Choosing the disclosure for a fact
+
+Default to leaving `disclosure` unset (fail-closed → restricted). Add
+`disclosure="public"` ONLY when the fact is genuinely safe to share with
+any recipient cleared to see the topic at the redacted view. Concrete
+guidance:
+
+- **Public is appropriate for:** the actionable form of a fact when its
+  sensitive context can be carried separately. A preference (paired with
+  a separate restricted fact for the personal reason behind it); a
+  convention; a date without identifying context; public credits; factual
+  descriptions of public artifacts (films, books, libraries, public APIs).
+- **Restricted (the default) is right for:** identifying details, medical
+  or personal reasons, credentials and secrets, internal policy details,
+  PII, financial data, anything where the redacted-view recipient was
+  granted access without the sensitive context.
+
+A fact's body, `subject`, `value`, and `category` are ALL stripped
+together when the fact is restricted — you don't need to redact further
+by hand. Mark the fact; trust the engine.
 
 ## Action items
 
@@ -528,6 +634,25 @@ ranks worse and reads worse. Treat each as a defect to fix.
 - **CDATA-wrapped diagram body.** Don't wrap `<bv-diagram>` content in
   `<![CDATA[…]]>` — HTML5 treats it as a bogus comment and the first `-->`
   closes early, mangling the diagram.
+- **Secret in the topic `title`.** ❌ `title="Production database password
+  rotation"`. The title is public-by-contract — every recipient at every
+  layer sees it. Use a generic title (`"Database credential rotation"`)
+  and put the sensitive specifics in `<bv-fact>` siblings.
+- **Secret in prose.** ❌ Putting a credential, a personal medical reason,
+  or an internal-only detail inside `<bv-structure>`, `<p>`, `<bv-flow>`,
+  `<bv-highlights>`, or any other text-bearing element. Prose is public-by-
+  contract — it survives the redacted view verbatim. Move sensitive
+  specifics into `<bv-fact>` siblings, which default to restricted.
+- **Trusting `<bv-topic visibility>` to make facts public.** ❌
+  `<bv-topic visibility="public">…<bv-fact>unmarked note</bv-fact>…`. The
+  `visibility` attribute is informational only; the materializer does not
+  consult it as a per-fact default. A fact is public ONLY by its own
+  `disclosure="public"` — see the **Sensitivity** section.
+- **Misspelled `disclosure` value.** ❌ `disclosure="publci"`,
+  `disclosure="open"`, `disclosure="yes"`. The schema is closed (`"public"`
+  or `"restricted"` only) and coerces any other value to `"restricted"` —
+  fail-closed by design. Your typo doesn't accidentally publish; it
+  accidentally hides. Double-check the spelling.
 
 ## When the content is large
 

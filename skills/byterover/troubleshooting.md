@@ -4,7 +4,7 @@ Commands print `{ "ok": false, "error": "..." }` on failure. Common cases:
 
 | Error | Cause | Fix |
 | --- | --- | --- |
-| ``No context tree found for <dir>. Run `init` to create one.`` | Project hasn't been init'd, or cwd is outside any known project | `cd` into a project root and run `brv init` (or `node scripts/brv.mjs init` if you run the bundled skill directly) |
+| ``No context tree found for <dir> (space_id: "<id>"). Run `space bind "<name>"` from this folder to link it to an existing space.`` | The cwd is outside any folder bound to a space, or the resolved space has no tree on disk yet | From the project root, run `node scripts/space.mjs bind "<space-name>"`. The space must already exist — if not, ask the user to create it in the ByteRover desktop app first. |
 | ``<bv-topic> must declare a non-empty `path` attribute.; <bv-topic> Required`` | The `--html` payload had `<bv-topic>` without a non-empty `path` attribute | Add `path="<topic-path>"` to `<bv-topic>`. See [vocabulary.md](vocabulary.md) for required `<bv-topic>` attributes |
 | `Path escapes context-tree root: ...` | A topic path used `../` | Use a path inside the tree (e.g. `domain/topic`) |
 | `record requires a topic path` | Missing positional path | `node scripts/record.mjs "<path>" --title ... --body ...` |
@@ -12,11 +12,11 @@ Commands print `{ "ok": false, "error": "..." }` on failure. Common cases:
 | `Unknown command: <x>` | Typo or unsupported verb | See the command table in [SKILL.md](SKILL.md) |
 | `legacy markdown file(s) the HTML engine cannot read` | Tree contains pre-v0.1 `.md` files | Run `node scripts/migrate.mjs` |
 
-If a command resolves to an unexpected project, the engine is finding a
-different init'd project on the cwd walk-up. **`cd` into the project root
-you intend to work in** and re-run — the engine resolves the right tree from
-the working directory automatically. If the wrong tree keeps resolving even
-from the right directory, surface that to the user; the registry is
+If a command resolves to an unexpected space, the engine is finding a
+different binding on the cwd walk-up. **`cd` into the project root you
+intend to work in** and re-run — the engine resolves the right tree from
+the working directory automatically. If the wrong space keeps resolving
+even from the right directory, surface that to the user; the registry is
 engine-internal and only the desktop UI manages it.
 
 ## Cloud sync troubleshooting
@@ -25,7 +25,7 @@ These issues apply when the workspace is configured for cloud sync.
 
 | Error / State | Cause | Agent action |
 | --- | --- | --- |
-| `auth-expired` in `sync.mjs status` | Credentials revoked, team not on paid plan, or invalid team/space | Surface to the user — they re-authenticate through the desktop UI. **Don't edit environment or attempt to rotate keys from the agent.** |
+| `auth-expired` in `sync.mjs status` | Credentials expired/revoked, or team not on a paid plan | Re-authenticate with `node scripts/auth.mjs` — it returns at once; relay the URL + code, have the user approve in the browser and say "approved", then confirm with `node scripts/auth.mjs status`. Or the user can reconnect in the desktop. **Never edit the environment or hard-code keys to work around auth.** |
 | Sync paused for a space | Space is over capacity or server-side throttle | Surface to the user; capacity / plan changes happen in the ByteRover dashboard. |
 | `conflicts` array non-empty | Two edits touched the same file | Conflicts auto-resolve via last-writer-wins. The array is informational — no agent action needed. |
 | `pendingError` persists across cycles | Network failure or 5xx server error | Check `node scripts/sync.mjs status`. If persistent, surface to the user — it's a server-side issue. |

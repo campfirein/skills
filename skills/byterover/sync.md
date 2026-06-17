@@ -1,10 +1,33 @@
 # Cloud sync
 
-Cloud sync runs automatically when the user has configured the workspace for
-it through the ByteRover desktop app. `query` and `record` start the
-background sync on demand; if sync isn't configured, ByteRover runs
-local-only and every command still works. **You don't configure sync from
-the agent** — that's a user/desktop concern.
+Cloud sync runs automatically once the workspace is authenticated. `query` and
+`record` start the background sync on demand; if sync isn't configured,
+ByteRover runs local-only and every command still works.
+
+## Authentication
+
+A user can connect cloud sync from the desktop app, OR you (the agent) can
+authenticate this workspace directly — no secret is pasted into the chat:
+
+```bash
+node scripts/auth.mjs
+```
+
+This returns immediately with a URL and a short one-time code (`{"ok":true,
+"pending":true,...}`) while a background process waits for the approval. Relay
+the URL + code to the user, tell them to come back and say "approved" after
+approving in the browser, and END YOUR TURN. When they return, confirm with
+`node scripts/auth.mjs status` (`{"state":"approved"}` → connected). The full
+choreography, including the other status outcomes, is in
+[SKILL.md → Authenticate with ByteRover](SKILL.md#authenticate-with-byterover).
+To sign out:
+
+```bash
+node scripts/logout.mjs
+```
+
+For non-interactive / CI environments an API key can be supplied by file
+(never inline in the conversation): `node scripts/auth.mjs --key-file <path>`.
 
 ## How it works
 
@@ -24,8 +47,9 @@ If sync seems stuck or a user reports cloud issues:
 node scripts/sync.mjs status
 ```
 
-This prints the daemon's current state. If status reports `auth-expired` or
-non-empty `conflicts`, **surface that to the user** — they resolve it through
-the desktop UI, not by editing environment or rotating keys from the agent.
+This prints the daemon's current state. If status reports `auth-expired`,
+re-authenticate with `node scripts/auth.mjs` (the device flow above) or have the
+user reconnect in the desktop. For non-empty `conflicts`, **surface that to the
+user**. Never edit the environment or hard-code keys to work around auth.
 
 For full troubleshooting, see [troubleshooting.md](troubleshooting.md).

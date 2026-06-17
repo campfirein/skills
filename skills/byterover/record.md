@@ -71,6 +71,11 @@ Recording updates the topic (preserving `createdAt`) and rebuilds the manifest.
   of the seven enum values, `value=` holds the extracted form, and the body
   is the canonical natural-language statement. Don't put a label in the body
   and the statement in `value=`. See [vocabulary.md](vocabulary.md#facts).
+- **Mark facts you intend to share with `disclosure="public"`.** Unmarked
+  facts default to restricted (fail-closed) and are stripped from a redacted-
+  view share. The topic `title` and all prose are public-by-contract — never
+  put a secret in them. See
+  [vocabulary.md](vocabulary.md#sensitivity-and-the-disclosure-model).
 - **Cross-references use `@path.html`.** `related="@security/cookies.html"`
   for file targets, `related="@ops"` bare for folder/domain targets.
 - **You can embed images by URL.** `<img>` is allowed inside any

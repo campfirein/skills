@@ -1,8 +1,8 @@
 ---
 name: byterover
-description: "Durable runbook memory for the current workspace. Use BEFORE any non-trivial work to retrieve prior decisions, patterns, and gotchas; use AFTER finishing to record what was learned. Iron Law: query before you think, curate after you implement."
+description: "Durable runbook memory for the current workspace. Use BEFORE any non-trivial work to retrieve prior decisions, patterns, and gotchas; use AFTER finishing to record what was learned. ALSO use to authenticate with ByteRover — when the user says to authenticate / auth / log in / sign in / connect / link ByteRover (or log out / sign out / disconnect), run the auth flow. Iron Law: query before you think, curate after you implement."
 metadata:
-  version: 0.2.0
+  version: 0.6.0
 ---
 
 # ByteRover — durable project memory
@@ -50,8 +50,8 @@ Japanese, Korean, Russian, Arabic, etc.
 ## Commands
 
 Run from inside the project (any subdirectory). Topics are stored as `<bv-*>`
-HTML. First run in a project: `node scripts/brv.mjs init` to create the tree
-and register the project in history.
+HTML. Spaces (including the default) are provisioned through the ByteRover
+desktop app — the agent never creates them.
 
 | Need | Command |
 | --- | --- |
@@ -70,8 +70,10 @@ and register the project in history.
 | Fold one topic into another | `node scripts/merge.mjs <survivor> <loser>` |
 | Remove redundant topics | `node scripts/prune.mjs <topic-path>...` (variadic, atomic — aborts on first failure with a partial report) |
 | Combine many topics into a new one | `node scripts/synthesize.mjs <new-path> --html '<bv-topic …>…</bv-topic>' --absorb a.html,b.html,c.html` |
-| Rename a topic | `node scripts/move.mjs <from-path> <to-path>` |
+| Move a topic to a different space | `node scripts/move.mjs <topic-path> --from-space <name> --to-space <name>` (rebuilds manifest + index in both spaces; reports any sibling `related=` refs in the source that now dangle) |
 | Migrate legacy markdown | `node scripts/migrate.mjs [--dry-run]` |
+| Authenticate / log in to ByteRover | `node scripts/auth.mjs` — returns at once; the user approves in the browser, then `auth.mjs status`; see [Authenticate with ByteRover](#authenticate-with-byterover) |
+| Log out of ByteRover | `node scripts/logout.mjs` |
 
 To delete a topic, surface the request to the user — deletions happen through
 the ByteRover desktop app.
@@ -79,17 +81,96 @@ the ByteRover desktop app.
 Every command prints a JSON result. On `{ "ok": false, ... }` read
 [troubleshooting.md](troubleshooting.md).
 
-## Cloud sync (automatic)
+## Citing retrieved memory
 
-Cloud sync runs automatically when the workspace is configured for it. `query`
-and `record` start the background sync on demand; if sync isn't configured,
-ByteRover runs local-only and the commands still work. **You do not configure
-sync from the agent** — the user sets it up through the ByteRover desktop app.
+After a `query` answer materially drew on the returned hits, **append the
+`citation_block` from the query envelope to your response** so the user
+can see — and click through to — what was used. The engine pre-formats
+the block; your job is decisional, not formatting.
 
-The only sync command the agent runs is `node scripts/sync.mjs status` to check
-state. If status shows `auth-expired` or non-empty `conflicts`, surface that to
-the user — they resolve it through the desktop UI, not by editing environment.
-Details: [sync.md](sync.md). Troubleshooting: [troubleshooting.md](troubleshooting.md).
+When the query envelope has `should_cite: true` AND your answer
+genuinely used the retrieved memory:
+
+1. Add ONE blank line after your answer.
+2. Emit the `citation_block` string verbatim. It contains the header
+   and a two-line entry per hit (title on its own line, then the
+   bare URL indented on the next), capped to the right number of hits.
+   The URL scheme is `http://127.0.0.1:<port>/...` when the desktop
+   bridge is running (the common case) and `https://<web>/...` as a
+   fallback — terminals auto-linkify either form.
+3. Don't reformat, paraphrase, or add agent-generated relevance scores
+   to the citations. The user judges relevance from the title.
+4. Don't wrap the links in `[]`, `()`, backticks, or any other
+   punctuation. The URL must appear naked on its own line so the agent
+   chat / terminal auto-linkifies it; any wrapping character breaks the
+   click-through. (The link opens a web page that hands off to the
+   desktop app.)
+
+When `should_cite` is `false`, OR when you didn't actually use the
+returned hits to answer, OR when the user asked for no sources —
+**skip the block entirely.** The engine intentionally suppresses
+low-confidence retrievals; don't second-guess by surfacing them in
+prose.
+
+Example final response shape (the `📚 …` block comes from the engine,
+emit it verbatim):
+
+```
+ATM: Er Rak Error is a 2012 Thai romantic comedy by Mez Tharatorn …
+
+📚 From ByteRover:
+- ATM: Er Rak Error (2012 Thai film) (fact)
+  http://127.0.0.1:<port>/i/topic/<space-id>/context-tree/movies/atm_er_rak_error.html#bve-a1b2c3d4
+- Pee Mak Phra Khanong (2013) (highlights)
+  http://127.0.0.1:<port>/i/topic/<space-id>/context-tree/movies/pee_mak_phra_khanong.html#bve-e5f6g7h8,k1m2n3p4
+```
+
+## Authenticate with ByteRover
+
+Run this when the user wants to **authenticate / log in / sign in / connect /
+link** ByteRover for this workspace (or when ByteRover reports the session has
+expired):
+
+```bash
+node scripts/auth.mjs
+```
+
+This returns **immediately** with `{ "ok": true, "pending": true, "verifyUrl":
+…, "userCode": …, "expiresInS": … }` while a background process waits for the
+approval. Relay the `verifyUrl` (and the code) to the user verbatim, tell them
+how long the code lives (`expiresInS`, typically a few minutes), and tell them
+to **come back and say "approved"** once they have approved in the browser.
+End your turn — do NOT poll or re-run commands while waiting.
+
+When the user returns, confirm with:
+
+```bash
+node scripts/auth.mjs status
+```
+
+- `{ "state": "approved" }` → connected; tell the user.
+- `{ "state": "pending" }` → not through yet — ask them to finish the browser
+  step (the result re-includes `verifyUrl`) and say so again.
+- `{ "state": "expired" }` → the code died; run `node scripts/auth.mjs` again
+  for a fresh one and re-relay it.
+- `{ "state": "denied" }` → the user declined; stop and surface it.
+
+Re-running `auth.mjs` while a flow is pending is safe — it returns the SAME
+code (`"reused": true`), never a competing one. No secret is ever pasted into
+the chat — only the short code. To **log out / sign out**:
+
+```bash
+node scripts/logout.mjs
+```
+
+For non-interactive / CI environments only, an API key may be supplied by file
+(never inline in the conversation): `node scripts/auth.mjs --key-file <path>`.
+A blocking variant that waits in the foreground until approval (for scripted
+use, NOT for conversations) is `node scripts/auth.mjs --wait`.
+
+Authentication is not required — every command works without it. See
+[sync.md](sync.md) for what authenticating enables, and
+[troubleshooting.md](troubleshooting.md) if `auth.mjs` returns `{ "ok": false }`.
 
 ## Authoring rich topics
 
@@ -232,6 +313,32 @@ output that ignores these rules ranks worse and reads worse:
   author.
 - **Don't invent custom elements** outside the 19-element `<bv-*>`
   vocabulary, or attributes outside each element's documented schema.
+
+### Sensitivity — mark facts you intend to share
+
+A topic can be shared at three views: **full** (everything), **redacted**
+(only `<bv-fact disclosure="public">` plus structural prose), and
+**metadata** (an opaque catalog handle — no content). Mark a fact you
+intend to share with `disclosure="public"`; otherwise the fact defaults
+to restricted and is stripped from the redacted view.
+
+Three rules to write by:
+
+- **`<bv-fact>` is the SOLE unit of per-item restriction.** The topic
+  `title` and all prose text (inside `<bv-structure>`, `<p>`, `<bv-flow>`,
+  `<bv-highlights>`, etc.) are **public-by-contract** — they survive the
+  redacted view verbatim. Never put a secret in the title or in prose;
+  move it into a `<bv-fact>` (which can then default to restricted).
+- **Absent or misspelled `disclosure` is treated as restricted.** Fail-
+  closed: a typo never accidentally publishes, but it can accidentally
+  hide. Double-check the spelling.
+- **`<bv-topic visibility>` does NOT make facts public.** It's an
+  informational label only. The redacted view consults each fact's own
+  `disclosure` attribute, never the topic-level default.
+
+See [vocabulary.md](vocabulary.md#sensitivity-and-the-disclosure-model)
+for the full model, the canonical example, and guidance on choosing
+public vs restricted for any given fact.
 
 ### Two record forms
 

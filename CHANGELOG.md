@@ -1,5 +1,16 @@
 # @byterover/skill-runtime
 
+## 0.6.1
+
+### Patch Changes
+
+- Add the daemon sync-now sentinel watcher, reset sync baselines on
+  disclosure-layer downgrades, keep cloud-bound local caches usable when auth is
+  expired, and drop the dev-app citation fallback.
+- Ship the fast-sync event-driven catch-up and delta path with safer cursor
+  advancement, dirty/LWW guards, prevRev validation, adaptive polling, and
+  poll-scoped backpressure.
+
 ## 0.6.0
 
 ### Minor Changes

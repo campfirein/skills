@@ -19,31 +19,36 @@ Readiness check only — **don't name the space.**
   space, then come back and tell me._ Re-check when they return; never create one
   yourself.
 - **Space ready** — say (name your host: Claude Code, Cursor, Codex, …):
-  _Welcome, **&lt;ByteRover&gt;** connects successfully to **&lt;current agent&gt;**! You can use **&lt;ByteRover&gt;** to
-  persist memory across sessions, so you never re-explain your work._
+  _Connected ByteRover to **&lt;current agent&gt;**. You can now work with
+  **&lt;current agent&gt;** as usual and ByteRover will capture and organize the
+  conversation into memory:_
 
   Then, on a **new line**, invite the first save and show a few examples — ask
   what they'd like to remember:
-  _Let's save your first memory — what should I remember? For example:_
-  1. Use English to communicate
-  2. Use ByteRover to remember things across sessions
-  3. &lt;a fact about your project, if you're in one&gt;
+  _Let's save your first memory. What should I remember? For example:_
+  1. A rule for your current project
+  2. A preference, like always reply in English
+  3. Use ByteRover to remember and update details, and show me the sources when
+     **&lt;current agent&gt;** recalls from ByteRover
 
 When they answer, save it with `record.mjs`.
 
 ## 2. Recall it — then wrap up
 
 After the save succeeds, say:
-_Saved successfully to ByteRover! Now let's recall it back — send this:_ — then:
+_Saved to ByteRover. Now let's recall it. Send this:_ — then:
 
 What does ByteRover know about &lt;topic&gt;?
 
-When they send it, run `query.mjs` and show the recalled answer in one line (skip
-the `citation_block`). **Then, in the SAME response — do not stop or wait —** wrap
-up, with a **blank line between each**:
+When they send it, run `query.mjs`. **Then, in the SAME response — do not stop or
+wait —** show the recalled answer with its source, then wrap up, with a **blank
+line between each block**:
 
-_That's how it works! You can use ByteRover to save and recall memories whenever
-you want._
+_ByteRover knows: &lt;recalled answer&gt;._
+_Source: &lt;memory path&gt; (your private space)_
 
-_Memories are saved in space **&lt;space-name&gt;** by default — open the desktop
-app to explore more._
+_That's how it works. From now on **&lt;current agent&gt;** will save and recall your
+memory automatically, and show you the source each time it recalls._
+
+_Your memory is saved to your private space by default, and you can open the
+desktop app to explore more._

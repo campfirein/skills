@@ -1,5 +1,13 @@
 # @byterover/skill-runtime
 
+## 0.6.2
+
+### Patch Changes
+
+- Refine the onboarding guide copy for first-memory setup and recall: prompt for
+  more useful memory examples, show the recalled source, and describe the default
+  private-space behavior more clearly.
+
 ## 0.6.1
 
 ### Patch Changes

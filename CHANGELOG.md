@@ -1,5 +1,11 @@
 # @byterover/skill-runtime
 
+## 0.7.0
+
+### Minor Changes
+
+- Release skill 0.7.0.
+
 ## 0.6.3
 
 ### Patch Changes

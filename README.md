@@ -14,10 +14,8 @@ and published for skill installers. The shipped skill lives at
 ## Install
 
 ```bash
-npx skills add campfirein/skills@skill-v0.6.2
+npx skills add campfirein/skills
 ```
-
-Released as `skill-v0.6.2` from `byterover-mono@5a48faa`.
 
 ## Skill Process
 
@@ -44,5 +42,4 @@ the user's language; schema names, enum values, and topic paths stay in English.
 
 This repo is a release artifact. Update the source templates in
 `byterover-mono` for behavioral changes, then publish a new skill release. Keep
-this README aligned with the latest tag and the generated `skills/byterover`
-layout.
+this README aligned with the generated `skills/byterover` layout.

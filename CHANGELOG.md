@@ -1,5 +1,14 @@
 # @byterover/skill-runtime
 
+## 0.6.3
+
+### Patch Changes
+
+- Accept UUIDv7 space IDs in the sync daemon and context-tree metadata handling.
+- Ship the push-bundle/cold-sync runtime path: bounded cold-sync concurrency,
+  runtime env reads, safer bundle tar handling, shared-space sync hardening, and
+  bundle upload fallback behavior.
+
 ## 0.6.2
 
 ### Patch Changes

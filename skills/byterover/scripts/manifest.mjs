@@ -1,10 +1,482 @@
 #!/usr/bin/env node
 import{createRequire as __cr}from'module';const require=__cr(import.meta.url);
+var __create = Object.create;
 var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getProtoOf = Object.getPrototypeOf, __hasOwnProp = Object.prototype.hasOwnProperty;
+var __require = /* @__PURE__ */ ((x) => typeof require < "u" ? require : typeof Proxy < "u" ? new Proxy(x, {
+  get: (a, b) => (typeof require < "u" ? require : a)[b]
+}) : x)(function(x) {
+  if (typeof require < "u") return require.apply(this, arguments);
+  throw Error('Dynamic require of "' + x + '" is not supported');
+});
+var __commonJS = (cb, mod) => function() {
+  return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+};
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, { get: all[name], enumerable: !0 });
+}, __copyProps = (to, from, except, desc) => {
+  if (from && typeof from == "object" || typeof from == "function")
+    for (let key of __getOwnPropNames(from))
+      !__hasOwnProp.call(to, key) && key !== except && __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  return to;
 };
+var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+  // If the importer is in node compatibility mode or this is not an ESM
+  // file that has been converted to a CommonJS file using a Babel-
+  // compatible transform (i.e. "__esModule" has not been set), then set
+  // "default" to the CommonJS "module.exports" for node compatibility.
+  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: !0 }) : target,
+  mod
+));
+
+// ../../packages/realtime-contracts/index.cjs
+var require_realtime_contracts = __commonJS({
+  "../../packages/realtime-contracts/index.cjs"(exports, module) {
+    "use strict";
+    var __create2 = Object.create, __defProp2 = Object.defineProperty, __getOwnPropDesc2 = Object.getOwnPropertyDescriptor, __getOwnPropNames2 = Object.getOwnPropertyNames, __getProtoOf2 = Object.getPrototypeOf, __hasOwnProp2 = Object.prototype.hasOwnProperty, __export2 = (target, all) => {
+      for (var name in all)
+        __defProp2(target, name, { get: all[name], enumerable: !0 });
+    }, __copyProps2 = (to, from, except, desc) => {
+      if (from && typeof from == "object" || typeof from == "function")
+        for (let key of __getOwnPropNames2(from))
+          !__hasOwnProp2.call(to, key) && key !== except && __defProp2(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc2(from, key)) || desc.enumerable });
+      return to;
+    }, __toESM2 = (mod, isNodeMode, target) => (target = mod != null ? __create2(__getProtoOf2(mod)) : {}, __copyProps2(
+      // If the importer is in node compatibility mode or this is not an ESM
+      // file that has been converted to a CommonJS file using a Babel-
+      // compatible transform (i.e. "__esModule" has not been set), then set
+      // "default" to the CommonJS "module.exports" for node compatibility.
+      isNodeMode || !mod || !mod.__esModule ? __defProp2(target, "default", { value: mod, enumerable: !0 }) : target,
+      mod
+    )), __toCommonJS = (mod) => __copyProps2(__defProp2({}, "__esModule", { value: !0 }), mod), index_exports = {};
+    __export2(index_exports, {
+      BOOTSTRAP_FALLBACK_REASONS: () => BOOTSTRAP_FALLBACK_REASONS,
+      CAPABILITY_CHANGED_EVENT: () => CAPABILITY_CHANGED_EVENT,
+      CAPABILITY_PUBLISH_MAX_EVENTS: () => CAPABILITY_PUBLISH_MAX_EVENTS,
+      CAPABILITY_PUBLISH_REASONS: () => CAPABILITY_PUBLISH_REASONS,
+      CHANGES_FALLBACK_REASONS: () => CHANGES_FALLBACK_REASONS,
+      FAST_BOOTSTRAP_LOCAL_REASONS: () => FAST_BOOTSTRAP_LOCAL_REASONS,
+      FAST_BOOTSTRAP_MODES: () => FAST_BOOTSTRAP_MODES,
+      FAST_BOOTSTRAP_PHASES: () => FAST_BOOTSTRAP_PHASES,
+      FAST_BOOTSTRAP_SEVERITIES: () => FAST_BOOTSTRAP_SEVERITIES,
+      FAST_BOOTSTRAP_STATUS_REASONS: () => FAST_BOOTSTRAP_STATUS_REASONS,
+      FAST_SYNC_BACKEND_REASONS: () => FAST_SYNC_BACKEND_REASONS,
+      FAST_SYNC_FALLBACK_ACTIONS: () => FAST_SYNC_FALLBACK_ACTIONS,
+      FAST_SYNC_FALLBACK_REASONS: () => FAST_SYNC_FALLBACK_REASONS,
+      INVITATIONS_CHANGED_EVENT: () => INVITATIONS_CHANGED_EVENT,
+      INVITATION_CHANGED_REASONS: () => INVITATION_CHANGED_REASONS,
+      INVITATION_PUBLISH_MAX_EVENTS: () => INVITATION_PUBLISH_MAX_EVENTS,
+      INVITATION_PUBLISH_PATH: () => INVITATION_PUBLISH_PATH,
+      NOTIFICATIONS_CHANGED_EVENT: () => NOTIFICATIONS_CHANGED_EVENT,
+      NOTIFICATION_CHANGED_REASONS: () => NOTIFICATION_CHANGED_REASONS,
+      NOTIFICATION_PUBLISH_MAX_EVENTS: () => NOTIFICATION_PUBLISH_MAX_EVENTS,
+      NOTIFICATION_PUBLISH_PATH: () => NOTIFICATION_PUBLISH_PATH,
+      assertSafeTarEntryName: () => assertSafeTarEntryName,
+      buildCapabilityChangedEvent: () => buildCapabilityChangedEvent,
+      buildInvitationsChangedEvent: () => buildInvitationsChangedEvent,
+      buildNotificationsChangedEvent: () => buildNotificationsChangedEvent,
+      buildUserRoom: () => buildUserRoom,
+      hasOnlyKeys: () => hasOnlyKeys,
+      isBootstrapResponse: () => isBootstrapResponse2,
+      isCapabilityChangedEvent: () => isCapabilityChangedEvent,
+      isCapabilityPublishEvent: () => isCapabilityPublishEvent,
+      isCapabilityPublishRequest: () => isCapabilityPublishRequest,
+      isChangesResponse: () => isChangesResponse2,
+      isFastBootstrapStatusReason: () => isFastBootstrapStatusReason,
+      isInvitationPublishEvent: () => isInvitationPublishEvent,
+      isInvitationPublishRequest: () => isInvitationPublishRequest,
+      isInvitationsChangedEvent: () => isInvitationsChangedEvent,
+      isMemoryChangedEvent: () => isMemoryChangedEvent,
+      isNotificationPublishEvent: () => isNotificationPublishEvent,
+      isNotificationPublishRequest: () => isNotificationPublishRequest,
+      isNotificationsChangedEvent: () => isNotificationsChangedEvent,
+      isPushBundleResult: () => isPushBundleResult2,
+      isRevisionRecord: () => isRevisionRecord,
+      isSafeSyncKey: () => isSafeSyncKey,
+      isSnapshotManifest: () => isSnapshotManifest,
+      makeCapabilityPublishEvent: () => makeCapabilityPublishEvent,
+      makeInvitationPublishEvent: () => makeInvitationPublishEvent,
+      makeNotificationPublishEvent: () => makeNotificationPublishEvent,
+      makeRevisionRange: () => makeRevisionRange,
+      requiresSpaceId: () => requiresSpaceId,
+      requiresTeamId: () => requiresTeamId,
+      zeroPadRevision: () => zeroPadRevision
+    });
+    module.exports = __toCommonJS(index_exports);
+    var import_node_path33 = __toESM2(__require("node:path"), 1);
+    function assertSafeTarEntryName(name, options = {}) {
+      if (options.type && options.type !== "file")
+        throw new Error("unsafe tar entry");
+      if (name.includes("\\") || name.includes("\0") || import_node_path33.default.posix.isAbsolute(name))
+        throw new Error("unsafe tar entry");
+      let normalized = import_node_path33.default.posix.normalize(name);
+      if (normalized === "." || normalized === ".." || normalized.startsWith("../"))
+        throw new Error("unsafe tar entry");
+      if (options.seen?.has(normalized)) throw new Error("duplicate tar entry");
+      return normalized;
+    }
+    function isMemoryChangedEvent(value) {
+      return !(!isRecord2(value) || typeof value.teamId != "string" || typeof value.spaceId != "string" || typeof value.key != "string" || typeof value.at != "string" || value.op !== "put" && value.op !== "delete" || value.md5 !== void 0 && typeof value.md5 != "string" || value.rev !== void 0 && !isRevisionNumber(value.rev) || value.prevRev !== void 0 && value.prevRev !== null && !isRevisionNumber(value.prevRev));
+    }
+    var CAPABILITY_CHANGED_EVENT = "capabilities.changed", INVITATIONS_CHANGED_EVENT = "invitations.changed", NOTIFICATIONS_CHANGED_EVENT = "notifications.changed", CAPABILITY_PUBLISH_MAX_EVENTS = 500, INVITATION_PUBLISH_MAX_EVENTS = 500, INVITATION_PUBLISH_PATH = "/internal/invitations", NOTIFICATION_PUBLISH_MAX_EVENTS = 100, NOTIFICATION_PUBLISH_PATH = "/internal/notifications", CAPABILITY_PUBLISH_REASONS = [
+      "team_created",
+      "team_updated",
+      "team_deleted",
+      "team_activation_changed",
+      "billing_sync_state_changed",
+      "space_created",
+      "space_updated",
+      "space_deleted",
+      "space_archived",
+      "membership_added",
+      "membership_removed",
+      "membership_role_changed",
+      "membership_left",
+      "ownership_transferred",
+      "space_grant_added",
+      "space_grant_changed",
+      "space_grant_removed"
+    ], INVITATION_CHANGED_REASONS = [
+      "created",
+      "revoked",
+      "accepted",
+      "rejected"
+    ], NOTIFICATION_CHANGED_REASONS = [
+      "created",
+      "updated",
+      "read",
+      "archived"
+    ], UUID_RE2 = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, reasons = new Set(CAPABILITY_PUBLISH_REASONS), invitationReasons = new Set(INVITATION_CHANGED_REASONS), notificationReasons = new Set(NOTIFICATION_CHANGED_REASONS);
+    function buildUserRoom(userId) {
+      if (!UUID_RE2.test(userId)) throw new Error("invalid user id");
+      return `user:${userId}`;
+    }
+    function buildCapabilityChangedEvent(input) {
+      return {
+        ...input.capabilityVersion === void 0 ? {} : { capabilityVersion: input.capabilityVersion },
+        at: input.at ?? (/* @__PURE__ */ new Date()).toISOString()
+      };
+    }
+    function makeCapabilityPublishEvent(input) {
+      let raw = input;
+      if (!isCapabilityPublishEvent(input))
+        throw requiresSpaceId(raw.reason) && !raw.spaceId ? new Error("spaceId is required") : requiresTeamId(raw.reason) && !raw.teamId ? new Error("teamId is required") : new Error("invalid capability publish event");
+      return input;
+    }
+    function isCapabilityChangedEvent(value) {
+      return !(!isRecord2(value) || !Object.keys(value).every((key) => key === "capabilityVersion" || key === "at") || typeof value.at != "string" || Number.isNaN(Date.parse(value.at)) || "capabilityVersion" in value && !isNonNegativeSafeInteger(value.capabilityVersion));
+    }
+    function isCapabilityPublishRequest(value) {
+      return !isRecord2(value) || !Array.isArray(value.events) || value.events.length === 0 || value.events.length > 500 ? !1 : value.events.every(isCapabilityPublishEvent);
+    }
+    function isCapabilityPublishEvent(value) {
+      return !(!isRecord2(value) || typeof value.userId != "string" || !UUID_RE2.test(value.userId) || !isNonNegativeSafeInteger(value.capabilityVersion) || typeof value.reason != "string" || !reasons.has(value.reason) || "teamId" in value && !isOptionalUuid(value.teamId) || "spaceId" in value && !isOptionalUuid(value.spaceId) || requiresTeamId(value.reason) && typeof value.teamId != "string" || requiresSpaceId(value.reason) && typeof value.spaceId != "string");
+    }
+    function requiresTeamId(reason) {
+      return reason !== "billing_sync_state_changed";
+    }
+    function requiresSpaceId(reason) {
+      return reason === "space_created" || reason === "space_updated" || reason === "space_deleted" || reason === "space_archived" || reason === "space_grant_added" || reason === "space_grant_changed" || reason === "space_grant_removed";
+    }
+    function buildInvitationsChangedEvent(input) {
+      return {
+        reason: input.reason,
+        at: input.at ?? (/* @__PURE__ */ new Date()).toISOString()
+      };
+    }
+    function makeInvitationPublishEvent(input) {
+      if (!isInvitationPublishEvent(input))
+        throw new Error("invalid invitation publish event");
+      return input;
+    }
+    function isInvitationsChangedEvent(value) {
+      return !(!isRecord2(value) || !Object.keys(value).every((key) => key === "reason" || key === "at") || typeof value.reason != "string" || !invitationReasons.has(value.reason) || typeof value.at != "string" || Number.isNaN(Date.parse(value.at)));
+    }
+    function isInvitationPublishRequest(value) {
+      if (!isRecord2(value)) return !1;
+      let keys = Object.keys(value);
+      return keys.length !== 1 || keys[0] !== "events" || !Array.isArray(value.events) || value.events.length === 0 || value.events.length > INVITATION_PUBLISH_MAX_EVENTS ? !1 : value.events.every(isInvitationPublishEvent);
+    }
+    function isInvitationPublishEvent(value) {
+      if (!isRecord2(value)) return !1;
+      let keys = Object.keys(value), hasAt = "at" in value;
+      if (hasAt) {
+        if (!keys.every((key) => key === "userId" || key === "reason" || key === "at"))
+          return !1;
+      } else if (!keys.every((key) => key === "userId" || key === "reason"))
+        return !1;
+      return !(typeof value.userId != "string" || !UUID_RE2.test(value.userId) || typeof value.reason != "string" || !invitationReasons.has(value.reason) || hasAt && (typeof value.at != "string" || Number.isNaN(Date.parse(value.at))));
+    }
+    function buildNotificationsChangedEvent(input) {
+      return {
+        reason: input.reason,
+        at: input.at ?? (/* @__PURE__ */ new Date()).toISOString()
+      };
+    }
+    function makeNotificationPublishEvent(input) {
+      if (!isNotificationPublishEvent(input))
+        throw new Error("invalid notification publish event");
+      return input;
+    }
+    function isNotificationsChangedEvent(value) {
+      return !(!isRecord2(value) || !Object.keys(value).every((key) => key === "reason" || key === "at") || typeof value.reason != "string" || !notificationReasons.has(value.reason) || typeof value.at != "string" || Number.isNaN(Date.parse(value.at)));
+    }
+    function isNotificationPublishRequest(value) {
+      if (!isRecord2(value)) return !1;
+      let keys = Object.keys(value);
+      return keys.length !== 1 || keys[0] !== "events" || !Array.isArray(value.events) || value.events.length === 0 || value.events.length > NOTIFICATION_PUBLISH_MAX_EVENTS ? !1 : value.events.every(isNotificationPublishEvent);
+    }
+    function isNotificationPublishEvent(value) {
+      if (!isRecord2(value)) return !1;
+      let keys = Object.keys(value), hasAt = "at" in value;
+      if (hasAt) {
+        if (!keys.every((key) => key === "userId" || key === "reason" || key === "at"))
+          return !1;
+      } else if (!keys.every((key) => key === "userId" || key === "reason"))
+        return !1;
+      return !(typeof value.userId != "string" || !UUID_RE2.test(value.userId) || typeof value.reason != "string" || !notificationReasons.has(value.reason) || hasAt && (typeof value.at != "string" || Number.isNaN(Date.parse(value.at))));
+    }
+    function isRecord2(value) {
+      return typeof value == "object" && value !== null && !Array.isArray(value);
+    }
+    function isOptionalUuid(value) {
+      return value === void 0 || typeof value == "string" && UUID_RE2.test(value);
+    }
+    function isNonNegativeSafeInteger(value) {
+      return typeof value == "number" && Number.isSafeInteger(value) && value >= 0;
+    }
+    var BOOTSTRAP_FALLBACK_REASONS = [
+      "unsupported_layer",
+      "snapshot_missing",
+      "snapshot_stale",
+      "snapshot_building",
+      "snapshot_artifact_missing",
+      "snapshot_corrupt",
+      "unsafe_revision_log",
+      "authz_denied"
+    ], CHANGES_FALLBACK_REASONS = [
+      "unsupported_layer",
+      "revision_gap",
+      "delta_too_large",
+      "delta_body_too_large",
+      "unsafe_revision_log",
+      "authz_denied"
+    ], FAST_SYNC_FALLBACK_REASONS = [
+      ...BOOTSTRAP_FALLBACK_REASONS,
+      ...CHANGES_FALLBACK_REASONS
+    ], FAST_SYNC_FALLBACK_ACTIONS = [
+      "legacy",
+      "retry_bootstrap",
+      "blocked"
+    ], FAST_BOOTSTRAP_MODES = ["snapshot", "legacy"], FAST_SYNC_BACKEND_REASONS = [
+      "unsupported_layer",
+      "snapshot_missing",
+      "snapshot_stale",
+      "snapshot_building",
+      "snapshot_artifact_missing",
+      "snapshot_corrupt",
+      "unsafe_revision_log",
+      "authz_denied",
+      "revision_gap",
+      "delta_too_large",
+      "delta_body_too_large"
+    ], FAST_BOOTSTRAP_LOCAL_REASONS = [
+      "dirty_local_tree",
+      "snapshot_promote_pending",
+      "bundle_handle_expired_or_mismatched",
+      "bootstrap_transport_error",
+      "bootstrap_contract_invalid",
+      "worker_revoked",
+      "too_many_syncable_spaces"
+    ], FAST_BOOTSTRAP_STATUS_REASONS = [
+      ...FAST_SYNC_BACKEND_REASONS,
+      ...FAST_BOOTSTRAP_LOCAL_REASONS
+    ];
+    function isFastBootstrapStatusReason(value) {
+      return typeof value == "string" && FAST_BOOTSTRAP_STATUS_REASONS.includes(value);
+    }
+    var FAST_BOOTSTRAP_SEVERITIES = [
+      "silent",
+      "informational",
+      "warning",
+      "error"
+    ], FAST_BOOTSTRAP_PHASES = [
+      "idle",
+      "checking_bootstrap",
+      "snapshot_downloading",
+      "snapshot_unpacking",
+      "snapshot_verifying",
+      "delta_applying",
+      "tail_catching_up",
+      "promoting",
+      "baseline_seeding",
+      "index_rebuilding",
+      "ready",
+      "legacy_bootstrap",
+      "retry_waiting",
+      "failed",
+      "cancelled"
+    ];
+    function makeRevisionRange(fromRevExclusive, toRevInclusive) {
+      if (!isRevisionCursor(fromRevExclusive) || !isRevisionNumber(toRevInclusive) || toRevInclusive < fromRevExclusive)
+        throw new Error("invalid revision range");
+      return { fromRevExclusive, toRevInclusive };
+    }
+    function zeroPadRevision(rev) {
+      if (!isRevisionNumber(rev)) throw new Error("invalid revision");
+      return String(rev).padStart(18, "0");
+    }
+    function isRevisionRecord(value) {
+      if (!isRecord2(value) || !hasExactBaseKeys(value)) return !1;
+      if (value.op === "put") {
+        let putKeys = [
+          "schemaVersion",
+          "rev",
+          "prevRev",
+          "teamId",
+          "spaceId",
+          "requestId",
+          "createdAt",
+          "op",
+          "entry",
+          "objectGeneration",
+          "contentSha256",
+          ...value.body === void 0 ? [] : ["body"]
+        ];
+        return hasOnlyKeys(value, putKeys) && isManifestEntry(value.entry) && typeof value.objectGeneration == "string" && isSha256(value.contentSha256) && (value.body === void 0 || isInlineRevisionBody(value.body));
+      }
+      return value.op === "delete" ? hasOnlyKeys(value, [
+        "schemaVersion",
+        "rev",
+        "prevRev",
+        "teamId",
+        "spaceId",
+        "requestId",
+        "createdAt",
+        "op",
+        "key"
+      ]) && isSafeSyncKey(value.key) : value.op === "delete_folder" ? hasOnlyKeys(value, [
+        "schemaVersion",
+        "rev",
+        "prevRev",
+        "teamId",
+        "spaceId",
+        "requestId",
+        "createdAt",
+        "op",
+        "deleteScope",
+        "deletePrefix",
+        "deletedKeys"
+      ]) && value.deleteScope === "exact_keys" && isSafeSyncKey(value.deletePrefix) && Array.isArray(value.deletedKeys) && value.deletedKeys.every(isSafeSyncKey) && isSorted(value.deletedKeys) : !1;
+    }
+    function isBootstrapResponse2(value) {
+      return isRecord2(value) ? value.kind === "snapshot" ? hasOnlyKeys(value, ["kind", "manifest", "currentRevision", "bundle"]) && isSnapshotManifest(value.manifest) && isRevisionCursor(value.currentRevision) && isRecord2(value.bundle) && hasOnlyKeys(value.bundle, ["kind", "handle"]) && value.bundle.kind === "backend-handle" && typeof value.bundle.handle == "string" && value.bundle.handle.length > 0 : value.kind === "fallback_required" ? isFallbackResponse(value, BOOTSTRAP_FALLBACK_REASONS, !0) : !1 : !1;
+    }
+    function isChangesResponse2(value) {
+      return isRecord2(value) ? value.kind === "revision_list" ? hasOnlyKeys(value, [
+        "kind",
+        "fromRevExclusive",
+        "toRevInclusive",
+        "records"
+      ]) && isRevisionCursor(value.fromRevExclusive) && isRevisionNumber(value.toRevInclusive) && value.toRevInclusive >= value.fromRevExclusive && Array.isArray(value.records) && value.records.every(isRevisionRecord) : value.kind === "fallback_required" ? isFallbackResponse(value, CHANGES_FALLBACK_REASONS, !1) : !1 : !1;
+    }
+    function isSnapshotManifest(value) {
+      return isRecord2(value) && hasOnlyKeys(value, [
+        "schemaVersion",
+        "formatVersion",
+        "teamId",
+        "spaceId",
+        "snapshotRevision",
+        "createdAt",
+        "fileCount",
+        "totalBytes",
+        "bundleSha256",
+        "bundleByteCount",
+        "objectGeneration",
+        "manifestEntries"
+      ]) && value.schemaVersion === 1 && value.formatVersion === "tar-gzip-v1" && typeof value.teamId == "string" && typeof value.spaceId == "string" && isRevisionCursor(value.snapshotRevision) && typeof value.createdAt == "string" && !Number.isNaN(Date.parse(value.createdAt)) && isNonNegativeSafeInteger(value.fileCount) && isNonNegativeSafeInteger(value.totalBytes) && isSha256(value.bundleSha256) && isNonNegativeSafeInteger(value.bundleByteCount) && typeof value.objectGeneration == "string" && Array.isArray(value.manifestEntries) && value.manifestEntries.every(isManifestEntry);
+    }
+    function isManifestEntry(value) {
+      return isRecord2(value) && hasOnlyKeys(value, ["key", "md5", "size", "contentType", "updatedAt"]) && isSafeSyncKey(value.key) && typeof value.md5 == "string" && /^[0-9a-f]{32}$/.test(value.md5) && isNonNegativeSafeInteger(value.size) && typeof value.contentType == "string" && typeof value.updatedAt == "string" && !Number.isNaN(Date.parse(value.updatedAt));
+    }
+    function hasExactBaseKeys(value) {
+      return value.schemaVersion === 1 && isRevisionNumber(value.rev) && (value.prevRev === null || isRevisionNumber(value.prevRev)) && typeof value.teamId == "string" && typeof value.spaceId == "string" && typeof value.requestId == "string" && typeof value.createdAt == "string" && !Number.isNaN(Date.parse(value.createdAt));
+    }
+    function hasOnlyKeys(value, keys) {
+      let allowed = new Set(keys);
+      return Object.keys(value).every((key) => allowed.has(key)) && keys.every((key) => key in value);
+    }
+    function isRevisionNumber(value) {
+      return typeof value == "number" && Number.isSafeInteger(value) && value > 0;
+    }
+    function isRevisionCursor(value) {
+      return typeof value == "number" && Number.isSafeInteger(value) && value >= 0;
+    }
+    function isSha256(value) {
+      return typeof value == "string" && /^[0-9a-f]{64}$/.test(value);
+    }
+    function isSafeSyncKey(value) {
+      return !(typeof value != "string" || value.length === 0 || value.startsWith("/") || value.includes(".."));
+    }
+    function isSorted(values) {
+      for (let i = 1; i < values.length; i += 1)
+        if (values[i - 1].localeCompare(values[i]) > 0) return !1;
+      return !0;
+    }
+    function isOneOf(value, allowed) {
+      return typeof value == "string" && allowed.includes(value);
+    }
+    function isPositiveSafeInteger(value) {
+      return typeof value == "number" && Number.isSafeInteger(value) && value > 0;
+    }
+    function isInlineRevisionBody(value) {
+      return isRecord2(value) && hasOnlyKeys(value, ["kind", "base64"]) && value.kind === "inline-base64" && typeof value.base64 == "string" && value.base64.length > 0 && value.base64.length <= 4 * 1024 * 1024 && /^[A-Za-z0-9+/]*={0,2}$/.test(value.base64) && Buffer.from(value.base64, "base64").toString("base64") === value.base64;
+    }
+    function isFastSyncSpaceSizePolicy(value) {
+      return isRecord2(value) && hasOnlyKeys(value, [
+        "class",
+        "fileCount",
+        "totalBytes",
+        "largeFileThreshold",
+        "largeBytesThreshold"
+      ]) && (value.class === "small" || value.class === "large") && isNonNegativeSafeInteger(value.fileCount) && isNonNegativeSafeInteger(value.totalBytes) && isPositiveSafeInteger(value.largeFileThreshold) && isPositiveSafeInteger(value.largeBytesThreshold);
+    }
+    function isFallbackResponse(value, allowedReasons, allowBootstrapMetadata) {
+      if (!isOneOf(value.reason, allowedReasons) || !["legacy", "retry_bootstrap", "blocked"].includes(String(value.fallback)) || value.fallback === "legacy" && value.legacyAllowed !== !0 || value.fallback !== "legacy" && value.legacyAllowed !== !1 || value.fallback === "legacy" && Object.prototype.hasOwnProperty.call(value, "retryAfterMs") || value.fallback === "retry_bootstrap" && !isPositiveSafeInteger(value.retryAfterMs) || value.fallback === "blocked" && value.retryAfterMs !== void 0 && !isPositiveSafeInteger(value.retryAfterMs))
+        return !1;
+      if (value.reason === "unsupported_layer" || value.reason === "authz_denied")
+        return hasOnlyKeys(value, [
+          "kind",
+          "reason",
+          "fallback",
+          "legacyAllowed",
+          ...value.retryAfterMs === void 0 ? [] : ["retryAfterMs"]
+        ]);
+      let bootstrapMetadataKeys = [
+        ...value.spaceSizePolicy === void 0 ? [] : ["spaceSizePolicy"],
+        ...value.currentRevision === void 0 ? [] : ["currentRevision"],
+        ...value.snapshotRevision === void 0 ? [] : ["snapshotRevision"],
+        ...value.maxCatchupRecords === void 0 ? [] : ["maxCatchupRecords"]
+      ];
+      return value.spaceSizePolicy !== void 0 && !isFastSyncSpaceSizePolicy(value.spaceSizePolicy) || value.currentRevision !== void 0 && !isRevisionCursor(value.currentRevision) || value.snapshotRevision !== void 0 && !isRevisionNumber(value.snapshotRevision) || value.maxCatchupRecords !== void 0 && !isPositiveSafeInteger(value.maxCatchupRecords) ? !1 : hasOnlyKeys(value, [
+        "kind",
+        "reason",
+        "fallback",
+        "legacyAllowed",
+        ...value.retryAfterMs === void 0 ? [] : ["retryAfterMs"],
+        ...allowBootstrapMetadata ? bootstrapMetadataKeys : []
+      ]);
+    }
+    function isPushBundleResult2(value) {
+      return !isRecord2(value) || !hasOnlyKeys(value, ["revision", "files"]) || !isRevisionNumber(value.revision) || !Array.isArray(value.files) ? !1 : value.files.every(
+        (f) => isRecord2(f) && hasOnlyKeys(f, ["key", "md5", "updatedAt"]) && isSafeSyncKey(f.key) && typeof f.md5 == "string" && /^[0-9a-f]{32}$/.test(f.md5) && typeof f.updatedAt == "string" && !Number.isNaN(Date.parse(f.updatedAt))
+      );
+    }
+  }
+});
 
 // src/commands.ts
 import { randomUUID as randomUUID6 } from "node:crypto";
@@ -9414,9 +9886,12 @@ import { homedir, platform } from "node:os";
 import { basename, dirname as dirname2, isAbsolute, join as join2, resolve as resolve2, sep as sep2 } from "node:path";
 
 // ../../packages/core/src/identity/uuid-v4.ts
-var UUID_V4_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
+var UUID_V4_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/, UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 function isUuidV4(value) {
   return typeof value == "string" && UUID_V4_REGEX.test(value);
+}
+function isUuid(value) {
+  return typeof value == "string" && UUID_REGEX.test(value);
 }
 
 // ../../packages/core/src/tree/paths.ts
@@ -9459,7 +9934,7 @@ function assertAbsolutePath(label, path2) {
     throw new Error(`${label} must be absolute`);
 }
 function assertValidSpaceId(spaceId) {
-  if (!isUuidV4(spaceId) || isAbsolute(spaceId) || spaceId.includes("/") || spaceId.includes("\\") || spaceId === "." || spaceId === "..")
+  if (!isUuid(spaceId) || isAbsolute(spaceId) || spaceId.includes("/") || spaceId.includes("\\") || spaceId === "." || spaceId === "..")
     throw new Error(`invalid spaceId for sync state path: ${spaceId}`);
 }
 function daemonSpaceStateDirForSpace(projectsRoot, spaceId) {
@@ -12944,23 +13419,23 @@ function emptyRegistry() {
 function isBinding(value) {
   if (typeof value != "object" || value === null) return !1;
   let v = value;
-  return typeof v.folder == "string" && isUuidV4(v.space_id) && typeof v.addedAt == "string" && (v.removedAt === void 0 || typeof v.removedAt == "string");
+  return typeof v.folder == "string" && isUuid(v.space_id) && typeof v.addedAt == "string" && (v.removedAt === void 0 || typeof v.removedAt == "string");
 }
 function isDeletedSpace(value) {
   if (typeof value != "object" || value === null) return !1;
   let v = value;
-  return isUuidV4(v.space_id) && typeof v.deletedAt == "string" && typeof v.hard == "boolean";
+  return isUuid(v.space_id) && typeof v.deletedAt == "string" && typeof v.hard == "boolean";
 }
 function normalizeRegistryDocument(obj) {
   let bindings = Array.isArray(obj.bindings) ? obj.bindings.filter((v) => isBinding(v)) : [], deletedSpaces = Array.isArray(obj.deletedSpaces) ? obj.deletedSpaces.filter((v) => isDeletedSpace(v)) : [], doc = { ...obj, bindings, deletedSpaces };
-  return isUuidV4(obj.defaultSpaceId) ? doc.defaultSpaceId = obj.defaultSpaceId : delete doc.defaultSpaceId, doc;
+  return isUuid(obj.defaultSpaceId) ? doc.defaultSpaceId = obj.defaultSpaceId : delete doc.defaultSpaceId, doc;
 }
 function assertRegistryDocumentForMutation(obj) {
   if (obj.bindings !== void 0 && !Array.isArray(obj.bindings))
     throw new MalformedRegistryError("bindings registry is malformed");
   if (obj.deletedSpaces !== void 0 && !Array.isArray(obj.deletedSpaces))
     throw new MalformedRegistryError("bindings registry is malformed");
-  if (obj.defaultSpaceId !== void 0 && !isUuidV4(obj.defaultSpaceId))
+  if (obj.defaultSpaceId !== void 0 && !isUuid(obj.defaultSpaceId))
     throw new MalformedRegistryError("bindings registry is malformed");
   if (Array.isArray(obj.bindings) && !obj.bindings.every(isBinding))
     throw new MalformedRegistryError("bindings registry is malformed");
@@ -13070,8 +13545,8 @@ async function readBindings() {
   return (await readRegistry()).bindings;
 }
 async function addBinding(folder, space_id) {
-  if (!isUuidV4(space_id))
-    throw new Error("addBinding: space_id must be a UUID v4 string");
+  if (!isUuid(space_id))
+    throw new Error("addBinding: space_id must be a UUID string");
   let canonicalFolder = resolve4(folder);
   await mutateRegistry((reg) => {
     let now = (/* @__PURE__ */ new Date()).toISOString(), activeIdx = reg.bindings.findIndex(
@@ -13135,17 +13610,17 @@ var SPACE_METADATA_FILENAME = "metadata.json", InvalidSpaceMetadataError = class
   }
 };
 function validateFields(space_id, space_name, team_id, created_at) {
-  if (!isUuidV4(space_id))
+  if (!isUuid(space_id))
     throw new InvalidSpaceMetadataError(
-      "'space_id' must be a UUID v4 string"
+      "'space_id' must be a UUID string"
     );
   if (typeof space_name != "string" || space_name.length === 0)
     throw new InvalidSpaceMetadataError(
       "'space_name' must be a non-empty string"
     );
-  if (team_id !== null && !isUuidV4(team_id))
+  if (team_id !== null && !isUuid(team_id))
     throw new InvalidSpaceMetadataError(
-      "'team_id' must be a UUID v4 string or null"
+      "'team_id' must be a UUID string or null"
     );
   if (typeof created_at != "string" || created_at.length === 0)
     throw new InvalidSpaceMetadataError(
@@ -15363,9 +15838,9 @@ function parseMarker(content) {
   let obj = raw, space_id = obj.space_id;
   if (space_id === void 0)
     throw new InvalidMarkerError("missing 'space_id' field");
-  if (!isUuidV4(space_id))
+  if (!isUuid(space_id))
     throw new InvalidMarkerError(
-      "'space_id' must be a UUID v4 string"
+      "'space_id' must be a UUID string"
     );
   let space_name = obj.space_name;
   if (space_name === void 0)
@@ -15385,8 +15860,8 @@ import { randomBytes as randomBytes4 } from "node:crypto";
 import { readFile as readFile11, rename as rename6, rm as rm10, writeFile as writeFile6 } from "node:fs/promises";
 import { join as join13, resolve as resolve6 } from "node:path";
 async function writeMarker(cwd, marker) {
-  if (!isUuidV4(marker.space_id))
-    throw new Error("writeMarker: space_id must be a UUID v4 string");
+  if (!isUuid(marker.space_id))
+    throw new Error("writeMarker: space_id must be a UUID string");
   validateSpaceDisplayName(marker.space_name);
   let target = join13(resolve6(cwd), MARKER_FILENAME), tmp = `${target}.tmp.${randomBytes4(6).toString("hex")}`, serialized = `${JSON.stringify(marker, null, 2)}
 `;
@@ -16437,208 +16912,8 @@ var FileEncryptedKeyStore = class {
 };
 
 // ../../packages/sync/src/http-client.ts
+var import_realtime_contracts = __toESM(require_realtime_contracts());
 import { randomUUID as randomUUID4 } from "node:crypto";
-
-// ../../packages/realtime-contracts/src/index.ts
-var CAPABILITY_PUBLISH_REASONS = [
-  "team_created",
-  "team_updated",
-  "team_deleted",
-  "team_activation_changed",
-  "billing_sync_state_changed",
-  "space_created",
-  "space_updated",
-  "space_deleted",
-  "space_archived",
-  "membership_added",
-  "membership_removed",
-  "membership_role_changed",
-  "membership_left",
-  "ownership_transferred",
-  "space_grant_added",
-  "space_grant_changed",
-  "space_grant_removed"
-], INVITATION_CHANGED_REASONS = [
-  "created",
-  "revoked",
-  "accepted",
-  "rejected"
-], NOTIFICATION_CHANGED_REASONS = [
-  "created",
-  "updated",
-  "read",
-  "archived"
-];
-var reasons = new Set(CAPABILITY_PUBLISH_REASONS), invitationReasons = new Set(INVITATION_CHANGED_REASONS), notificationReasons = new Set(NOTIFICATION_CHANGED_REASONS);
-function isRecord2(value) {
-  return typeof value == "object" && value !== null && !Array.isArray(value);
-}
-function isNonNegativeSafeInteger(value) {
-  return typeof value == "number" && Number.isSafeInteger(value) && value >= 0;
-}
-var BOOTSTRAP_FALLBACK_REASONS = [
-  "unsupported_layer",
-  "snapshot_missing",
-  "snapshot_stale",
-  "snapshot_building",
-  "snapshot_artifact_missing",
-  "snapshot_corrupt",
-  "unsafe_revision_log",
-  "authz_denied"
-], CHANGES_FALLBACK_REASONS = [
-  "unsupported_layer",
-  "revision_gap",
-  "delta_too_large",
-  "delta_body_too_large",
-  "unsafe_revision_log",
-  "authz_denied"
-], FAST_SYNC_FALLBACK_REASONS = [
-  ...BOOTSTRAP_FALLBACK_REASONS,
-  ...CHANGES_FALLBACK_REASONS
-];
-function isRevisionRecord(value) {
-  if (!isRecord2(value) || !hasExactBaseKeys(value)) return !1;
-  if (value.op === "put") {
-    let putKeys = [
-      "schemaVersion",
-      "rev",
-      "prevRev",
-      "teamId",
-      "spaceId",
-      "requestId",
-      "createdAt",
-      "op",
-      "entry",
-      "objectGeneration",
-      "contentSha256",
-      ...value.body === void 0 ? [] : ["body"]
-    ];
-    return hasOnlyKeys(value, putKeys) && isManifestEntry(value.entry) && typeof value.objectGeneration == "string" && isSha256(value.contentSha256) && (value.body === void 0 || isInlineRevisionBody(value.body));
-  }
-  return value.op === "delete" ? hasOnlyKeys(value, [
-    "schemaVersion",
-    "rev",
-    "prevRev",
-    "teamId",
-    "spaceId",
-    "requestId",
-    "createdAt",
-    "op",
-    "key"
-  ]) && isSafeSyncKey(value.key) : value.op === "delete_folder" ? hasOnlyKeys(value, [
-    "schemaVersion",
-    "rev",
-    "prevRev",
-    "teamId",
-    "spaceId",
-    "requestId",
-    "createdAt",
-    "op",
-    "deleteScope",
-    "deletePrefix",
-    "deletedKeys"
-  ]) && value.deleteScope === "exact_keys" && isSafeSyncKey(value.deletePrefix) && Array.isArray(value.deletedKeys) && value.deletedKeys.every(isSafeSyncKey) && isSorted(value.deletedKeys) : !1;
-}
-function isBootstrapResponse(value) {
-  return isRecord2(value) ? value.kind === "snapshot" ? hasOnlyKeys(value, ["kind", "manifest", "currentRevision", "bundle"]) && isSnapshotManifest(value.manifest) && isRevisionNumber(value.currentRevision) && isRecord2(value.bundle) && hasOnlyKeys(value.bundle, ["kind", "handle"]) && value.bundle.kind === "backend-handle" && typeof value.bundle.handle == "string" && value.bundle.handle.length > 0 : value.kind === "fallback_required" ? isFallbackResponse(value, BOOTSTRAP_FALLBACK_REASONS, !0) : !1 : !1;
-}
-function isChangesResponse(value) {
-  return isRecord2(value) ? value.kind === "revision_list" ? hasOnlyKeys(value, [
-    "kind",
-    "fromRevExclusive",
-    "toRevInclusive",
-    "records"
-  ]) && isRevisionCursor(value.fromRevExclusive) && isRevisionNumber(value.toRevInclusive) && value.toRevInclusive >= value.fromRevExclusive && Array.isArray(value.records) && value.records.every(isRevisionRecord) : value.kind === "fallback_required" ? isFallbackResponse(value, CHANGES_FALLBACK_REASONS, !1) : !1 : !1;
-}
-function isSnapshotManifest(value) {
-  return isRecord2(value) && hasOnlyKeys(value, [
-    "schemaVersion",
-    "formatVersion",
-    "teamId",
-    "spaceId",
-    "snapshotRevision",
-    "createdAt",
-    "fileCount",
-    "totalBytes",
-    "bundleSha256",
-    "bundleByteCount",
-    "objectGeneration",
-    "manifestEntries"
-  ]) && value.schemaVersion === 1 && value.formatVersion === "tar-gzip-v1" && typeof value.teamId == "string" && typeof value.spaceId == "string" && isRevisionNumber(value.snapshotRevision) && typeof value.createdAt == "string" && !Number.isNaN(Date.parse(value.createdAt)) && isNonNegativeSafeInteger(value.fileCount) && isNonNegativeSafeInteger(value.totalBytes) && isSha256(value.bundleSha256) && isNonNegativeSafeInteger(value.bundleByteCount) && typeof value.objectGeneration == "string" && Array.isArray(value.manifestEntries) && value.manifestEntries.every(isManifestEntry);
-}
-function isManifestEntry(value) {
-  return isRecord2(value) && hasOnlyKeys(value, ["key", "md5", "size", "contentType", "updatedAt"]) && isSafeSyncKey(value.key) && typeof value.md5 == "string" && /^[0-9a-f]{32}$/.test(value.md5) && isNonNegativeSafeInteger(value.size) && typeof value.contentType == "string" && typeof value.updatedAt == "string" && !Number.isNaN(Date.parse(value.updatedAt));
-}
-function hasExactBaseKeys(value) {
-  return value.schemaVersion === 1 && isRevisionNumber(value.rev) && (value.prevRev === null || isRevisionNumber(value.prevRev)) && typeof value.teamId == "string" && typeof value.spaceId == "string" && typeof value.requestId == "string" && typeof value.createdAt == "string" && !Number.isNaN(Date.parse(value.createdAt));
-}
-function hasOnlyKeys(value, keys) {
-  let allowed = new Set(keys);
-  return Object.keys(value).every((key) => allowed.has(key)) && keys.every((key) => key in value);
-}
-function isRevisionNumber(value) {
-  return typeof value == "number" && Number.isSafeInteger(value) && value > 0;
-}
-function isRevisionCursor(value) {
-  return typeof value == "number" && Number.isSafeInteger(value) && value >= 0;
-}
-function isSha256(value) {
-  return typeof value == "string" && /^[0-9a-f]{64}$/.test(value);
-}
-function isSafeSyncKey(value) {
-  return !(typeof value != "string" || value.length === 0 || value.startsWith("/") || value.includes(".."));
-}
-function isSorted(values) {
-  for (let i = 1; i < values.length; i += 1)
-    if (values[i - 1].localeCompare(values[i]) > 0) return !1;
-  return !0;
-}
-function isOneOf(value, allowed) {
-  return typeof value == "string" && allowed.includes(value);
-}
-function isPositiveSafeInteger(value) {
-  return typeof value == "number" && Number.isSafeInteger(value) && value > 0;
-}
-function isInlineRevisionBody(value) {
-  return isRecord2(value) && hasOnlyKeys(value, ["kind", "base64"]) && value.kind === "inline-base64" && typeof value.base64 == "string" && value.base64.length > 0 && value.base64.length <= 4 * 1024 * 1024 && /^[A-Za-z0-9+/]*={0,2}$/.test(value.base64) && Buffer.from(value.base64, "base64").toString("base64") === value.base64;
-}
-function isFastSyncSpaceSizePolicy(value) {
-  return isRecord2(value) && hasOnlyKeys(value, [
-    "class",
-    "fileCount",
-    "totalBytes",
-    "largeFileThreshold",
-    "largeBytesThreshold"
-  ]) && (value.class === "small" || value.class === "large") && isNonNegativeSafeInteger(value.fileCount) && isNonNegativeSafeInteger(value.totalBytes) && isPositiveSafeInteger(value.largeFileThreshold) && isPositiveSafeInteger(value.largeBytesThreshold);
-}
-function isFallbackResponse(value, allowedReasons, allowBootstrapMetadata) {
-  if (!isOneOf(value.reason, allowedReasons) || !["legacy", "retry_bootstrap", "blocked"].includes(String(value.fallback)) || value.fallback === "legacy" && value.legacyAllowed !== !0 || value.fallback !== "legacy" && value.legacyAllowed !== !1 || value.retryAfterMs !== void 0 && !isPositiveSafeInteger(value.retryAfterMs))
-    return !1;
-  if (value.reason === "unsupported_layer" || value.reason === "authz_denied")
-    return hasOnlyKeys(value, [
-      "kind",
-      "reason",
-      "fallback",
-      "legacyAllowed",
-      ...value.retryAfterMs === void 0 ? [] : ["retryAfterMs"]
-    ]);
-  let bootstrapMetadataKeys = [
-    ...value.spaceSizePolicy === void 0 ? [] : ["spaceSizePolicy"],
-    ...value.currentRevision === void 0 ? [] : ["currentRevision"],
-    ...value.snapshotRevision === void 0 ? [] : ["snapshotRevision"],
-    ...value.maxCatchupRecords === void 0 ? [] : ["maxCatchupRecords"]
-  ];
-  return value.spaceSizePolicy !== void 0 && !isFastSyncSpaceSizePolicy(value.spaceSizePolicy) || value.currentRevision !== void 0 && !isRevisionCursor(value.currentRevision) || value.snapshotRevision !== void 0 && !isRevisionNumber(value.snapshotRevision) || value.maxCatchupRecords !== void 0 && !isPositiveSafeInteger(value.maxCatchupRecords) ? !1 : hasOnlyKeys(value, [
-    "kind",
-    "reason",
-    "fallback",
-    "legacyAllowed",
-    ...value.retryAfterMs === void 0 ? [] : ["retryAfterMs"],
-    ...allowBootstrapMetadata ? bootstrapMetadataKeys : []
-  ]);
-}
-
-// ../../packages/sync/src/http-client.ts
 var RateLimitedError = class extends Error {
   constructor(retryAfterMs, status) {
     super(`rate limited (${status})`);
@@ -16665,6 +16940,12 @@ var RateLimitedError = class extends Error {
     super(`auth:${status}${reason ? ` (${reason})` : ""}`);
     this.status = status;
     this.reason = reason;
+  }
+}, BundleUnsupportedError = class extends Error {
+  constructor(status) {
+    super(`bundle endpoint unsupported (http ${status})`);
+    this.status = status;
+    this.name = "BundleUnsupportedError";
   }
 }, CONTENT_TYPE = {
   html: "text/html",
@@ -16713,7 +16994,7 @@ var MemoryHttpClient = class {
   }
   logHttpFailure(input) {
     try {
-      let parsed = new URL(input.url), method = input.init.method ?? "GET", err = input.error;
+      let parsed = new URL(input.url), method = input.init.method ?? "GET", err = input.error, sanitizedUrlPath = `${parsed.pathname}${parsed.search}`.replace(/\/bsh_[A-Za-z0-9_-]+/g, "/[handle]");
       Promise.resolve(
         this.cfg.log?.({
           component: "sync-engine",
@@ -16721,7 +17002,7 @@ var MemoryHttpClient = class {
           teamId: this.cfg.teamId,
           spaceId: this.cfg.spaceId,
           method,
-          urlPath: `${parsed.pathname}${parsed.search}`,
+          urlPath: sanitizedUrlPath,
           host: parsed.host,
           status: input.response?.status,
           statusText: input.response?.statusText,
@@ -16821,7 +17102,11 @@ var MemoryHttpClient = class {
   }
   async getManifest() {
     let data = await (await this.guard(
-      await this.send(`${this.base()}/manifest`, { headers: this.headers() }, { policy: "poll" })
+      await this.send(
+        `${this.base()}/manifest`,
+        { headers: this.headers() },
+        { policy: "poll" }
+      )
     )).json();
     return Array.isArray(data) ? data : data.files ?? [];
   }
@@ -16829,7 +17114,7 @@ var MemoryHttpClient = class {
     let data = await (await this.guard(
       await this.send(`${this.base()}/bootstrap`, { headers: this.headers() })
     )).json();
-    if (!isBootstrapResponse(data))
+    if (!(0, import_realtime_contracts.isBootstrapResponse)(data))
       throw new Error("invalid bootstrap response");
     return data;
   }
@@ -16843,7 +17128,7 @@ var MemoryHttpClient = class {
         { policy: "poll" }
       )
     )).json();
-    if (!isChangesResponse(data)) throw new Error("invalid changes response");
+    if (!(0, import_realtime_contracts.isChangesResponse)(data)) throw new Error("invalid changes response");
     return data;
   }
   /**
@@ -16938,6 +17223,90 @@ var MemoryHttpClient = class {
       body: signedJson
     })).ok ? "ok" : "rejected";
   }
+  /**
+   * Upload a gzip-compressed file bundle to the server.
+   *
+   * Bypasses `send()` because:
+   * 1. `send()` overwrites `x-request-id` with a random UUID — the bundle
+   *    needs a STABLE client-provided id as the idempotency key.
+   * 2. `guard()` throws before status can be read — we need to branch on
+   *    404/501/415 for `BundleUnsupportedError` without falling into the
+   *    generic error path.
+   *
+   * The buffered `Uint8Array` body is safely re-sendable on retry.
+   * Size-proportional timeout prevents stalls on large bundles over slow uplinks.
+   */
+  async putFileBundle(body, requestId, onThrottle) {
+    let url = `${this.base()}/bundle`, maxRetries = this.cfg.maxRetries ?? 2, init = { method: "POST" }, timeoutMs = Math.max(
+      this.cfg.requestTimeoutMs ?? 3e4,
+      Math.ceil(body.byteLength / 64)
+    );
+    for (let attempt = 0; ; attempt++) {
+      let res;
+      try {
+        res = await fetch(url, {
+          method: "POST",
+          headers: this.headers({
+            "content-type": "application/gzip",
+            "x-request-id": requestId
+          }),
+          body,
+          // Uint8Array is a valid fetch body at runtime; cast bridges the node-lib vs DOM-lib BodyInit variance under TS 5.7
+          signal: AbortSignal.timeout(timeoutMs)
+        });
+      } catch (err) {
+        if (err instanceof Error && err.name === "TimeoutError" || attempt >= maxRetries)
+          throw this.logHttpFailure({ url, init, requestId, attempt, maxRetries, error: err }), err;
+        let nextRetryMs = backoffMs(attempt);
+        this.logHttpFailure({
+          url,
+          init,
+          requestId,
+          attempt,
+          maxRetries,
+          nextRetryMs,
+          error: err
+        }), await sleep2(nextRetryMs);
+        continue;
+      }
+      if (res.status === 404 || res.status === 501 || res.status === 415)
+        throw new BundleUnsupportedError(res.status);
+      let retryAfterMs = parseRetryAfter(res);
+      if ((res.status === 429 || res.status === 503 && retryAfterMs !== void 0) && attempt < maxRetries) {
+        onThrottle?.();
+        let nextRetryMs = retryAfterMs ?? backoffMs(attempt);
+        this.logHttpFailure({
+          url,
+          init,
+          requestId,
+          attempt,
+          maxRetries,
+          nextRetryMs,
+          response: res
+        }), await sleep2(nextRetryMs);
+        continue;
+      }
+      if (res.status >= 500 && attempt < maxRetries) {
+        let nextRetryMs = backoffMs(attempt);
+        this.logHttpFailure({
+          url,
+          init,
+          requestId,
+          attempt,
+          maxRetries,
+          nextRetryMs,
+          response: res
+        }), await sleep2(nextRetryMs);
+        continue;
+      }
+      if (!res.ok)
+        throw this.logHttpFailure({ url, init, requestId, attempt, maxRetries, response: res }), new Error(`http ${res.status} ${await res.text()}`);
+      let data = await res.json();
+      if (!(0, import_realtime_contracts.isPushBundleResult)(data))
+        throw new Error("invalid push bundle response");
+      return data;
+    }
+  }
 };
 
 // ../../packages/sync/src/daemon-auth-store.ts
@@ -16975,13 +17344,13 @@ async function readCapability(spaceDir) {
     let record = JSON.parse(raw);
     if (record.capability_source !== "jwt")
       return { kind: "invalid", reason: "invalid capability_source" };
-    if (typeof record.space_id != "string" || !isUuidV4(record.space_id))
+    if (typeof record.space_id != "string" || !isUuid(record.space_id))
       return { kind: "invalid", reason: "invalid space_id" };
     if (basename2(spaceDir) !== record.space_id)
       return { kind: "invalid", reason: "space_id mismatch" };
     if (typeof record.space_name != "string" || record.space_name.trim() === "")
       return { kind: "invalid", reason: "invalid space_name" };
-    if (typeof record.team_id != "string" || !isUuidV4(record.team_id))
+    if (typeof record.team_id != "string" || !isUuid(record.team_id))
       return { kind: "invalid", reason: "invalid team_id" };
     if (record.sync_state !== "active" && record.sync_state !== "paused")
       return { kind: "invalid", reason: "invalid sync_state" };
@@ -17020,13 +17389,11 @@ async function readCapability(spaceDir) {
 
 // src/sync/cloud-projects.ts
 import { join as join22 } from "node:path";
-function isUuid(value) {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-    value
-  );
+function isUuid2(value) {
+  return isUuid(value);
 }
 function cloudSpaceDir(projectsRoot, spaceId) {
-  if (!isUuid(spaceId)) throw new Error(`invalid space_id: ${spaceId}`);
+  if (!isUuid2(spaceId)) throw new Error(`invalid space_id: ${spaceId}`);
   return join22(projectsRoot, spaceId);
 }
 
@@ -17113,7 +17480,7 @@ async function readStrictMetadata(spaceDir) {
   if (typeof parsed != "object" || parsed === null || Array.isArray(parsed))
     return { kind: "invalid", reason: "metadata must be an object" };
   let record = parsed;
-  return typeof record.created_at != "string" || Number.isNaN(Date.parse(record.created_at)) ? { kind: "invalid", reason: "invalid created_at" } : typeof record.space_id != "string" || !isUuidV4(record.space_id) ? { kind: "invalid", reason: "invalid space_id" } : typeof record.space_name != "string" || record.space_name.trim() === "" ? { kind: "invalid", reason: "invalid space_name" } : Object.prototype.hasOwnProperty.call(record, "team_id") ? record.team_id !== null && (typeof record.team_id != "string" || !isUuidV4(record.team_id)) ? { kind: "invalid", reason: "invalid team_id" } : {
+  return typeof record.created_at != "string" || Number.isNaN(Date.parse(record.created_at)) ? { kind: "invalid", reason: "invalid created_at" } : typeof record.space_id != "string" || !isUuid(record.space_id) ? { kind: "invalid", reason: "invalid space_id" } : typeof record.space_name != "string" || record.space_name.trim() === "" ? { kind: "invalid", reason: "invalid space_name" } : Object.prototype.hasOwnProperty.call(record, "team_id") ? record.team_id !== null && (typeof record.team_id != "string" || !isUuid(record.team_id)) ? { kind: "invalid", reason: "invalid team_id" } : {
     kind: "ok",
     metadata: {
       created_at: record.created_at,
@@ -17227,7 +17594,7 @@ async function listQueryableCloudRoots(projectsRoot) {
   }
   let roots = [];
   for (let entry of entries.sort()) {
-    if (!isUuidV4(entry)) continue;
+    if (!isUuid(entry)) continue;
     let eligibility = await classifyCloudSpace(
       cloudSpaceDir(projectsRoot, entry)
     ).catch(
@@ -17409,7 +17776,7 @@ function parseDefaultSpaceField(value) {
   if (!Object.prototype.hasOwnProperty.call(value, "defaultSpaceId"))
     return { kind: "omitted" };
   if (value.defaultSpaceId === null) return { kind: "clear" };
-  if (typeof value.defaultSpaceId == "string" && isUuidV4(value.defaultSpaceId))
+  if (typeof value.defaultSpaceId == "string" && isUuid(value.defaultSpaceId))
     return { kind: "set", spaceId: value.defaultSpaceId };
   throw new Error("invalid defaultSpaceId");
 }

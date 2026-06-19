@@ -3762,9 +3762,9 @@ import { homedir, platform } from "node:os";
 import { basename, dirname, isAbsolute, join, resolve, sep } from "node:path";
 
 // ../../packages/core/src/identity/uuid-v4.ts
-var UUID_V4_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
-function isUuidV4(value) {
-  return typeof value == "string" && UUID_V4_REGEX.test(value);
+var UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
+function isUuid(value) {
+  return typeof value == "string" && UUID_REGEX.test(value);
 }
 
 // ../../packages/core/src/tree/paths.ts
@@ -5970,7 +5970,7 @@ function parseDefaultSpaceField(value) {
   if (!Object.prototype.hasOwnProperty.call(value, "defaultSpaceId"))
     return { kind: "omitted" };
   if (value.defaultSpaceId === null) return { kind: "clear" };
-  if (typeof value.defaultSpaceId == "string" && isUuidV4(value.defaultSpaceId))
+  if (typeof value.defaultSpaceId == "string" && isUuid(value.defaultSpaceId))
     return { kind: "set", spaceId: value.defaultSpaceId };
   throw new Error("invalid defaultSpaceId");
 }

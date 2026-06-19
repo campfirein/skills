@@ -32,6 +32,452 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   mod
 ));
 
+// ../../packages/realtime-contracts/index.cjs
+var require_realtime_contracts = __commonJS({
+  "../../packages/realtime-contracts/index.cjs"(exports, module) {
+    "use strict";
+    var __create2 = Object.create, __defProp2 = Object.defineProperty, __getOwnPropDesc2 = Object.getOwnPropertyDescriptor, __getOwnPropNames2 = Object.getOwnPropertyNames, __getProtoOf2 = Object.getPrototypeOf, __hasOwnProp2 = Object.prototype.hasOwnProperty, __export2 = (target, all) => {
+      for (var name in all)
+        __defProp2(target, name, { get: all[name], enumerable: !0 });
+    }, __copyProps2 = (to, from, except, desc) => {
+      if (from && typeof from == "object" || typeof from == "function")
+        for (let key of __getOwnPropNames2(from))
+          !__hasOwnProp2.call(to, key) && key !== except && __defProp2(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc2(from, key)) || desc.enumerable });
+      return to;
+    }, __toESM2 = (mod, isNodeMode, target) => (target = mod != null ? __create2(__getProtoOf2(mod)) : {}, __copyProps2(
+      // If the importer is in node compatibility mode or this is not an ESM
+      // file that has been converted to a CommonJS file using a Babel-
+      // compatible transform (i.e. "__esModule" has not been set), then set
+      // "default" to the CommonJS "module.exports" for node compatibility.
+      isNodeMode || !mod || !mod.__esModule ? __defProp2(target, "default", { value: mod, enumerable: !0 }) : target,
+      mod
+    )), __toCommonJS = (mod) => __copyProps2(__defProp2({}, "__esModule", { value: !0 }), mod), index_exports = {};
+    __export2(index_exports, {
+      BOOTSTRAP_FALLBACK_REASONS: () => BOOTSTRAP_FALLBACK_REASONS,
+      CAPABILITY_CHANGED_EVENT: () => CAPABILITY_CHANGED_EVENT,
+      CAPABILITY_PUBLISH_MAX_EVENTS: () => CAPABILITY_PUBLISH_MAX_EVENTS,
+      CAPABILITY_PUBLISH_REASONS: () => CAPABILITY_PUBLISH_REASONS,
+      CHANGES_FALLBACK_REASONS: () => CHANGES_FALLBACK_REASONS,
+      FAST_BOOTSTRAP_LOCAL_REASONS: () => FAST_BOOTSTRAP_LOCAL_REASONS,
+      FAST_BOOTSTRAP_MODES: () => FAST_BOOTSTRAP_MODES2,
+      FAST_BOOTSTRAP_PHASES: () => FAST_BOOTSTRAP_PHASES2,
+      FAST_BOOTSTRAP_SEVERITIES: () => FAST_BOOTSTRAP_SEVERITIES2,
+      FAST_BOOTSTRAP_STATUS_REASONS: () => FAST_BOOTSTRAP_STATUS_REASONS2,
+      FAST_SYNC_BACKEND_REASONS: () => FAST_SYNC_BACKEND_REASONS,
+      FAST_SYNC_FALLBACK_ACTIONS: () => FAST_SYNC_FALLBACK_ACTIONS,
+      FAST_SYNC_FALLBACK_REASONS: () => FAST_SYNC_FALLBACK_REASONS,
+      INVITATIONS_CHANGED_EVENT: () => INVITATIONS_CHANGED_EVENT,
+      INVITATION_CHANGED_REASONS: () => INVITATION_CHANGED_REASONS,
+      INVITATION_PUBLISH_MAX_EVENTS: () => INVITATION_PUBLISH_MAX_EVENTS,
+      INVITATION_PUBLISH_PATH: () => INVITATION_PUBLISH_PATH,
+      NOTIFICATIONS_CHANGED_EVENT: () => NOTIFICATIONS_CHANGED_EVENT,
+      NOTIFICATION_CHANGED_REASONS: () => NOTIFICATION_CHANGED_REASONS,
+      NOTIFICATION_PUBLISH_MAX_EVENTS: () => NOTIFICATION_PUBLISH_MAX_EVENTS,
+      NOTIFICATION_PUBLISH_PATH: () => NOTIFICATION_PUBLISH_PATH,
+      assertSafeTarEntryName: () => assertSafeTarEntryName3,
+      buildCapabilityChangedEvent: () => buildCapabilityChangedEvent,
+      buildInvitationsChangedEvent: () => buildInvitationsChangedEvent,
+      buildNotificationsChangedEvent: () => buildNotificationsChangedEvent,
+      buildUserRoom: () => buildUserRoom,
+      hasOnlyKeys: () => hasOnlyKeys,
+      isBootstrapResponse: () => isBootstrapResponse2,
+      isCapabilityChangedEvent: () => isCapabilityChangedEvent,
+      isCapabilityPublishEvent: () => isCapabilityPublishEvent,
+      isCapabilityPublishRequest: () => isCapabilityPublishRequest,
+      isChangesResponse: () => isChangesResponse2,
+      isFastBootstrapStatusReason: () => isFastBootstrapStatusReason2,
+      isInvitationPublishEvent: () => isInvitationPublishEvent,
+      isInvitationPublishRequest: () => isInvitationPublishRequest,
+      isInvitationsChangedEvent: () => isInvitationsChangedEvent,
+      isMemoryChangedEvent: () => isMemoryChangedEvent2,
+      isNotificationPublishEvent: () => isNotificationPublishEvent,
+      isNotificationPublishRequest: () => isNotificationPublishRequest,
+      isNotificationsChangedEvent: () => isNotificationsChangedEvent,
+      isPushBundleResult: () => isPushBundleResult2,
+      isRevisionRecord: () => isRevisionRecord,
+      isSafeSyncKey: () => isSafeSyncKey,
+      isSnapshotManifest: () => isSnapshotManifest,
+      makeCapabilityPublishEvent: () => makeCapabilityPublishEvent,
+      makeInvitationPublishEvent: () => makeInvitationPublishEvent,
+      makeNotificationPublishEvent: () => makeNotificationPublishEvent,
+      makeRevisionRange: () => makeRevisionRange,
+      requiresSpaceId: () => requiresSpaceId,
+      requiresTeamId: () => requiresTeamId,
+      zeroPadRevision: () => zeroPadRevision
+    });
+    module.exports = __toCommonJS(index_exports);
+    var import_node_path33 = __toESM2(__require("node:path"), 1);
+    function assertSafeTarEntryName3(name, options = {}) {
+      if (options.type && options.type !== "file")
+        throw new Error("unsafe tar entry");
+      if (name.includes("\\") || name.includes("\0") || import_node_path33.default.posix.isAbsolute(name))
+        throw new Error("unsafe tar entry");
+      let normalized = import_node_path33.default.posix.normalize(name);
+      if (normalized === "." || normalized === ".." || normalized.startsWith("../"))
+        throw new Error("unsafe tar entry");
+      if (options.seen?.has(normalized)) throw new Error("duplicate tar entry");
+      return normalized;
+    }
+    function isMemoryChangedEvent2(value2) {
+      return !(!isRecord(value2) || typeof value2.teamId != "string" || typeof value2.spaceId != "string" || typeof value2.key != "string" || typeof value2.at != "string" || value2.op !== "put" && value2.op !== "delete" || value2.md5 !== void 0 && typeof value2.md5 != "string" || value2.rev !== void 0 && !isRevisionNumber(value2.rev) || value2.prevRev !== void 0 && value2.prevRev !== null && !isRevisionNumber(value2.prevRev));
+    }
+    var CAPABILITY_CHANGED_EVENT = "capabilities.changed", INVITATIONS_CHANGED_EVENT = "invitations.changed", NOTIFICATIONS_CHANGED_EVENT = "notifications.changed", CAPABILITY_PUBLISH_MAX_EVENTS = 500, INVITATION_PUBLISH_MAX_EVENTS = 500, INVITATION_PUBLISH_PATH = "/internal/invitations", NOTIFICATION_PUBLISH_MAX_EVENTS = 100, NOTIFICATION_PUBLISH_PATH = "/internal/notifications", CAPABILITY_PUBLISH_REASONS = [
+      "team_created",
+      "team_updated",
+      "team_deleted",
+      "team_activation_changed",
+      "billing_sync_state_changed",
+      "space_created",
+      "space_updated",
+      "space_deleted",
+      "space_archived",
+      "membership_added",
+      "membership_removed",
+      "membership_role_changed",
+      "membership_left",
+      "ownership_transferred",
+      "space_grant_added",
+      "space_grant_changed",
+      "space_grant_removed"
+    ], INVITATION_CHANGED_REASONS = [
+      "created",
+      "revoked",
+      "accepted",
+      "rejected"
+    ], NOTIFICATION_CHANGED_REASONS = [
+      "created",
+      "updated",
+      "read",
+      "archived"
+    ], UUID_RE3 = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, reasons = new Set(CAPABILITY_PUBLISH_REASONS), invitationReasons = new Set(INVITATION_CHANGED_REASONS), notificationReasons = new Set(NOTIFICATION_CHANGED_REASONS);
+    function buildUserRoom(userId) {
+      if (!UUID_RE3.test(userId)) throw new Error("invalid user id");
+      return `user:${userId}`;
+    }
+    function buildCapabilityChangedEvent(input) {
+      return {
+        ...input.capabilityVersion === void 0 ? {} : { capabilityVersion: input.capabilityVersion },
+        at: input.at ?? (/* @__PURE__ */ new Date()).toISOString()
+      };
+    }
+    function makeCapabilityPublishEvent(input) {
+      let raw = input;
+      if (!isCapabilityPublishEvent(input))
+        throw requiresSpaceId(raw.reason) && !raw.spaceId ? new Error("spaceId is required") : requiresTeamId(raw.reason) && !raw.teamId ? new Error("teamId is required") : new Error("invalid capability publish event");
+      return input;
+    }
+    function isCapabilityChangedEvent(value2) {
+      return !(!isRecord(value2) || !Object.keys(value2).every((key) => key === "capabilityVersion" || key === "at") || typeof value2.at != "string" || Number.isNaN(Date.parse(value2.at)) || "capabilityVersion" in value2 && !isNonNegativeSafeInteger(value2.capabilityVersion));
+    }
+    function isCapabilityPublishRequest(value2) {
+      return !isRecord(value2) || !Array.isArray(value2.events) || value2.events.length === 0 || value2.events.length > 500 ? !1 : value2.events.every(isCapabilityPublishEvent);
+    }
+    function isCapabilityPublishEvent(value2) {
+      return !(!isRecord(value2) || typeof value2.userId != "string" || !UUID_RE3.test(value2.userId) || !isNonNegativeSafeInteger(value2.capabilityVersion) || typeof value2.reason != "string" || !reasons.has(value2.reason) || "teamId" in value2 && !isOptionalUuid(value2.teamId) || "spaceId" in value2 && !isOptionalUuid(value2.spaceId) || requiresTeamId(value2.reason) && typeof value2.teamId != "string" || requiresSpaceId(value2.reason) && typeof value2.spaceId != "string");
+    }
+    function requiresTeamId(reason) {
+      return reason !== "billing_sync_state_changed";
+    }
+    function requiresSpaceId(reason) {
+      return reason === "space_created" || reason === "space_updated" || reason === "space_deleted" || reason === "space_archived" || reason === "space_grant_added" || reason === "space_grant_changed" || reason === "space_grant_removed";
+    }
+    function buildInvitationsChangedEvent(input) {
+      return {
+        reason: input.reason,
+        at: input.at ?? (/* @__PURE__ */ new Date()).toISOString()
+      };
+    }
+    function makeInvitationPublishEvent(input) {
+      if (!isInvitationPublishEvent(input))
+        throw new Error("invalid invitation publish event");
+      return input;
+    }
+    function isInvitationsChangedEvent(value2) {
+      return !(!isRecord(value2) || !Object.keys(value2).every((key) => key === "reason" || key === "at") || typeof value2.reason != "string" || !invitationReasons.has(value2.reason) || typeof value2.at != "string" || Number.isNaN(Date.parse(value2.at)));
+    }
+    function isInvitationPublishRequest(value2) {
+      if (!isRecord(value2)) return !1;
+      let keys = Object.keys(value2);
+      return keys.length !== 1 || keys[0] !== "events" || !Array.isArray(value2.events) || value2.events.length === 0 || value2.events.length > INVITATION_PUBLISH_MAX_EVENTS ? !1 : value2.events.every(isInvitationPublishEvent);
+    }
+    function isInvitationPublishEvent(value2) {
+      if (!isRecord(value2)) return !1;
+      let keys = Object.keys(value2), hasAt = "at" in value2;
+      if (hasAt) {
+        if (!keys.every((key) => key === "userId" || key === "reason" || key === "at"))
+          return !1;
+      } else if (!keys.every((key) => key === "userId" || key === "reason"))
+        return !1;
+      return !(typeof value2.userId != "string" || !UUID_RE3.test(value2.userId) || typeof value2.reason != "string" || !invitationReasons.has(value2.reason) || hasAt && (typeof value2.at != "string" || Number.isNaN(Date.parse(value2.at))));
+    }
+    function buildNotificationsChangedEvent(input) {
+      return {
+        reason: input.reason,
+        at: input.at ?? (/* @__PURE__ */ new Date()).toISOString()
+      };
+    }
+    function makeNotificationPublishEvent(input) {
+      if (!isNotificationPublishEvent(input))
+        throw new Error("invalid notification publish event");
+      return input;
+    }
+    function isNotificationsChangedEvent(value2) {
+      return !(!isRecord(value2) || !Object.keys(value2).every((key) => key === "reason" || key === "at") || typeof value2.reason != "string" || !notificationReasons.has(value2.reason) || typeof value2.at != "string" || Number.isNaN(Date.parse(value2.at)));
+    }
+    function isNotificationPublishRequest(value2) {
+      if (!isRecord(value2)) return !1;
+      let keys = Object.keys(value2);
+      return keys.length !== 1 || keys[0] !== "events" || !Array.isArray(value2.events) || value2.events.length === 0 || value2.events.length > NOTIFICATION_PUBLISH_MAX_EVENTS ? !1 : value2.events.every(isNotificationPublishEvent);
+    }
+    function isNotificationPublishEvent(value2) {
+      if (!isRecord(value2)) return !1;
+      let keys = Object.keys(value2), hasAt = "at" in value2;
+      if (hasAt) {
+        if (!keys.every((key) => key === "userId" || key === "reason" || key === "at"))
+          return !1;
+      } else if (!keys.every((key) => key === "userId" || key === "reason"))
+        return !1;
+      return !(typeof value2.userId != "string" || !UUID_RE3.test(value2.userId) || typeof value2.reason != "string" || !notificationReasons.has(value2.reason) || hasAt && (typeof value2.at != "string" || Number.isNaN(Date.parse(value2.at))));
+    }
+    function isRecord(value2) {
+      return typeof value2 == "object" && value2 !== null && !Array.isArray(value2);
+    }
+    function isOptionalUuid(value2) {
+      return value2 === void 0 || typeof value2 == "string" && UUID_RE3.test(value2);
+    }
+    function isNonNegativeSafeInteger(value2) {
+      return typeof value2 == "number" && Number.isSafeInteger(value2) && value2 >= 0;
+    }
+    var BOOTSTRAP_FALLBACK_REASONS = [
+      "unsupported_layer",
+      "snapshot_missing",
+      "snapshot_stale",
+      "snapshot_building",
+      "snapshot_artifact_missing",
+      "snapshot_corrupt",
+      "unsafe_revision_log",
+      "authz_denied"
+    ], CHANGES_FALLBACK_REASONS = [
+      "unsupported_layer",
+      "revision_gap",
+      "delta_too_large",
+      "delta_body_too_large",
+      "unsafe_revision_log",
+      "authz_denied"
+    ], FAST_SYNC_FALLBACK_REASONS = [
+      ...BOOTSTRAP_FALLBACK_REASONS,
+      ...CHANGES_FALLBACK_REASONS
+    ], FAST_SYNC_FALLBACK_ACTIONS = [
+      "legacy",
+      "retry_bootstrap",
+      "blocked"
+    ], FAST_BOOTSTRAP_MODES2 = ["snapshot", "legacy"], FAST_SYNC_BACKEND_REASONS = [
+      "unsupported_layer",
+      "snapshot_missing",
+      "snapshot_stale",
+      "snapshot_building",
+      "snapshot_artifact_missing",
+      "snapshot_corrupt",
+      "unsafe_revision_log",
+      "authz_denied",
+      "revision_gap",
+      "delta_too_large",
+      "delta_body_too_large"
+    ], FAST_BOOTSTRAP_LOCAL_REASONS = [
+      "dirty_local_tree",
+      "snapshot_promote_pending",
+      "bundle_handle_expired_or_mismatched",
+      "bootstrap_transport_error",
+      "bootstrap_contract_invalid",
+      "worker_revoked",
+      "too_many_syncable_spaces"
+    ], FAST_BOOTSTRAP_STATUS_REASONS2 = [
+      ...FAST_SYNC_BACKEND_REASONS,
+      ...FAST_BOOTSTRAP_LOCAL_REASONS
+    ];
+    function isFastBootstrapStatusReason2(value2) {
+      return typeof value2 == "string" && FAST_BOOTSTRAP_STATUS_REASONS2.includes(value2);
+    }
+    var FAST_BOOTSTRAP_SEVERITIES2 = [
+      "silent",
+      "informational",
+      "warning",
+      "error"
+    ], FAST_BOOTSTRAP_PHASES2 = [
+      "idle",
+      "checking_bootstrap",
+      "snapshot_downloading",
+      "snapshot_unpacking",
+      "snapshot_verifying",
+      "delta_applying",
+      "tail_catching_up",
+      "promoting",
+      "baseline_seeding",
+      "index_rebuilding",
+      "ready",
+      "legacy_bootstrap",
+      "retry_waiting",
+      "failed",
+      "cancelled"
+    ];
+    function makeRevisionRange(fromRevExclusive, toRevInclusive) {
+      if (!isRevisionCursor(fromRevExclusive) || !isRevisionNumber(toRevInclusive) || toRevInclusive < fromRevExclusive)
+        throw new Error("invalid revision range");
+      return { fromRevExclusive, toRevInclusive };
+    }
+    function zeroPadRevision(rev) {
+      if (!isRevisionNumber(rev)) throw new Error("invalid revision");
+      return String(rev).padStart(18, "0");
+    }
+    function isRevisionRecord(value2) {
+      if (!isRecord(value2) || !hasExactBaseKeys(value2)) return !1;
+      if (value2.op === "put") {
+        let putKeys = [
+          "schemaVersion",
+          "rev",
+          "prevRev",
+          "teamId",
+          "spaceId",
+          "requestId",
+          "createdAt",
+          "op",
+          "entry",
+          "objectGeneration",
+          "contentSha256",
+          ...value2.body === void 0 ? [] : ["body"]
+        ];
+        return hasOnlyKeys(value2, putKeys) && isManifestEntry(value2.entry) && typeof value2.objectGeneration == "string" && isSha256(value2.contentSha256) && (value2.body === void 0 || isInlineRevisionBody(value2.body));
+      }
+      return value2.op === "delete" ? hasOnlyKeys(value2, [
+        "schemaVersion",
+        "rev",
+        "prevRev",
+        "teamId",
+        "spaceId",
+        "requestId",
+        "createdAt",
+        "op",
+        "key"
+      ]) && isSafeSyncKey(value2.key) : value2.op === "delete_folder" ? hasOnlyKeys(value2, [
+        "schemaVersion",
+        "rev",
+        "prevRev",
+        "teamId",
+        "spaceId",
+        "requestId",
+        "createdAt",
+        "op",
+        "deleteScope",
+        "deletePrefix",
+        "deletedKeys"
+      ]) && value2.deleteScope === "exact_keys" && isSafeSyncKey(value2.deletePrefix) && Array.isArray(value2.deletedKeys) && value2.deletedKeys.every(isSafeSyncKey) && isSorted(value2.deletedKeys) : !1;
+    }
+    function isBootstrapResponse2(value2) {
+      return isRecord(value2) ? value2.kind === "snapshot" ? hasOnlyKeys(value2, ["kind", "manifest", "currentRevision", "bundle"]) && isSnapshotManifest(value2.manifest) && isRevisionCursor(value2.currentRevision) && isRecord(value2.bundle) && hasOnlyKeys(value2.bundle, ["kind", "handle"]) && value2.bundle.kind === "backend-handle" && typeof value2.bundle.handle == "string" && value2.bundle.handle.length > 0 : value2.kind === "fallback_required" ? isFallbackResponse(value2, BOOTSTRAP_FALLBACK_REASONS, !0) : !1 : !1;
+    }
+    function isChangesResponse2(value2) {
+      return isRecord(value2) ? value2.kind === "revision_list" ? hasOnlyKeys(value2, [
+        "kind",
+        "fromRevExclusive",
+        "toRevInclusive",
+        "records"
+      ]) && isRevisionCursor(value2.fromRevExclusive) && isRevisionNumber(value2.toRevInclusive) && value2.toRevInclusive >= value2.fromRevExclusive && Array.isArray(value2.records) && value2.records.every(isRevisionRecord) : value2.kind === "fallback_required" ? isFallbackResponse(value2, CHANGES_FALLBACK_REASONS, !1) : !1 : !1;
+    }
+    function isSnapshotManifest(value2) {
+      return isRecord(value2) && hasOnlyKeys(value2, [
+        "schemaVersion",
+        "formatVersion",
+        "teamId",
+        "spaceId",
+        "snapshotRevision",
+        "createdAt",
+        "fileCount",
+        "totalBytes",
+        "bundleSha256",
+        "bundleByteCount",
+        "objectGeneration",
+        "manifestEntries"
+      ]) && value2.schemaVersion === 1 && value2.formatVersion === "tar-gzip-v1" && typeof value2.teamId == "string" && typeof value2.spaceId == "string" && isRevisionCursor(value2.snapshotRevision) && typeof value2.createdAt == "string" && !Number.isNaN(Date.parse(value2.createdAt)) && isNonNegativeSafeInteger(value2.fileCount) && isNonNegativeSafeInteger(value2.totalBytes) && isSha256(value2.bundleSha256) && isNonNegativeSafeInteger(value2.bundleByteCount) && typeof value2.objectGeneration == "string" && Array.isArray(value2.manifestEntries) && value2.manifestEntries.every(isManifestEntry);
+    }
+    function isManifestEntry(value2) {
+      return isRecord(value2) && hasOnlyKeys(value2, ["key", "md5", "size", "contentType", "updatedAt"]) && isSafeSyncKey(value2.key) && typeof value2.md5 == "string" && /^[0-9a-f]{32}$/.test(value2.md5) && isNonNegativeSafeInteger(value2.size) && typeof value2.contentType == "string" && typeof value2.updatedAt == "string" && !Number.isNaN(Date.parse(value2.updatedAt));
+    }
+    function hasExactBaseKeys(value2) {
+      return value2.schemaVersion === 1 && isRevisionNumber(value2.rev) && (value2.prevRev === null || isRevisionNumber(value2.prevRev)) && typeof value2.teamId == "string" && typeof value2.spaceId == "string" && typeof value2.requestId == "string" && typeof value2.createdAt == "string" && !Number.isNaN(Date.parse(value2.createdAt));
+    }
+    function hasOnlyKeys(value2, keys) {
+      let allowed = new Set(keys);
+      return Object.keys(value2).every((key) => allowed.has(key)) && keys.every((key) => key in value2);
+    }
+    function isRevisionNumber(value2) {
+      return typeof value2 == "number" && Number.isSafeInteger(value2) && value2 > 0;
+    }
+    function isRevisionCursor(value2) {
+      return typeof value2 == "number" && Number.isSafeInteger(value2) && value2 >= 0;
+    }
+    function isSha256(value2) {
+      return typeof value2 == "string" && /^[0-9a-f]{64}$/.test(value2);
+    }
+    function isSafeSyncKey(value2) {
+      return !(typeof value2 != "string" || value2.length === 0 || value2.startsWith("/") || value2.includes(".."));
+    }
+    function isSorted(values) {
+      for (let i = 1; i < values.length; i += 1)
+        if (values[i - 1].localeCompare(values[i]) > 0) return !1;
+      return !0;
+    }
+    function isOneOf(value2, allowed) {
+      return typeof value2 == "string" && allowed.includes(value2);
+    }
+    function isPositiveSafeInteger(value2) {
+      return typeof value2 == "number" && Number.isSafeInteger(value2) && value2 > 0;
+    }
+    function isInlineRevisionBody(value2) {
+      return isRecord(value2) && hasOnlyKeys(value2, ["kind", "base64"]) && value2.kind === "inline-base64" && typeof value2.base64 == "string" && value2.base64.length > 0 && value2.base64.length <= 4 * 1024 * 1024 && /^[A-Za-z0-9+/]*={0,2}$/.test(value2.base64) && Buffer.from(value2.base64, "base64").toString("base64") === value2.base64;
+    }
+    function isFastSyncSpaceSizePolicy(value2) {
+      return isRecord(value2) && hasOnlyKeys(value2, [
+        "class",
+        "fileCount",
+        "totalBytes",
+        "largeFileThreshold",
+        "largeBytesThreshold"
+      ]) && (value2.class === "small" || value2.class === "large") && isNonNegativeSafeInteger(value2.fileCount) && isNonNegativeSafeInteger(value2.totalBytes) && isPositiveSafeInteger(value2.largeFileThreshold) && isPositiveSafeInteger(value2.largeBytesThreshold);
+    }
+    function isFallbackResponse(value2, allowedReasons, allowBootstrapMetadata) {
+      if (!isOneOf(value2.reason, allowedReasons) || !["legacy", "retry_bootstrap", "blocked"].includes(String(value2.fallback)) || value2.fallback === "legacy" && value2.legacyAllowed !== !0 || value2.fallback !== "legacy" && value2.legacyAllowed !== !1 || value2.fallback === "legacy" && Object.prototype.hasOwnProperty.call(value2, "retryAfterMs") || value2.fallback === "retry_bootstrap" && !isPositiveSafeInteger(value2.retryAfterMs) || value2.fallback === "blocked" && value2.retryAfterMs !== void 0 && !isPositiveSafeInteger(value2.retryAfterMs))
+        return !1;
+      if (value2.reason === "unsupported_layer" || value2.reason === "authz_denied")
+        return hasOnlyKeys(value2, [
+          "kind",
+          "reason",
+          "fallback",
+          "legacyAllowed",
+          ...value2.retryAfterMs === void 0 ? [] : ["retryAfterMs"]
+        ]);
+      let bootstrapMetadataKeys = [
+        ...value2.spaceSizePolicy === void 0 ? [] : ["spaceSizePolicy"],
+        ...value2.currentRevision === void 0 ? [] : ["currentRevision"],
+        ...value2.snapshotRevision === void 0 ? [] : ["snapshotRevision"],
+        ...value2.maxCatchupRecords === void 0 ? [] : ["maxCatchupRecords"]
+      ];
+      return value2.spaceSizePolicy !== void 0 && !isFastSyncSpaceSizePolicy(value2.spaceSizePolicy) || value2.currentRevision !== void 0 && !isRevisionCursor(value2.currentRevision) || value2.snapshotRevision !== void 0 && !isRevisionNumber(value2.snapshotRevision) || value2.maxCatchupRecords !== void 0 && !isPositiveSafeInteger(value2.maxCatchupRecords) ? !1 : hasOnlyKeys(value2, [
+        "kind",
+        "reason",
+        "fallback",
+        "legacyAllowed",
+        ...value2.retryAfterMs === void 0 ? [] : ["retryAfterMs"],
+        ...allowBootstrapMetadata ? bootstrapMetadataKeys : []
+      ]);
+    }
+    function isPushBundleResult2(value2) {
+      return !isRecord(value2) || !hasOnlyKeys(value2, ["revision", "files"]) || !isRevisionNumber(value2.revision) || !Array.isArray(value2.files) ? !1 : value2.files.every(
+        (f) => isRecord(f) && hasOnlyKeys(f, ["key", "md5", "updatedAt"]) && isSafeSyncKey(f.key) && typeof f.md5 == "string" && /^[0-9a-f]{32}$/.test(f.md5) && typeof f.updatedAt == "string" && !Number.isNaN(Date.parse(f.updatedAt))
+      );
+    }
+  }
+});
+
 // ../../node_modules/.pnpm/xmlhttprequest-ssl@2.1.2/node_modules/xmlhttprequest-ssl/lib/XMLHttpRequest.js
 var require_XMLHttpRequest = __commonJS({
   "../../node_modules/.pnpm/xmlhttprequest-ssl@2.1.2/node_modules/xmlhttprequest-ssl/lib/XMLHttpRequest.js"(exports, module) {
@@ -5420,7 +5866,7 @@ function getErrorMap() {
 
 // ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/helpers/parseUtil.js
 var makeIssue = (params) => {
-  let { data, path: path2, errorMaps, issueData } = params, fullPath = [...path2, ...issueData.path || []], fullIssue = {
+  let { data, path, errorMaps, issueData } = params, fullPath = [...path, ...issueData.path || []], fullIssue = {
     ...issueData,
     path: fullPath
   };
@@ -5509,8 +5955,8 @@ var errorUtil;
 
 // ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/types.js
 var ParseInputLazyPath = class {
-  constructor(parent, value2, path2, key) {
-    this._cachedPath = [], this.parent = parent, this.data = value2, this._path = path2, this._key = key;
+  constructor(parent, value2, path, key) {
+    this._cachedPath = [], this.parent = parent, this.data = value2, this._path = path, this._key = key;
   }
   get path() {
     return this._cachedPath.length || (Array.isArray(this._key) ? this._cachedPath.push(...this._path, ...this._key) : this._cachedPath.push(...this._path, this._key)), this._cachedPath;
@@ -14052,8 +14498,8 @@ var FileBlobStorage = class {
     return resolveWithin(this.root, key);
   }
   async put(key, data) {
-    let path2 = this.pathFor(key);
-    await mkdir(dirname(path2), { recursive: !0 }), await writeFile(path2, data);
+    let path = this.pathFor(key);
+    await mkdir(dirname(path), { recursive: !0 }), await writeFile(path, data);
   }
   async get(key) {
     try {
@@ -14180,9 +14626,9 @@ import { homedir, platform } from "node:os";
 import { basename, dirname as dirname3, isAbsolute, join as join3, resolve as resolve2, sep as sep2 } from "node:path";
 
 // ../../packages/core/src/identity/uuid-v4.ts
-var UUID_V4_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
-function isUuidV4(value2) {
-  return typeof value2 == "string" && UUID_V4_REGEX.test(value2);
+var UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
+function isUuid(value2) {
+  return typeof value2 == "string" && UUID_REGEX.test(value2);
 }
 
 // ../../packages/core/src/tree/paths.ts
@@ -14220,12 +14666,12 @@ function spaceContextTreePath(space_id) {
     CONTEXT_TREE_DIRNAME
   );
 }
-function assertAbsolutePath(label, path2) {
-  if (!isAbsolute(path2))
+function assertAbsolutePath(label, path) {
+  if (!isAbsolute(path))
     throw new Error(`${label} must be absolute`);
 }
 function assertValidSpaceId(spaceId) {
-  if (!isUuidV4(spaceId) || isAbsolute(spaceId) || spaceId.includes("/") || spaceId.includes("\\") || spaceId === "." || spaceId === "..")
+  if (!isUuid(spaceId) || isAbsolute(spaceId) || spaceId.includes("/") || spaceId.includes("\\") || spaceId === "." || spaceId === "..")
     throw new Error(`invalid spaceId for sync state path: ${spaceId}`);
 }
 function daemonSpaceStateDirForSpace(projectsRoot, spaceId) {
@@ -14366,8 +14812,8 @@ var TOPIC_ID_REGEX = /^tpc_[0-9a-f]{32}$/;
 
 // ../../packages/core/src/tree/topics.ts
 var INDEX_FILE = "index.html", DERIVED_ARTIFACT_RE = /\.(abstract|full|overview)\.html$/i;
-function isDerivedArtifact(path2) {
-  return DERIVED_ARTIFACT_RE.test(path2);
+function isDerivedArtifact(path) {
+  return DERIVED_ARTIFACT_RE.test(path);
 }
 function estimateTokens(text) {
   return Math.ceil(text.trim().length / 4);
@@ -14529,9 +14975,9 @@ function signalStore(root) {
 }
 async function getManySignals(root, topicPaths) {
   let store = signalStore(root), out = /* @__PURE__ */ new Map();
-  for (let path2 of topicPaths) {
-    let signals = await store.get(path2) ?? createDefaultRuntimeSignals();
-    out.set(path2, signals);
+  for (let path of topicPaths) {
+    let signals = await store.get(path) ?? createDefaultRuntimeSignals();
+    out.set(path, signals);
   }
   return out;
 }
@@ -14614,12 +15060,12 @@ function escapeText2(text) {
 }
 async function rebuildIndex(root, options = {}) {
   let paths = await listTopics(root), byDomain = /* @__PURE__ */ new Map();
-  for (let path2 of paths) {
-    let topic = await readTopic(root, path2), domain = path2.includes("/") ? path2.split("/")[0] : "(root)", list = byDomain.get(domain) ?? [];
+  for (let path of paths) {
+    let topic = await readTopic(root, path), domain = path.includes("/") ? path.split("/")[0] : "(root)", list = byDomain.get(domain) ?? [];
     list.push({
-      path: path2,
+      path,
       summary: topic.attributes.summary ?? "",
-      title: topic.attributes.title ?? path2
+      title: topic.attributes.title ?? path
     }), byDomain.set(domain, list);
   }
   let now = options.now ?? "", project = options.project ?? "context-tree", domains = [...byDomain.entries()].sort(
@@ -14654,17 +15100,17 @@ async function rebuildManifest(root, options = {}) {
     summaries: [],
     topics: []
   }, fingerprintParts = [];
-  for (let path2 of paths) {
-    let topic = await readTopic(root, path2), tokens = estimateTokens(topic.bodyText) + estimateTokens(topic.attributes.summary ?? ""), type2 = topic.attributes.type ?? "topic", lane = laneFor(type2), importance = signals.get(path2)?.importance ?? 50;
+  for (let path of paths) {
+    let topic = await readTopic(root, path), tokens = estimateTokens(topic.bodyText) + estimateTokens(topic.attributes.summary ?? ""), type2 = topic.attributes.type ?? "topic", lane = laneFor(type2), importance = signals.get(path)?.importance ?? 50;
     byLane[lane].push({
       importance,
       lane,
-      path: path2,
-      title: topic.attributes.title ?? path2,
+      path,
+      title: topic.attributes.title ?? path,
       tokens,
       type: type2
     }), fingerprintParts.push(
-      await fingerprintLine(root, path2, signals.get(path2), fingerprintMode)
+      await fingerprintLine(root, path, signals.get(path), fingerprintMode)
     );
   }
   let active = [], laneTokens = {
@@ -14696,20 +15142,20 @@ async function rebuildManifest(root, options = {}) {
     "utf8"
   ), manifest;
 }
-async function fingerprintLine(root, path2, signal, mode) {
+async function fingerprintLine(root, path, signal, mode) {
   let sig = `${signal?.importance ?? 50} ${signal?.maturity ?? "draft"}`;
   if (mode === "content")
     try {
-      let content = await readFile4(resolveWithinTree(root, path2), "utf8");
-      return `${path2} ${canonicalTopicHash(content)} ${sig}`;
+      let content = await readFile4(resolveWithinTree(root, path), "utf8");
+      return `${path} ${canonicalTopicHash(content)} ${sig}`;
     } catch {
-      return `${path2} ? ${sig}`;
+      return `${path} ? ${sig}`;
     }
   try {
-    let s = await stat(resolveWithinTree(root, path2));
-    return `${path2} ${s.mtimeMs} ${s.size} ${sig}`;
+    let s = await stat(resolveWithinTree(root, path));
+    return `${path} ${s.mtimeMs} ${s.size} ${sig}`;
   } catch {
-    return `${path2} ? ? ${sig}`;
+    return `${path} ? ? ${sig}`;
   }
 }
 
@@ -16187,23 +16633,23 @@ function emptyRegistry() {
 function isBinding(value2) {
   if (typeof value2 != "object" || value2 === null) return !1;
   let v = value2;
-  return typeof v.folder == "string" && isUuidV4(v.space_id) && typeof v.addedAt == "string" && (v.removedAt === void 0 || typeof v.removedAt == "string");
+  return typeof v.folder == "string" && isUuid(v.space_id) && typeof v.addedAt == "string" && (v.removedAt === void 0 || typeof v.removedAt == "string");
 }
 function isDeletedSpace(value2) {
   if (typeof value2 != "object" || value2 === null) return !1;
   let v = value2;
-  return isUuidV4(v.space_id) && typeof v.deletedAt == "string" && typeof v.hard == "boolean";
+  return isUuid(v.space_id) && typeof v.deletedAt == "string" && typeof v.hard == "boolean";
 }
 function normalizeRegistryDocument(obj) {
   let bindings = Array.isArray(obj.bindings) ? obj.bindings.filter((v) => isBinding(v)) : [], deletedSpaces = Array.isArray(obj.deletedSpaces) ? obj.deletedSpaces.filter((v) => isDeletedSpace(v)) : [], doc = { ...obj, bindings, deletedSpaces };
-  return isUuidV4(obj.defaultSpaceId) ? doc.defaultSpaceId = obj.defaultSpaceId : delete doc.defaultSpaceId, doc;
+  return isUuid(obj.defaultSpaceId) ? doc.defaultSpaceId = obj.defaultSpaceId : delete doc.defaultSpaceId, doc;
 }
 function assertRegistryDocumentForMutation(obj) {
   if (obj.bindings !== void 0 && !Array.isArray(obj.bindings))
     throw new MalformedRegistryError("bindings registry is malformed");
   if (obj.deletedSpaces !== void 0 && !Array.isArray(obj.deletedSpaces))
     throw new MalformedRegistryError("bindings registry is malformed");
-  if (obj.defaultSpaceId !== void 0 && !isUuidV4(obj.defaultSpaceId))
+  if (obj.defaultSpaceId !== void 0 && !isUuid(obj.defaultSpaceId))
     throw new MalformedRegistryError("bindings registry is malformed");
   if (Array.isArray(obj.bindings) && !obj.bindings.every(isBinding))
     throw new MalformedRegistryError("bindings registry is malformed");
@@ -16323,8 +16769,8 @@ async function getDefaultSpaceId() {
   return (await readRegistry()).defaultSpaceId ?? null;
 }
 async function setDefaultSpaceId(space_id) {
-  if (!isUuidV4(space_id))
-    throw new Error("setDefaultSpaceId: space_id must be a UUID v4 string");
+  if (!isUuid(space_id))
+    throw new Error("setDefaultSpaceId: space_id must be a UUID string");
   await mutateRegistry((reg) => {
     reg.defaultSpaceId = space_id;
   });
@@ -16356,17 +16802,17 @@ var SPACE_METADATA_FILENAME = "metadata.json", InvalidSpaceMetadataError = class
   }
 };
 function validateFields(space_id, space_name, team_id, created_at) {
-  if (!isUuidV4(space_id))
+  if (!isUuid(space_id))
     throw new InvalidSpaceMetadataError(
-      "'space_id' must be a UUID v4 string"
+      "'space_id' must be a UUID string"
     );
   if (typeof space_name != "string" || space_name.length === 0)
     throw new InvalidSpaceMetadataError(
       "'space_name' must be a non-empty string"
     );
-  if (team_id !== null && !isUuidV4(team_id))
+  if (team_id !== null && !isUuid(team_id))
     throw new InvalidSpaceMetadataError(
-      "'team_id' must be a UUID v4 string or null"
+      "'team_id' must be a UUID string or null"
     );
   if (typeof created_at != "string" || created_at.length === 0)
     throw new InvalidSpaceMetadataError(
@@ -16402,8 +16848,8 @@ var STALE_DAYS = {
 // ../../packages/core/src/tree/topic-index.ts
 async function buildTopicIndex(root, now) {
   let paths = await listTopics(root), entries = [];
-  for (let path2 of paths) {
-    let topic = await readTopic(root, path2), topicId = topic.attributes.id;
+  for (let path of paths) {
+    let topic = await readTopic(root, path), topicId = topic.attributes.id;
     typeof topicId == "string" && TOPIC_ID_REGEX.test(topicId) && entries.push({ topicId, path: topic.path });
   }
   return entries.sort((a, b) => a.path.localeCompare(b.path)), { version: 1, generatedAt: now, entries };
@@ -16466,9 +16912,9 @@ function parseMarker(content) {
   let obj = raw, space_id = obj.space_id;
   if (space_id === void 0)
     throw new InvalidMarkerError("missing 'space_id' field");
-  if (!isUuidV4(space_id))
+  if (!isUuid(space_id))
     throw new InvalidMarkerError(
-      "'space_id' must be a UUID v4 string"
+      "'space_id' must be a UUID string"
     );
   let space_name = obj.space_name;
   if (space_name === void 0)
@@ -16535,9 +16981,9 @@ async function findMarker(startDir) {
     dir = parent;
   }
 }
-async function readMarkerFile(path2) {
+async function readMarkerFile(path) {
   try {
-    return await readFile8(path2, "utf8");
+    return await readFile8(path, "utf8");
   } catch (err) {
     if (isErrnoCode2(err, "ENOENT") || isErrnoCode2(err, "EACCES"))
       return null;
@@ -16837,211 +17283,8 @@ var DAEMON_EVENT_ACTION = {
 import { mkdir as mkdir10 } from "node:fs/promises";
 
 // ../../packages/sync/src/http-client.ts
+var import_realtime_contracts = __toESM(require_realtime_contracts());
 import { randomUUID as randomUUID2 } from "node:crypto";
-
-// ../../packages/realtime-contracts/src/index.ts
-function isMemoryChangedEvent(value2) {
-  return !(!isRecord(value2) || typeof value2.teamId != "string" || typeof value2.spaceId != "string" || typeof value2.key != "string" || typeof value2.at != "string" || value2.op !== "put" && value2.op !== "delete" || value2.md5 !== void 0 && typeof value2.md5 != "string" || value2.rev !== void 0 && !isRevisionNumber(value2.rev) || value2.prevRev !== void 0 && value2.prevRev !== null && !isRevisionNumber(value2.prevRev));
-}
-var CAPABILITY_PUBLISH_REASONS = [
-  "team_created",
-  "team_updated",
-  "team_deleted",
-  "team_activation_changed",
-  "billing_sync_state_changed",
-  "space_created",
-  "space_updated",
-  "space_deleted",
-  "space_archived",
-  "membership_added",
-  "membership_removed",
-  "membership_role_changed",
-  "membership_left",
-  "ownership_transferred",
-  "space_grant_added",
-  "space_grant_changed",
-  "space_grant_removed"
-], INVITATION_CHANGED_REASONS = [
-  "created",
-  "revoked",
-  "accepted",
-  "rejected"
-], NOTIFICATION_CHANGED_REASONS = [
-  "created",
-  "updated",
-  "read",
-  "archived"
-];
-var reasons = new Set(CAPABILITY_PUBLISH_REASONS), invitationReasons = new Set(INVITATION_CHANGED_REASONS), notificationReasons = new Set(NOTIFICATION_CHANGED_REASONS);
-function isRecord(value2) {
-  return typeof value2 == "object" && value2 !== null && !Array.isArray(value2);
-}
-function isNonNegativeSafeInteger(value2) {
-  return typeof value2 == "number" && Number.isSafeInteger(value2) && value2 >= 0;
-}
-var BOOTSTRAP_FALLBACK_REASONS = [
-  "unsupported_layer",
-  "snapshot_missing",
-  "snapshot_stale",
-  "snapshot_building",
-  "snapshot_artifact_missing",
-  "snapshot_corrupt",
-  "unsafe_revision_log",
-  "authz_denied"
-], CHANGES_FALLBACK_REASONS = [
-  "unsupported_layer",
-  "revision_gap",
-  "delta_too_large",
-  "delta_body_too_large",
-  "unsafe_revision_log",
-  "authz_denied"
-], FAST_SYNC_FALLBACK_REASONS = [
-  ...BOOTSTRAP_FALLBACK_REASONS,
-  ...CHANGES_FALLBACK_REASONS
-];
-function isRevisionRecord(value2) {
-  if (!isRecord(value2) || !hasExactBaseKeys(value2)) return !1;
-  if (value2.op === "put") {
-    let putKeys = [
-      "schemaVersion",
-      "rev",
-      "prevRev",
-      "teamId",
-      "spaceId",
-      "requestId",
-      "createdAt",
-      "op",
-      "entry",
-      "objectGeneration",
-      "contentSha256",
-      ...value2.body === void 0 ? [] : ["body"]
-    ];
-    return hasOnlyKeys(value2, putKeys) && isManifestEntry(value2.entry) && typeof value2.objectGeneration == "string" && isSha256(value2.contentSha256) && (value2.body === void 0 || isInlineRevisionBody(value2.body));
-  }
-  return value2.op === "delete" ? hasOnlyKeys(value2, [
-    "schemaVersion",
-    "rev",
-    "prevRev",
-    "teamId",
-    "spaceId",
-    "requestId",
-    "createdAt",
-    "op",
-    "key"
-  ]) && isSafeSyncKey(value2.key) : value2.op === "delete_folder" ? hasOnlyKeys(value2, [
-    "schemaVersion",
-    "rev",
-    "prevRev",
-    "teamId",
-    "spaceId",
-    "requestId",
-    "createdAt",
-    "op",
-    "deleteScope",
-    "deletePrefix",
-    "deletedKeys"
-  ]) && value2.deleteScope === "exact_keys" && isSafeSyncKey(value2.deletePrefix) && Array.isArray(value2.deletedKeys) && value2.deletedKeys.every(isSafeSyncKey) && isSorted(value2.deletedKeys) : !1;
-}
-function isBootstrapResponse(value2) {
-  return isRecord(value2) ? value2.kind === "snapshot" ? hasOnlyKeys(value2, ["kind", "manifest", "currentRevision", "bundle"]) && isSnapshotManifest(value2.manifest) && isRevisionNumber(value2.currentRevision) && isRecord(value2.bundle) && hasOnlyKeys(value2.bundle, ["kind", "handle"]) && value2.bundle.kind === "backend-handle" && typeof value2.bundle.handle == "string" && value2.bundle.handle.length > 0 : value2.kind === "fallback_required" ? isFallbackResponse(value2, BOOTSTRAP_FALLBACK_REASONS, !0) : !1 : !1;
-}
-function isChangesResponse(value2) {
-  return isRecord(value2) ? value2.kind === "revision_list" ? hasOnlyKeys(value2, [
-    "kind",
-    "fromRevExclusive",
-    "toRevInclusive",
-    "records"
-  ]) && isRevisionCursor(value2.fromRevExclusive) && isRevisionNumber(value2.toRevInclusive) && value2.toRevInclusive >= value2.fromRevExclusive && Array.isArray(value2.records) && value2.records.every(isRevisionRecord) : value2.kind === "fallback_required" ? isFallbackResponse(value2, CHANGES_FALLBACK_REASONS, !1) : !1 : !1;
-}
-function isSnapshotManifest(value2) {
-  return isRecord(value2) && hasOnlyKeys(value2, [
-    "schemaVersion",
-    "formatVersion",
-    "teamId",
-    "spaceId",
-    "snapshotRevision",
-    "createdAt",
-    "fileCount",
-    "totalBytes",
-    "bundleSha256",
-    "bundleByteCount",
-    "objectGeneration",
-    "manifestEntries"
-  ]) && value2.schemaVersion === 1 && value2.formatVersion === "tar-gzip-v1" && typeof value2.teamId == "string" && typeof value2.spaceId == "string" && isRevisionNumber(value2.snapshotRevision) && typeof value2.createdAt == "string" && !Number.isNaN(Date.parse(value2.createdAt)) && isNonNegativeSafeInteger(value2.fileCount) && isNonNegativeSafeInteger(value2.totalBytes) && isSha256(value2.bundleSha256) && isNonNegativeSafeInteger(value2.bundleByteCount) && typeof value2.objectGeneration == "string" && Array.isArray(value2.manifestEntries) && value2.manifestEntries.every(isManifestEntry);
-}
-function isManifestEntry(value2) {
-  return isRecord(value2) && hasOnlyKeys(value2, ["key", "md5", "size", "contentType", "updatedAt"]) && isSafeSyncKey(value2.key) && typeof value2.md5 == "string" && /^[0-9a-f]{32}$/.test(value2.md5) && isNonNegativeSafeInteger(value2.size) && typeof value2.contentType == "string" && typeof value2.updatedAt == "string" && !Number.isNaN(Date.parse(value2.updatedAt));
-}
-function hasExactBaseKeys(value2) {
-  return value2.schemaVersion === 1 && isRevisionNumber(value2.rev) && (value2.prevRev === null || isRevisionNumber(value2.prevRev)) && typeof value2.teamId == "string" && typeof value2.spaceId == "string" && typeof value2.requestId == "string" && typeof value2.createdAt == "string" && !Number.isNaN(Date.parse(value2.createdAt));
-}
-function hasOnlyKeys(value2, keys) {
-  let allowed = new Set(keys);
-  return Object.keys(value2).every((key) => allowed.has(key)) && keys.every((key) => key in value2);
-}
-function isRevisionNumber(value2) {
-  return typeof value2 == "number" && Number.isSafeInteger(value2) && value2 > 0;
-}
-function isRevisionCursor(value2) {
-  return typeof value2 == "number" && Number.isSafeInteger(value2) && value2 >= 0;
-}
-function isSha256(value2) {
-  return typeof value2 == "string" && /^[0-9a-f]{64}$/.test(value2);
-}
-function isSafeSyncKey(value2) {
-  return !(typeof value2 != "string" || value2.length === 0 || value2.startsWith("/") || value2.includes(".."));
-}
-function isSorted(values) {
-  for (let i = 1; i < values.length; i += 1)
-    if (values[i - 1].localeCompare(values[i]) > 0) return !1;
-  return !0;
-}
-function isOneOf(value2, allowed) {
-  return typeof value2 == "string" && allowed.includes(value2);
-}
-function isPositiveSafeInteger(value2) {
-  return typeof value2 == "number" && Number.isSafeInteger(value2) && value2 > 0;
-}
-function isInlineRevisionBody(value2) {
-  return isRecord(value2) && hasOnlyKeys(value2, ["kind", "base64"]) && value2.kind === "inline-base64" && typeof value2.base64 == "string" && value2.base64.length > 0 && value2.base64.length <= 4 * 1024 * 1024 && /^[A-Za-z0-9+/]*={0,2}$/.test(value2.base64) && Buffer.from(value2.base64, "base64").toString("base64") === value2.base64;
-}
-function isFastSyncSpaceSizePolicy(value2) {
-  return isRecord(value2) && hasOnlyKeys(value2, [
-    "class",
-    "fileCount",
-    "totalBytes",
-    "largeFileThreshold",
-    "largeBytesThreshold"
-  ]) && (value2.class === "small" || value2.class === "large") && isNonNegativeSafeInteger(value2.fileCount) && isNonNegativeSafeInteger(value2.totalBytes) && isPositiveSafeInteger(value2.largeFileThreshold) && isPositiveSafeInteger(value2.largeBytesThreshold);
-}
-function isFallbackResponse(value2, allowedReasons, allowBootstrapMetadata) {
-  if (!isOneOf(value2.reason, allowedReasons) || !["legacy", "retry_bootstrap", "blocked"].includes(String(value2.fallback)) || value2.fallback === "legacy" && value2.legacyAllowed !== !0 || value2.fallback !== "legacy" && value2.legacyAllowed !== !1 || value2.retryAfterMs !== void 0 && !isPositiveSafeInteger(value2.retryAfterMs))
-    return !1;
-  if (value2.reason === "unsupported_layer" || value2.reason === "authz_denied")
-    return hasOnlyKeys(value2, [
-      "kind",
-      "reason",
-      "fallback",
-      "legacyAllowed",
-      ...value2.retryAfterMs === void 0 ? [] : ["retryAfterMs"]
-    ]);
-  let bootstrapMetadataKeys = [
-    ...value2.spaceSizePolicy === void 0 ? [] : ["spaceSizePolicy"],
-    ...value2.currentRevision === void 0 ? [] : ["currentRevision"],
-    ...value2.snapshotRevision === void 0 ? [] : ["snapshotRevision"],
-    ...value2.maxCatchupRecords === void 0 ? [] : ["maxCatchupRecords"]
-  ];
-  return value2.spaceSizePolicy !== void 0 && !isFastSyncSpaceSizePolicy(value2.spaceSizePolicy) || value2.currentRevision !== void 0 && !isRevisionCursor(value2.currentRevision) || value2.snapshotRevision !== void 0 && !isRevisionNumber(value2.snapshotRevision) || value2.maxCatchupRecords !== void 0 && !isPositiveSafeInteger(value2.maxCatchupRecords) ? !1 : hasOnlyKeys(value2, [
-    "kind",
-    "reason",
-    "fallback",
-    "legacyAllowed",
-    ...value2.retryAfterMs === void 0 ? [] : ["retryAfterMs"],
-    ...allowBootstrapMetadata ? bootstrapMetadataKeys : []
-  ]);
-}
-
-// ../../packages/sync/src/http-client.ts
 var RateLimitedError = class extends Error {
   constructor(retryAfterMs, status2) {
     super(`rate limited (${status2})`);
@@ -17068,6 +17311,12 @@ var RateLimitedError = class extends Error {
     super(`auth:${status2}${reason ? ` (${reason})` : ""}`);
     this.status = status2;
     this.reason = reason;
+  }
+}, BundleUnsupportedError = class extends Error {
+  constructor(status2) {
+    super(`bundle endpoint unsupported (http ${status2})`);
+    this.status = status2;
+    this.name = "BundleUnsupportedError";
   }
 }, CONTENT_TYPE = {
   html: "text/html",
@@ -17116,7 +17365,7 @@ var MemoryHttpClient = class {
   }
   logHttpFailure(input) {
     try {
-      let parsed = new URL(input.url), method = input.init.method ?? "GET", err = input.error;
+      let parsed = new URL(input.url), method = input.init.method ?? "GET", err = input.error, sanitizedUrlPath = `${parsed.pathname}${parsed.search}`.replace(/\/bsh_[A-Za-z0-9_-]+/g, "/[handle]");
       Promise.resolve(
         this.cfg.log?.({
           component: "sync-engine",
@@ -17124,7 +17373,7 @@ var MemoryHttpClient = class {
           teamId: this.cfg.teamId,
           spaceId: this.cfg.spaceId,
           method,
-          urlPath: `${parsed.pathname}${parsed.search}`,
+          urlPath: sanitizedUrlPath,
           host: parsed.host,
           status: input.response?.status,
           statusText: input.response?.statusText,
@@ -17224,7 +17473,11 @@ var MemoryHttpClient = class {
   }
   async getManifest() {
     let data = await (await this.guard(
-      await this.send(`${this.base()}/manifest`, { headers: this.headers() }, { policy: "poll" })
+      await this.send(
+        `${this.base()}/manifest`,
+        { headers: this.headers() },
+        { policy: "poll" }
+      )
     )).json();
     return Array.isArray(data) ? data : data.files ?? [];
   }
@@ -17232,7 +17485,7 @@ var MemoryHttpClient = class {
     let data = await (await this.guard(
       await this.send(`${this.base()}/bootstrap`, { headers: this.headers() })
     )).json();
-    if (!isBootstrapResponse(data))
+    if (!(0, import_realtime_contracts.isBootstrapResponse)(data))
       throw new Error("invalid bootstrap response");
     return data;
   }
@@ -17246,7 +17499,7 @@ var MemoryHttpClient = class {
         { policy: "poll" }
       )
     )).json();
-    if (!isChangesResponse(data)) throw new Error("invalid changes response");
+    if (!(0, import_realtime_contracts.isChangesResponse)(data)) throw new Error("invalid changes response");
     return data;
   }
   /**
@@ -17340,6 +17593,90 @@ var MemoryHttpClient = class {
       headers: this.headers({ "content-type": "application/octet-stream" }),
       body: signedJson
     })).ok ? "ok" : "rejected";
+  }
+  /**
+   * Upload a gzip-compressed file bundle to the server.
+   *
+   * Bypasses `send()` because:
+   * 1. `send()` overwrites `x-request-id` with a random UUID — the bundle
+   *    needs a STABLE client-provided id as the idempotency key.
+   * 2. `guard()` throws before status can be read — we need to branch on
+   *    404/501/415 for `BundleUnsupportedError` without falling into the
+   *    generic error path.
+   *
+   * The buffered `Uint8Array` body is safely re-sendable on retry.
+   * Size-proportional timeout prevents stalls on large bundles over slow uplinks.
+   */
+  async putFileBundle(body, requestId, onThrottle) {
+    let url2 = `${this.base()}/bundle`, maxRetries = this.cfg.maxRetries ?? 2, init = { method: "POST" }, timeoutMs = Math.max(
+      this.cfg.requestTimeoutMs ?? 3e4,
+      Math.ceil(body.byteLength / 64)
+    );
+    for (let attempt = 0; ; attempt++) {
+      let res;
+      try {
+        res = await fetch(url2, {
+          method: "POST",
+          headers: this.headers({
+            "content-type": "application/gzip",
+            "x-request-id": requestId
+          }),
+          body,
+          // Uint8Array is a valid fetch body at runtime; cast bridges the node-lib vs DOM-lib BodyInit variance under TS 5.7
+          signal: AbortSignal.timeout(timeoutMs)
+        });
+      } catch (err) {
+        if (err instanceof Error && err.name === "TimeoutError" || attempt >= maxRetries)
+          throw this.logHttpFailure({ url: url2, init, requestId, attempt, maxRetries, error: err }), err;
+        let nextRetryMs = backoffMs(attempt);
+        this.logHttpFailure({
+          url: url2,
+          init,
+          requestId,
+          attempt,
+          maxRetries,
+          nextRetryMs,
+          error: err
+        }), await sleep(nextRetryMs);
+        continue;
+      }
+      if (res.status === 404 || res.status === 501 || res.status === 415)
+        throw new BundleUnsupportedError(res.status);
+      let retryAfterMs = parseRetryAfter(res);
+      if ((res.status === 429 || res.status === 503 && retryAfterMs !== void 0) && attempt < maxRetries) {
+        onThrottle?.();
+        let nextRetryMs = retryAfterMs ?? backoffMs(attempt);
+        this.logHttpFailure({
+          url: url2,
+          init,
+          requestId,
+          attempt,
+          maxRetries,
+          nextRetryMs,
+          response: res
+        }), await sleep(nextRetryMs);
+        continue;
+      }
+      if (res.status >= 500 && attempt < maxRetries) {
+        let nextRetryMs = backoffMs(attempt);
+        this.logHttpFailure({
+          url: url2,
+          init,
+          requestId,
+          attempt,
+          maxRetries,
+          nextRetryMs,
+          response: res
+        }), await sleep(nextRetryMs);
+        continue;
+      }
+      if (!res.ok)
+        throw this.logHttpFailure({ url: url2, init, requestId, attempt, maxRetries, response: res }), new Error(`http ${res.status} ${await res.text()}`);
+      let data = await res.json();
+      if (!(0, import_realtime_contracts.isPushBundleResult)(data))
+        throw new Error("invalid push bundle response");
+      return data;
+    }
   }
 };
 async function provisionTrustAnchor(target, publicKeyPem) {
@@ -18238,9 +18575,9 @@ function parse2(str2) {
     uri[parts[i]] = m[i] || "";
   return b != -1 && e != -1 && (uri.source = src, uri.host = uri.host.substring(1, uri.host.length - 1).replace(/;/g, ":"), uri.authority = uri.authority.replace("[", "").replace("]", "").replace(/;/g, ":"), uri.ipv6uri = !0), uri.pathNames = pathNames(uri, uri.path), uri.queryKey = queryKey(uri, uri.query), uri;
 }
-function pathNames(obj, path2) {
-  let regx = /\/{2,9}/g, names = path2.replace(regx, "/").split("/");
-  return (path2.slice(0, 1) == "/" || path2.length === 0) && names.splice(0, 1), path2.slice(-1) == "/" && names.splice(names.length - 1, 1), names;
+function pathNames(obj, path) {
+  let regx = /\/{2,9}/g, names = path.replace(regx, "/").split("/");
+  return (path.slice(0, 1) == "/" || path.length === 0) && names.splice(0, 1), path.slice(-1) == "/" && names.splice(names.length - 1, 1), names;
 }
 function queryKey(uri, query) {
   let data = {};
@@ -18616,11 +18953,11 @@ var protocol2 = Socket.protocol;
 
 // ../../node_modules/.pnpm/socket.io-client@4.8.3/node_modules/socket.io-client/build/esm-debug/url.js
 var import_debug7 = __toESM(require_src(), 1), debug7 = (0, import_debug7.default)("socket.io-client:url");
-function url(uri, path2 = "", loc) {
+function url(uri, path = "", loc) {
   let obj = uri;
   loc = loc || typeof location < "u" && location, uri == null && (uri = loc.protocol + "//" + loc.host), typeof uri == "string" && (uri.charAt(0) === "/" && (uri.charAt(1) === "/" ? uri = loc.protocol + uri : uri = loc.host + uri), /^(https?|wss?):\/\//.test(uri) || (debug7("protocol-less url %s", uri), typeof loc < "u" ? uri = loc.protocol + "//" + uri : uri = "https://" + uri), debug7("parse %s", uri), obj = parse2(uri)), obj.port || (/^(http|ws)$/.test(obj.protocol) ? obj.port = "80" : /^(http|ws)s$/.test(obj.protocol) && (obj.port = "443")), obj.path = obj.path || "/";
   let host = obj.host.indexOf(":") !== -1 ? "[" + obj.host + "]" : obj.host;
-  return obj.id = obj.protocol + "://" + host + ":" + obj.port + path2, obj.href = obj.protocol + "://" + host + (loc && loc.port === obj.port ? "" : ":" + obj.port), obj;
+  return obj.id = obj.protocol + "://" + host + ":" + obj.port + path, obj.href = obj.protocol + "://" + host + (loc && loc.port === obj.port ? "" : ":" + obj.port), obj;
 }
 
 // ../../node_modules/.pnpm/socket.io-parser@4.2.6/node_modules/socket.io-parser/build/esm-debug/index.js
@@ -19824,7 +20161,7 @@ var import_component_emitter6 = __toESM(require_cjs(), 1), import_debug10 = __to
 var import_debug11 = __toESM(require_src(), 1), debug11 = (0, import_debug11.default)("socket.io-client"), cache = {};
 function lookup(uri, opts) {
   typeof uri == "object" && (opts = uri, uri = void 0), opts = opts || {};
-  let parsed = url(uri, opts.path || "/socket.io"), source = parsed.source, id = parsed.id, path2 = parsed.path, sameNamespace = cache[id] && path2 in cache[id].nsps, newConnection = opts.forceNew || opts["force new connection"] || opts.multiplex === !1 || sameNamespace, io;
+  let parsed = url(uri, opts.path || "/socket.io"), source = parsed.source, id = parsed.id, path = parsed.path, sameNamespace = cache[id] && path in cache[id].nsps, newConnection = opts.forceNew || opts["force new connection"] || opts.multiplex === !1 || sameNamespace, io;
   return newConnection ? (debug11("ignoring socket cache for %s", source), io = new Manager(source, opts)) : (cache[id] || (debug11("new io instance for %s", source), cache[id] = new Manager(source, opts)), io = cache[id]), parsed.query && !opts.query && (opts.query = parsed.queryKey), io.socket(parsed.path, opts);
 }
 Object.assign(lookup, {
@@ -19835,6 +20172,7 @@ Object.assign(lookup, {
 });
 
 // ../../packages/sync/src/ws-client.ts
+var import_realtime_contracts2 = __toESM(require_realtime_contracts());
 function isAuthLikeConnectError(err) {
   let message = err.message ?? "";
   return /\b(?:401|403)\b|not.?authorized|authentication|(?:account|billing|subscription|team|space)\s+inactive|inactive\s+(?:account|billing|subscription|team|space)/i.test(
@@ -19860,7 +20198,7 @@ var WsClient = class {
         reconnection: !0
       });
       this.socket = socket, socket.on("memory.changed", (event) => {
-        isMemoryChangedEvent(event) && this.handlers.onEvent(event);
+        (0, import_realtime_contracts2.isMemoryChangedEvent)(event) && this.handlers.onEvent(event);
       }), socket.on("folder.deleted", (event) => {
         this.handlers.onFolderDeleted?.(event);
       }), socket.on("connect", () => {
@@ -19899,14 +20237,14 @@ function isSyncable(treeRelPath) {
 // ../../packages/sync/src/watch.ts
 function watchTree(root, debounceMs, onBatch) {
   let pending = /* @__PURE__ */ new Map(), timer, classify2 = async ([key, event]) => {
-    let path2 = join11(root, key);
+    let path = join11(root, key);
     try {
-      return await stat2(path2), {
-        path: path2,
+      return await stat2(path), {
+        path,
         type: event === "change" ? "update" : "create"
       };
     } catch {
-      return { path: path2, type: "delete" };
+      return { path, type: "delete" };
     }
   }, flush = () => {
     let entries = [...pending].filter(([key]) => isSyncable(key)), keys = entries.map(([key]) => key);
@@ -20529,9 +20867,11 @@ function nextPollDelay(input) {
 }
 
 // ../../packages/sync/src/fast-sync/bootstrap.ts
+var import_realtime_contracts3 = __toESM(require_realtime_contracts());
+import { rm as rm9 } from "node:fs/promises";
 async function tryFastBootstrap(input) {
   if (!input.enabled)
-    return { kind: "legacy_allowed", reason: "disabled", legacyAllowed: !0 };
+    return { kind: "disabled" };
   let bootstrap = await timed(
     input,
     "fast-bootstrap.get-bootstrap",
@@ -20561,23 +20901,19 @@ async function tryFastBootstrap(input) {
       )
     ), bootstrapValue.fallback === "legacy" ? {
       kind: "legacy_allowed",
-      reason: bootstrapValue.reason,
-      legacyAllowed: !0
+      reason: "backend_legacy_allowed"
     } : bootstrapValue.fallback === "retry_bootstrap" ? {
       kind: "wait_retry",
-      reason: bootstrapValue.reason,
-      legacyAllowed: !1,
-      retryAfterMs: bootstrapValue.retryAfterMs
+      reason: (0, import_realtime_contracts3.isFastBootstrapStatusReason)(bootstrapValue.reason) ? bootstrapValue.reason : "bootstrap_contract_invalid",
+      retryAfterMs: bootstrapValue.retryAfterMs ?? 3e4
     } : {
       kind: "fatal_blocked",
-      reason: bootstrapValue.reason,
-      legacyAllowed: !1
+      reason: (0, import_realtime_contracts3.isFastBootstrapStatusReason)(bootstrapValue.reason) ? bootstrapValue.reason : "bootstrap_contract_invalid"
     };
   if (!input.extractBundle || !input.applyChanges || !input.promote)
     return {
       kind: "fatal_blocked",
-      reason: "snapshot_promote_pending",
-      legacyAllowed: !1
+      reason: "snapshot_promote_pending"
     };
   if (input.targetState === "dirty")
     return input.emitStatus?.(
@@ -20587,15 +20923,26 @@ async function tryFastBootstrap(input) {
       })
     ), {
       kind: "fatal_blocked",
-      reason: "dirty_local_tree",
-      legacyAllowed: !1
+      reason: "dirty_local_tree"
     };
   input.emitStatus?.(status("snapshot", "snapshot_downloading"));
-  let handle = bootstrapValue.bundle.handle, bodyResult = await timed(
-    input,
-    "fast-bootstrap.download-bundle",
-    () => input.http.getBootstrapBundle(handle)
-  );
+  let handle = bootstrapValue.bundle.handle, bodyResult;
+  try {
+    bodyResult = await timed(
+      input,
+      "fast-bootstrap.download-bundle",
+      () => input.http.getBootstrapBundle(handle)
+    );
+  } catch (err) {
+    let msg = err instanceof Error ? err.message : String(err);
+    if (/\b(404|410)\b/.test(msg))
+      return {
+        kind: "wait_retry",
+        reason: "bundle_handle_expired_or_mismatched",
+        retryAfterMs: 3e4
+      };
+    throw err;
+  }
   input.log?.({
     action: "fast-bootstrap.download-bundle",
     durationMs: bodyResult.durationMs,
@@ -20641,19 +20988,16 @@ async function tryFastBootstrap(input) {
       toRev: bootstrapValue.currentRevision
     }
   }), changes.kind === "fallback_required")
-    return changes.fallback === "legacy" ? {
+    return await rm9(extracted.stagingPath, { recursive: !0, force: !0 }), changes.fallback === "legacy" ? {
       kind: "legacy_allowed",
-      reason: changes.reason,
-      legacyAllowed: !0
+      reason: "backend_legacy_allowed"
     } : changes.fallback === "retry_bootstrap" ? {
       kind: "wait_retry",
-      reason: changes.reason,
-      legacyAllowed: !1,
-      retryAfterMs: changes.retryAfterMs
+      reason: (0, import_realtime_contracts3.isFastBootstrapStatusReason)(changes.reason) ? changes.reason : "bootstrap_contract_invalid",
+      retryAfterMs: changes.retryAfterMs ?? 3e4
     } : {
       kind: "fatal_blocked",
-      reason: changes.reason,
-      legacyAllowed: !1
+      reason: (0, import_realtime_contracts3.isFastBootstrapStatusReason)(changes.reason) ? changes.reason : "bootstrap_contract_invalid"
     };
   let stagedRevisionResult = await timed(
     input,
@@ -20676,11 +21020,12 @@ async function tryFastBootstrap(input) {
   });
   let deltaResult = stagedRevisionResult.value;
   if (deltaResult.stagedRevision !== bootstrapValue.currentRevision)
-    return {
+    return await rm9(extracted.stagingPath, { recursive: !0, force: !0 }), {
       kind: "fatal_blocked",
-      reason: "revision_gap",
-      legacyAllowed: !1
+      reason: "revision_gap"
     };
+  if (input.shouldCancel?.())
+    return await rm9(extracted.stagingPath, { recursive: !0, force: !0 }), { kind: "cancelled", reason: "worker_revoked" };
   input.emitStatus?.(status("snapshot", "promoting"));
   let promoteResult = await timed(
     input,
@@ -20742,23 +21087,12 @@ import { mkdtemp } from "node:fs/promises";
 import { join as join17 } from "node:path";
 
 // ../../packages/sync/src/fast-sync/delta-apply.ts
-import { mkdir as mkdir7, rm as rm9 } from "node:fs/promises";
+import { mkdir as mkdir7, rm as rm10 } from "node:fs/promises";
 import { createHash as createHash4 } from "node:crypto";
 import { dirname as dirname7, join as join14 } from "node:path";
 
 // ../../packages/sync/src/fast-sync/tar-safety.ts
-import path from "node:path";
-function assertSafeTarEntryName(name, options = {}) {
-  if (options.type && options.type !== "file")
-    throw new Error("unsafe tar entry");
-  if (name.includes("\\") || name.includes("\0") || path.posix.isAbsolute(name))
-    throw new Error("unsafe tar entry");
-  let normalized = path.posix.normalize(name);
-  if (normalized === "." || normalized === ".." || normalized.startsWith("../"))
-    throw new Error("unsafe tar entry");
-  if (options.seen?.has(normalized)) throw new Error("duplicate tar entry");
-  return normalized;
-}
+var import_realtime_contracts4 = __toESM(require_realtime_contracts());
 
 // ../../packages/sync/src/fast-sync/delta-apply.ts
 async function applyRevisionRecordsToStaging(input) {
@@ -20771,25 +21105,25 @@ async function applyRevisionRecordsToStaging(input) {
     if (record.prevRev !== (stagedRevision === 0 ? null : stagedRevision))
       throw new Error("revision gap");
     if (record.op === "put") {
-      let key = assertSafeTarEntryName(record.entry.key), path2 = join14(input.stagingPath, key), body = record.body?.kind === "inline-base64" ? Buffer.from(record.body.base64, "base64") : await readBodyOrThrow(input.readBody, key);
+      let key = (0, import_realtime_contracts4.assertSafeTarEntryName)(record.entry.key), path = join14(input.stagingPath, key), body = record.body?.kind === "inline-base64" ? Buffer.from(record.body.base64, "base64") : await readBodyOrThrow(input.readBody, key);
       if (body.byteLength !== record.entry.size)
         throw new Error("size mismatch");
       if (createHash4("sha256").update(body).digest("hex") !== record.contentSha256) throw new Error("sha256 mismatch");
-      await mkdir7(dirname7(path2), { recursive: !0 }), await writeFileAtomic(path2, body), nextBaseline[key] = {
+      await mkdir7(dirname7(path), { recursive: !0 }), await writeFileAtomic(path, body), nextBaseline[key] = {
         md5: record.entry.md5,
         updatedAt: record.entry.updatedAt
       };
     } else if (record.op === "delete") {
-      let key = assertSafeTarEntryName(record.key);
-      await rm9(join14(input.stagingPath, key), { force: !0 }), delete nextBaseline[key];
+      let key = (0, import_realtime_contracts4.assertSafeTarEntryName)(record.key);
+      await rm10(join14(input.stagingPath, key), { force: !0 }), delete nextBaseline[key];
     } else {
       if ([...record.deletedKeys].sort((a, b) => a.localeCompare(b)).join(`
 `) !== record.deletedKeys.join(`
 `))
         throw new Error("deletedKeys must be sorted");
       for (let key of record.deletedKeys) {
-        let safeKey = assertSafeTarEntryName(key);
-        await rm9(join14(input.stagingPath, safeKey), { force: !0 }), delete nextBaseline[safeKey];
+        let safeKey = (0, import_realtime_contracts4.assertSafeTarEntryName)(key);
+        await rm10(join14(input.stagingPath, safeKey), { force: !0 }), delete nextBaseline[safeKey];
       }
     }
     stagedRevision = record.rev;
@@ -20821,7 +21155,7 @@ async function extractSnapshotBundle(input) {
     };
     extract.on("entry", (header, stream, next) => {
       (async () => {
-        let key = assertSafeTarEntryName(header.name);
+        let key = (0, import_realtime_contracts4.assertSafeTarEntryName)(header.name);
         if (seen.has(key)) throw new Error("duplicate tar entry");
         let entry = expected.get(key);
         if (!entry) throw new Error("manifest mismatch");
@@ -20858,38 +21192,38 @@ async function extractSnapshotBundle(input) {
 }
 
 // ../../packages/sync/src/fast-sync/promote-transaction.ts
-import { mkdir as mkdir9, readdir as readdir5, readFile as readFile11, rename as rename6, rm as rm10, stat as stat5 } from "node:fs/promises";
+import { mkdir as mkdir9, readdir as readdir5, readFile as readFile11, rename as rename6, rm as rm11, stat as stat5 } from "node:fs/promises";
 import { dirname as dirname9, join as join16 } from "node:path";
 async function promoteSnapshotTree(input) {
   await mkdir9(input.syncDir, { recursive: !0 });
   let markerPath = join16(input.syncDir, "bootstrap-transaction.json"), backupPath = join16(input.syncDir, "bootstrap-target-backup");
   if (await writeMarker2(markerPath, input, "prepared"), await mkdir9(dirname9(input.targetPath), { recursive: !0 }), !input.allowReplaceExisting && await nonEmpty2(input.targetPath))
     throw new Error("target tree is not empty");
-  await rm10(backupPath, { recursive: !0, force: !0 }), await exists(input.targetPath) && (await writeMarker2(markerPath, input, "backing_up_target"), await rename6(input.targetPath, backupPath)), await writeMarker2(markerPath, input, "promoting_tree"), await rename6(input.stagingPath, input.targetPath), await writeMarker2(markerPath, input, "writing_baseline");
+  await rm11(backupPath, { recursive: !0, force: !0 }), await exists(input.targetPath) && (await writeMarker2(markerPath, input, "backing_up_target"), await rename6(input.targetPath, backupPath)), await writeMarker2(markerPath, input, "promoting_tree"), await rename6(input.stagingPath, input.targetPath), await writeMarker2(markerPath, input, "writing_baseline");
   let state = new SyncState(input.syncDir);
-  await state.setBaseline(input.baseline), await state.setBaselineRevision(input.targetRevision), await writeMarker2(markerPath, input, "ready"), await rm10(backupPath, { recursive: !0, force: !0 }), await rm10(markerPath, { force: !0 });
+  await state.setBaseline(input.baseline), await state.setBaselineRevision(input.targetRevision), await writeMarker2(markerPath, input, "ready"), await rm11(backupPath, { recursive: !0, force: !0 }), await rm11(markerPath, { force: !0 });
 }
 async function recoverPromoteTransaction(syncDir) {
   let markerPath = join16(syncDir, "bootstrap-transaction.json");
   if (!await exists(markerPath)) return;
   let marker = JSON.parse(await readFile11(markerPath, "utf8"));
   if (marker.phase === "prepared" || marker.phase === "backing_up_target") {
-    !await exists(marker.targetPath) && await exists(marker.backupPath) && await rename6(marker.backupPath, marker.targetPath), await rm10(marker.stagingPath, { recursive: !0, force: !0 }), await rm10(marker.backupPath, { recursive: !0, force: !0 }), await rm10(markerPath, { force: !0 });
+    !await exists(marker.targetPath) && await exists(marker.backupPath) && await rename6(marker.backupPath, marker.targetPath), await rm11(marker.stagingPath, { recursive: !0, force: !0 }), await rm11(marker.backupPath, { recursive: !0, force: !0 }), await rm11(markerPath, { force: !0 });
     return;
   }
   if (marker.phase === "promoting_tree" && !await exists(marker.targetPath)) {
     if (await exists(marker.stagingPath))
       await rename6(marker.stagingPath, marker.targetPath);
     else if (await exists(marker.backupPath)) {
-      await rename6(marker.backupPath, marker.targetPath), await rm10(markerPath, { force: !0 });
+      await rename6(marker.backupPath, marker.targetPath), await rm11(markerPath, { force: !0 });
       return;
     }
   }
   if (marker.phase === "promoting_tree" || marker.phase === "writing_baseline" || marker.phase === "ready") {
     let state = new SyncState(syncDir);
-    await state.setBaseline(marker.baseline), await state.setBaselineRevision(marker.targetRevision), await rm10(marker.backupPath, { recursive: !0, force: !0 });
+    await state.setBaseline(marker.baseline), await state.setBaselineRevision(marker.targetRevision), await rm11(marker.backupPath, { recursive: !0, force: !0 });
   }
-  await rm10(markerPath, { force: !0 });
+  await rm11(markerPath, { force: !0 });
 }
 async function writeMarker2(markerPath, input, phase) {
   await writeFileAtomic(
@@ -20905,16 +21239,16 @@ async function writeMarker2(markerPath, input, phase) {
     )
   );
 }
-async function exists(path2) {
+async function exists(path) {
   try {
-    return await stat5(path2), !0;
+    return await stat5(path), !0;
   } catch {
     return !1;
   }
 }
-async function nonEmpty2(path2) {
+async function nonEmpty2(path) {
   try {
-    return (await readdir5(path2)).length > 0;
+    return (await readdir5(path)).length > 0;
   } catch {
     return !1;
   }
@@ -20950,6 +21284,105 @@ function createFastBootstrapRuntime(input) {
       });
     }
   };
+}
+
+// ../../packages/sync/src/fast-sync/bundle-plan.ts
+var DEFAULT_BUNDLE_THRESHOLDS = {
+  minFiles: 100,
+  minBytes: 26214400,
+  maxFiles: 500,
+  maxBytes: 26214400
+};
+function shouldBundle(items, t = DEFAULT_BUNDLE_THRESHOLDS) {
+  if (items.length >= t.minFiles) return !0;
+  let bytes = 0;
+  for (let it of items) bytes += it.size;
+  return bytes >= t.minBytes;
+}
+function chunkBundle(items, t = DEFAULT_BUNDLE_THRESHOLDS) {
+  let chunks = [], cur = [], curBytes = 0;
+  for (let it of items)
+    (cur.length >= t.maxFiles || cur.length > 0 && curBytes + it.size > t.maxBytes) && (chunks.push(cur), cur = [], curBytes = 0), cur.push(it), curBytes += it.size;
+  return cur.length > 0 && chunks.push(cur), chunks;
+}
+
+// ../../packages/sync/src/fast-sync/push-bundles.ts
+import { randomUUID as randomUUID5 } from "node:crypto";
+
+// ../../packages/sync/src/fast-sync/pack-bundle.ts
+var import_tar_stream2 = __toESM(require_tar_stream()), import_realtime_contracts5 = __toESM(require_realtime_contracts());
+import { gzip } from "node:zlib";
+import { promisify } from "node:util";
+var gzipAsync = promisify(gzip);
+async function packBundle(entries) {
+  let seen = /* @__PURE__ */ new Set(), pack = (0, import_tar_stream2.pack)(), chunks = [];
+  pack.on("data", (c) => chunks.push(c));
+  let finished = new Promise((resolve7, reject) => {
+    pack.on("end", () => resolve7()), pack.on("error", reject);
+  });
+  for (let e of entries) {
+    let name = (0, import_realtime_contracts5.assertSafeTarEntryName)(e.key, { seen });
+    seen.add(name);
+    let buf = Buffer.from(e.bytes);
+    pack.entry({ name, size: buf.length }, buf);
+  }
+  return pack.finalize(), await finished, new Uint8Array(await gzipAsync(Buffer.concat(chunks)));
+}
+
+// ../../packages/sync/src/fast-sync/push-bundles.ts
+async function pushKeysAsBundles(input) {
+  let acked = {}, failed = [], bytesUploaded = 0, skipped = [], newId = input.newRequestId ?? (() => randomUUID5()), items = [];
+  for (let key of input.keys) {
+    if (!input.allowedExtensions.some((ext) => key.endsWith(ext))) {
+      failed.push(key);
+      continue;
+    }
+    let text = await input.readText(key);
+    if (text === void 0) {
+      skipped.push(key);
+      continue;
+    }
+    let bytes = new TextEncoder().encode(text);
+    items.push({ key, size: bytes.byteLength, bytes });
+  }
+  let chunks = chunkBundle(
+    items,
+    input.thresholds ?? DEFAULT_BUNDLE_THRESHOLDS
+  ), unsupported = !1, sendChunk = async (chunk2) => {
+    if (unsupported) {
+      for (let it of chunk2) failed.push(it.key);
+      return;
+    }
+    let sent = new Set(chunk2.map((it) => it.key)), requestId = newId();
+    try {
+      input.onPhaseChange?.("packing");
+      let body = await packBundle(
+        chunk2.map((it) => ({ key: it.key, bytes: it.bytes }))
+      );
+      bytesUploaded += body.byteLength, input.onPhaseChange?.("uploading");
+      let result = await input.putFileBundle(
+        body,
+        requestId,
+        input.onThrottle
+      );
+      input.onPhaseChange?.("acking");
+      for (let f of result.files) {
+        if (!sent.has(f.key)) continue;
+        let a = { md5: f.md5, updatedAt: f.updatedAt };
+        acked[f.key] = a, input.onAcked?.(f.key, a);
+      }
+      for (let it of chunk2)
+        it.key in acked || failed.push(it.key);
+    } catch (err) {
+      if (err instanceof BundleUnsupportedError) {
+        unsupported = !0;
+        for (let it of chunk2) failed.push(it.key);
+        return;
+      }
+      for (let it of chunk2) failed.push(it.key);
+    }
+  }, limit = Math.max(1, input.concurrency ?? 2);
+  return await runWithConcurrency(chunks, limit, (chunk2) => sendChunk(chunk2)), { acked, failed, skipped, chunkCount: chunks.length, bytesUploaded };
 }
 
 // ../../packages/sync/src/engine.ts
@@ -21007,7 +21440,14 @@ function rejectedAfterSuccessfulReconcile(input) {
   return dedupeRejected(input.previous).filter((entry) => input.successfulKeys.has(entry.key) ? !1 : input.local.has(entry.key) || input.remote.has(entry.key) || input.nextBaseline[entry.key] !== void 0);
 }
 function createSyncEngine(inputConfig, deps = {}) {
-  let config = normalizeConfig(inputConfig), currentToken = config.token, http = new MemoryHttpClient(config, () => currentToken), tree = new TreeFs(config.contextTreeRoot), state = new SyncState(config.syncDir), mode = config.mode, bootstrapped = !config.bootstrap, fastBootstrapTried = !1, nextFastBootstrapAt, fastBootstrapBlocked = !1, activeOps = /* @__PURE__ */ new Set();
+  let config = normalizeConfig(inputConfig), currentToken = config.token, http = new MemoryHttpClient(config, () => currentToken), tree = new TreeFs(config.contextTreeRoot), state = new SyncState(config.syncDir), bundleThresholds = {
+    ...DEFAULT_BUNDLE_THRESHOLDS,
+    minFiles: config.bundleMinFiles ?? DEFAULT_BUNDLE_THRESHOLDS.minFiles,
+    minBytes: config.bundleMinBytes ?? DEFAULT_BUNDLE_THRESHOLDS.minBytes
+  }, bundleConcurrency = config.bundleConcurrency ?? 2, bundleAllowedExtensions = config.bundleAllowedExtensions ?? [
+    ".md",
+    ".html"
+  ], mode = config.mode, bootstrapped = !config.bootstrap, fastBootstrapTried = !1, nextFastBootstrapAt, fastBootstrapBlocked = !1, fastBootstrapRetryCount = 0, firstFastBootstrapRetryAt, activeOps = /* @__PURE__ */ new Set();
   function describeError(err) {
     return err instanceof Error ? err.message : String(err);
   }
@@ -21336,7 +21776,7 @@ function createSyncEngine(inputConfig, deps = {}) {
       remoteDeleted: 0,
       restored: 0,
       movesCompleted: 0
-    }, batchId = `watch-${(/* @__PURE__ */ new Date()).toISOString()}-${totalActions}`;
+    }, batchId = `watch-${(/* @__PURE__ */ new Date()).toISOString()}-${totalActions}`, watchBundleUploadPhase, watchBundleThrottled = !1;
     watchBatchOperation && totalActions > 0 && setStatus({
       state: current.state === "auth-expired" ? "auth-expired" : "syncing",
       progressPercent: 0,
@@ -21422,31 +21862,79 @@ function createSyncEngine(inputConfig, deps = {}) {
       } finally {
         inFlight.delete(key);
       }
+    }, emitWatchBatchProgress = () => {
+      if (!watchBatchOperation) return;
+      let base = {
+        kind: "action-count",
+        batchId,
+        operation: watchBatchOperation,
+        completedActions,
+        totalActions,
+        percent: Math.min(
+          100,
+          Math.round(completedActions / totalActions * 100)
+        ),
+        successfulActions: completionCounts.pushed + completionCounts.pulled + completionCounts.localDeleted + completionCounts.remoteDeleted + completionCounts.restored,
+        rejectedActions,
+        skippedActions
+      }, withPhase = watchBundleUploadPhase !== void 0 ? { ...base, uploadPhase: watchBundleUploadPhase } : base;
+      setStatus({
+        batchProgress: watchBundleThrottled ? { ...withPhase, throttled: !0 } : withPhase
+      });
     };
     try {
+      let perFileItems = attempted;
+      if (config.pushBundle) {
+        let pushCandidates = attempted.filter(
+          (it) => it.text !== void 0 && baseline[it.key]?.md5 !== md5Hex(it.text)
+        );
+        if (pushCandidates.length > 0 && shouldBundle(
+          pushCandidates.map((it) => ({
+            size: Buffer.byteLength(it.text, "utf8")
+          })),
+          bundleThresholds
+        )) {
+          let textByKey = new Map(
+            pushCandidates.map((it) => [it.key, it.text])
+          ), bundleKeys = pushCandidates.map((it) => it.key);
+          for (let key of bundleKeys) inFlight.add(key);
+          try {
+            let { acked, skipped } = await pushKeysAsBundles({
+              keys: bundleKeys,
+              readText: async (k) => textByKey.get(k),
+              putFileBundle: (body, rid, onThrottle) => http.putFileBundle(body, rid, onThrottle),
+              allowedExtensions: bundleAllowedExtensions,
+              thresholds: bundleThresholds,
+              concurrency: bundleConcurrency,
+              onAcked: (key, a) => {
+                baseline[key] = { md5: a.md5, updatedAt: a.updatedAt }, completionCounts.pushed += 1, pushed = !0, completedActions += 1, watchBundleThrottled = !1, setProgress(key, completedActions, totalActions), emitWatchBatchProgress();
+              },
+              onPhaseChange: (phase) => {
+                watchBundleUploadPhase = phase, emitWatchBatchProgress();
+              },
+              onThrottle: () => {
+                watchBundleThrottled = !0, emitWatchBatchProgress();
+              }
+            });
+            for (let _key of skipped)
+              skippedActions += 1, completedActions += 1, emitWatchBatchProgress();
+            let ackedSet = new Set(Object.keys(acked)), skippedSet = new Set(skipped);
+            perFileItems = attempted.filter(
+              (it) => !ackedSet.has(it.key) && !skippedSet.has(it.key)
+            );
+          } finally {
+            for (let key of bundleKeys) inFlight.delete(key);
+          }
+        }
+      }
       await runWithConcurrency(
-        attempted,
+        perFileItems,
         config.syncConcurrency ?? 8,
         async (item) => {
           try {
             await runKey(item.key, item.text);
           } finally {
-            completedActions += 1, setProgress(item.key, completedActions, totalActions), watchBatchOperation && setStatus({
-              batchProgress: {
-                kind: "action-count",
-                batchId,
-                operation: watchBatchOperation,
-                completedActions,
-                totalActions,
-                percent: Math.min(
-                  100,
-                  Math.round(completedActions / totalActions * 100)
-                ),
-                successfulActions: completionCounts.pushed + completionCounts.pulled + completionCounts.localDeleted + completionCounts.remoteDeleted + completionCounts.restored,
-                rejectedActions,
-                skippedActions
-              }
-            });
+            completedActions += 1, setProgress(item.key, completedActions, totalActions), emitWatchBatchProgress();
           }
         }
       ), await state.setBaseline(baseline);
@@ -21736,7 +22224,7 @@ function createSyncEngine(inputConfig, deps = {}) {
     }), catchUpResult);
   }
   async function runReconcileQueue() {
-    if (await recoverPromoteTransaction(config.syncDir), !bootstrapped && config.bootstrap && mode !== "pull-only") {
+    if (await recoverPromoteTransaction(config.syncDir), !bootstrapped && config.bootstrap) {
       if (fastBootstrapBlocked)
         return emptyReconcileResult2();
       if (fastBootstrapTried && nextFastBootstrapAt !== void 0) {
@@ -21759,39 +22247,47 @@ function createSyncEngine(inputConfig, deps = {}) {
           promote: fastRuntime.promote,
           emitStatus: (fastBootstrap) => setStatus({ fastBootstrap }),
           log,
-          targetState
-        }).catch(
-          (err) => ({
-            kind: "legacy_allowed",
-            reason: describeError(err),
-            legacyAllowed: !0
-          })
-        );
-        if (fast.kind === "legacy_allowed")
+          targetState,
+          shouldCancel: config.shouldCancelBootstrap
+        }).catch((err) => (log({
+          action: "fast-bootstrap.retry",
+          reason: "bootstrap_transport_error",
+          errorKind: describeError(err)
+        }), {
+          kind: "wait_retry",
+          reason: "bootstrap_transport_error",
+          retryAfterMs: 3e4
+        }));
+        if (fast.kind === "legacy_allowed" || fast.kind === "disabled")
           log({
             action: "fast-bootstrap.legacy_allowed",
             durationMs: elapsedMs2(fastBootstrapStarted),
-            reason: fast.reason
+            reason: fast.kind === "legacy_allowed" ? fast.reason : "disabled"
           });
-        else {
-          if (fast.kind === "wait_retry")
-            return nextFastBootstrapAt = Date.now() + (fast.retryAfterMs ?? 3e4), setStatus({
-              bootstrapReady: !1,
-              fastBootstrap: {
-                mode: "snapshot",
-                phase: "retry_waiting",
-                usable: !1,
-                isCurrent: !1,
-                baselineRevision: await state.getBaselineRevision(),
-                bootstrapTargetRevision: null,
-                latestKnownRevision: null,
-                revisionLag: null,
-                progress: { kind: "indeterminate" },
-                fallbackReason: fast.reason,
-                fallbackSeverity: "informational",
-                attemptId: null
-              }
-            }), emptyReconcileResult2();
+        else if (fast.kind === "wait_retry") {
+          let retryAfterMs = fast.retryAfterMs ?? 3e4, now = Date.now();
+          return nextFastBootstrapAt = now + retryAfterMs, fastBootstrapRetryCount += 1, firstFastBootstrapRetryAt === void 0 && (firstFastBootstrapRetryAt = now), setStatus({
+            bootstrapReady: !1,
+            fastBootstrap: {
+              mode: "snapshot",
+              phase: "retry_waiting",
+              usable: !1,
+              isCurrent: !1,
+              baselineRevision: await state.getBaselineRevision(),
+              bootstrapTargetRevision: null,
+              latestKnownRevision: null,
+              revisionLag: null,
+              progress: { kind: "indeterminate" },
+              fallbackReason: fast.reason,
+              fallbackSeverity: "informational",
+              attemptId: null,
+              retryAfterMs,
+              retryCount: fastBootstrapRetryCount,
+              retryAgeMs: now - firstFastBootstrapRetryAt,
+              nextRetryAt: new Date(nextFastBootstrapAt).toISOString()
+            }
+          }), emptyReconcileResult2();
+        } else {
           if (fast.kind === "fatal_blocked")
             return fastBootstrapBlocked = !0, setStatus({
               bootstrapReady: !1,
@@ -21811,7 +22307,26 @@ function createSyncEngine(inputConfig, deps = {}) {
                 attemptId: null
               }
             }), emptyReconcileResult2();
+          if (fast.kind === "cancelled")
+            return setStatus({
+              bootstrapReady: !1,
+              fastBootstrap: {
+                mode: "snapshot",
+                phase: "cancelled",
+                usable: !1,
+                isCurrent: !1,
+                baselineRevision: await state.getBaselineRevision(),
+                bootstrapTargetRevision: null,
+                latestKnownRevision: null,
+                revisionLag: null,
+                progress: { kind: "indeterminate" },
+                fallbackReason: "worker_revoked",
+                fallbackSeverity: "warning",
+                attemptId: null
+              }
+            }), emptyReconcileResult2();
           if (fast.kind === "used_snapshot") {
+            fastBootstrapRetryCount = 0, firstFastBootstrapRetryAt = void 0;
             let baselineRevision = await state.getBaselineRevision();
             if (baselineRevision !== fast.targetRevision)
               throw new Error("fast bootstrap baseline revision missing");
@@ -21935,18 +22450,20 @@ function createSyncEngine(inputConfig, deps = {}) {
       remoteDeleted: 0,
       restored: 0,
       movesCompleted: 0
-    }, bootstrapFailed = !1, totalActions = actions.length, completedActions = 0, batchId = `reconcile-${Date.now()}-${totalActions}`, batchOperation = operationForBatch(actions), successfulActions = 0, rejectedActions = 0, skippedActions = 0;
+    }, bootstrapFailed = !1, totalActions = actions.length, completedActions = 0, batchId = `reconcile-${Date.now()}-${totalActions}`, batchOperation = operationForBatch(actions), successfulActions = 0, rejectedActions = 0, skippedActions = 0, bundleUploadPhase, bundleThrottled = !1;
     function setBatchProgress() {
-      !batchOperation || totalActions <= 0 || setStatus({
-        batchProgress: batchProgress({
-          batchId,
-          operation: batchOperation,
-          completedActions,
-          totalActions,
-          successfulActions,
-          rejectedActions,
-          skippedActions
-        })
+      if (!batchOperation || totalActions <= 0) return;
+      let base = batchProgress({
+        batchId,
+        operation: batchOperation,
+        completedActions,
+        totalActions,
+        successfulActions,
+        rejectedActions,
+        skippedActions
+      }), withPhase = bundleUploadPhase !== void 0 ? { ...base, uploadPhase: bundleUploadPhase } : base;
+      setStatus({
+        batchProgress: bundleThrottled ? { ...withPhase, throttled: !0 } : withPhase
       });
     }
     setBatchProgress(), log({
@@ -22004,7 +22521,58 @@ function createSyncEngine(inputConfig, deps = {}) {
       }
     };
     try {
-      await runWithConcurrency(actions, config.syncConcurrency ?? 8, runAction);
+      let dispatchActions = actions;
+      if (config.pushBundle) {
+        let pushKeys = actions.filter((a) => a.kind === "push").map((a) => a.key);
+        if (pushKeys.length > 0 && shouldBundle(
+          pushKeys.map(() => ({ size: 0 })),
+          bundleThresholds
+        )) {
+          let bundlePhaseStartedAt = Date.now(), { acked, failed, skipped, chunkCount, bytesUploaded } = await pushKeysAsBundles({
+            keys: pushKeys,
+            readText: (k) => tree.readText(k),
+            putFileBundle: (body, rid, onThrottle) => http.putFileBundle(body, rid, onThrottle),
+            allowedExtensions: bundleAllowedExtensions,
+            thresholds: bundleThresholds,
+            concurrency: bundleConcurrency,
+            // Count each bundled key toward completed/successful AS it acks, so
+            // the batch-progress cadence matches the per-file path.
+            onAcked: (key, a) => {
+              nextBaseline[key] = { md5: a.md5, updatedAt: a.updatedAt }, result.pushed.push(key), successfulActions += 1, completionCounts.pushed += 1, completedActions += 1, setProgress(key, completedActions, totalActions), setBatchProgress();
+            },
+            onPhaseChange: (phase) => {
+              bundleUploadPhase = phase, setBatchProgress();
+            },
+            onThrottle: () => {
+              bundleThrottled = !0, setBatchProgress();
+            }
+          });
+          for (let key of skipped)
+            skippedActions += 1, completedActions += 1, setProgress(key, completedActions, totalActions), setBatchProgress();
+          log({
+            action: "push.bundle.summary",
+            operation: "push",
+            fileCount: Object.keys(acked).length,
+            deferredCount: failed.length,
+            totalActions: pushKeys.length,
+            // Optimization metrics: how many client→backend requests the bundle
+            // path collapsed the push into, the compressed bytes sent, and the
+            // wall-clock for the whole bundle phase.
+            requestCount: chunkCount,
+            bytes: bytesUploaded,
+            durationMs: Date.now() - bundlePhaseStartedAt
+          }), bundleThrottled = !1, setBatchProgress();
+          let failedSet = new Set(failed), skippedSet = new Set(skipped);
+          dispatchActions = actions.filter(
+            (a) => a.kind !== "push" || failedSet.has(a.key) && !skippedSet.has(a.key)
+          );
+        }
+      }
+      await runWithConcurrency(
+        dispatchActions,
+        config.syncConcurrency ?? 8,
+        runAction
+      );
       for (let intent of validatedIntents) {
         let to = intent.to;
         if (nextBaseline[to]) continue;
@@ -22188,7 +22756,7 @@ function createSyncEngine(inputConfig, deps = {}) {
     running && (log({ action: "ws.reconnect" }), track(catchUp().catch(handleError)));
   }
   async function start() {
-    running || (log({ action: "engine.start", mode, bootstrapped }), running = !0, authExpiredEmitted = !1, setStatus({ running: !0, state: "syncing", wsState: "degraded" }), await mkdir10(config.syncDir, { recursive: !0 }), await recoverPromoteTransaction(config.syncDir), current.bootstrapReady && await state.getBaselineRevision() === null && (setStatus({ bootstrapReady: !1 }), bootstrapped = !1, fastBootstrapTried = !1, fastBootstrapBlocked = !1, nextFastBootstrapAt = void 0), await mkdir10(config.contextTreeRoot, { recursive: !0 }), await track(reconcileOnce().catch(handleError)), !running) || (ws = (deps.createWsClient ?? ((args) => new WsClient(args.baseUrl, args.token, {
+    running || (log({ action: "engine.start", mode, bootstrapped }), running = !0, authExpiredEmitted = !1, setStatus({ running: !0, state: "syncing", wsState: "degraded" }), await mkdir10(config.syncDir, { recursive: !0 }), await recoverPromoteTransaction(config.syncDir), current.bootstrapReady && await state.getBaselineRevision() === null && (setStatus({ bootstrapReady: !1 }), bootstrapped = !1, fastBootstrapTried = !1, fastBootstrapBlocked = !1, nextFastBootstrapAt = void 0, fastBootstrapRetryCount = 0, firstFastBootstrapRetryAt = void 0), await mkdir10(config.contextTreeRoot, { recursive: !0 }), await track(reconcileOnce().catch(handleError)), !running) || (ws = (deps.createWsClient ?? ((args) => new WsClient(args.baseUrl, args.token, {
       onEvent: args.onEvent,
       onFolderDeleted: args.onFolderDeleted,
       onConnectError: args.onConnectError,
@@ -22222,7 +22790,7 @@ function createSyncEngine(inputConfig, deps = {}) {
     }), scheduleNextPoll(), log({ action: "poll.started" }));
   }
   async function stop() {
-    log({ action: "engine.stop" }), running = !1, stopWatch?.(), stopWatch = void 0, pollTimer !== void 0 && disarmTimer(pollTimer), pollTimer = void 0, pollBucket = void 0, ws?.close(), ws = void 0, await Promise.allSettled([...activeOps]), setStatus({
+    log({ action: "engine.stop" }), running = !1, stopWatch?.(), stopWatch = void 0, pollTimer !== void 0 && disarmTimer(pollTimer), pollTimer = void 0, pollBucket = void 0, ws?.close(), ws = void 0, fastBootstrapRetryCount = 0, firstFastBootstrapRetryAt = void 0, await Promise.allSettled([...activeOps]), setStatus({
       running: !1,
       wsState: "degraded",
       currentFileName: void 0,
@@ -22238,7 +22806,7 @@ function createSyncEngine(inputConfig, deps = {}) {
 
 // ../../packages/sync/src/daemon-auth-store.ts
 import { createHash as createHash6 } from "node:crypto";
-import { chmod as chmod5, mkdir as mkdir11, readFile as readFile12, rename as rename7, writeFile as writeFile7, rm as rm11 } from "node:fs/promises";
+import { chmod as chmod5, mkdir as mkdir11, readFile as readFile12, rename as rename7, writeFile as writeFile7, rm as rm12 } from "node:fs/promises";
 import { dirname as dirname10, join as join18 } from "node:path";
 function daemonAuthPath(projectsRoot) {
   return join18(projectsRoot, ".daemon", "auth.json");
@@ -22246,26 +22814,27 @@ function daemonAuthPath(projectsRoot) {
 function createTokenFingerprint(token) {
   return createHash6("sha256").update(token).digest("hex").slice(0, 16);
 }
-async function readDaemonAuth(path2) {
+async function readDaemonAuth(path) {
   try {
-    let raw = await readFile12(path2, "utf8");
+    let raw = await readFile12(path, "utf8");
     return JSON.parse(raw);
   } catch {
     return null;
   }
 }
-async function writeDaemonAuth(path2, record) {
-  await mkdir11(dirname10(path2), { recursive: !0 });
-  let tmp = `${path2}.tmp-${process.pid}-${Date.now()}`;
+async function writeDaemonAuth(path, record) {
+  await mkdir11(dirname10(path), { recursive: !0 });
+  let tmp = `${path}.tmp-${process.pid}-${Date.now()}`;
   await writeFile7(tmp, JSON.stringify(record, null, 2) + `
-`, { mode: 384 }), await chmod5(tmp, 384), await rename7(tmp, path2);
+`, { mode: 384 }), await chmod5(tmp, 384), await rename7(tmp, path);
 }
-async function clearDaemonAuthIfFingerprint(path2, fingerprint2) {
-  let current = await readDaemonAuth(path2);
-  return !current || current.tokenFingerprint !== fingerprint2 ? !1 : (await rm11(path2, { force: !0 }), !0);
+async function clearDaemonAuthIfFingerprint(path, fingerprint2) {
+  let current = await readDaemonAuth(path);
+  return !current || current.tokenFingerprint !== fingerprint2 ? !1 : (await rm12(path, { force: !0 }), !0);
 }
 
 // ../../packages/sync/src/daemon-status.ts
+var import_realtime_contracts6 = __toESM(require_realtime_contracts());
 import { readFile as readFile13 } from "node:fs/promises";
 import { join as join19 } from "node:path";
 
@@ -22437,7 +23006,7 @@ function normalizeBatchProgress(value2) {
   let percent = Math.max(
     0,
     Math.min(100, Math.round(completedActions / totalActions * 100))
-  );
+  ), validUploadPhases = /* @__PURE__ */ new Set(["packing", "uploading", "acking"]), uploadPhase = raw.uploadPhase !== void 0 && validUploadPhases.has(raw.uploadPhase) ? raw.uploadPhase : void 0, throttled = raw.throttled === !0 ? !0 : void 0;
   return {
     kind: "action-count",
     batchId,
@@ -22447,7 +23016,9 @@ function normalizeBatchProgress(value2) {
     percent,
     successfulActions,
     rejectedActions,
-    skippedActions
+    skippedActions,
+    ...uploadPhase !== void 0 ? { uploadPhase } : {},
+    ...throttled !== void 0 ? { throttled } : {}
   };
 }
 function normalizeRejectedCount(value2) {
@@ -22463,29 +23034,14 @@ function normalizeRecentCompletion(value2) {
   if (!(typeof changedCount != "number" || !Number.isSafeInteger(changedCount) || changedCount <= 0) && !(typeof completedAt != "string" || Number.isNaN(Date.parse(completedAt))) && !(typeof batchId != "string" || batchId.trim() === "" || batchId.length > 80))
     return { changedCount, completedAt, batchId };
 }
-var FAST_BOOTSTRAP_MODES = /* @__PURE__ */ new Set(["snapshot", "legacy"]), FAST_BOOTSTRAP_PHASES = /* @__PURE__ */ new Set([
-  "idle",
-  "checking_bootstrap",
-  "snapshot_downloading",
-  "snapshot_unpacking",
-  "snapshot_verifying",
-  "delta_applying",
-  "tail_catching_up",
-  "promoting",
-  "baseline_seeding",
-  "index_rebuilding",
-  "ready",
-  "legacy_bootstrap",
-  "retry_waiting",
-  "failed",
-  "cancelled"
-]), FAST_BOOTSTRAP_SEVERITIES = /* @__PURE__ */ new Set([
-  "silent",
-  "informational",
-  "warning",
-  "error"
-]), FAST_SYNC_FALLBACK_REASON_SET = new Set(
-  FAST_SYNC_FALLBACK_REASONS
+var FAST_BOOTSTRAP_MODE_SET = new Set(
+  import_realtime_contracts6.FAST_BOOTSTRAP_MODES
+), FAST_BOOTSTRAP_PHASE_SET = new Set(
+  import_realtime_contracts6.FAST_BOOTSTRAP_PHASES
+), FAST_BOOTSTRAP_SEVERITY_SET = new Set(
+  import_realtime_contracts6.FAST_BOOTSTRAP_SEVERITIES
+), FAST_BOOTSTRAP_STATUS_REASON_SET = new Set(
+  import_realtime_contracts6.FAST_BOOTSTRAP_STATUS_REASONS
 );
 function isNullableNonNegInt(value2) {
   return value2 === null || typeof value2 == "number" && Number.isSafeInteger(value2) && value2 >= 0;
@@ -22521,29 +23077,35 @@ function normalizeFastBootstrap(value2) {
   if (!value2 || typeof value2 != "object" || Array.isArray(value2))
     return;
   let v = value2;
-  if (typeof v.mode != "string" || !FAST_BOOTSTRAP_MODES.has(v.mode) || typeof v.phase != "string" || !FAST_BOOTSTRAP_PHASES.has(v.phase) || typeof v.usable != "boolean" || typeof v.isCurrent != "boolean" || !isNullableNonNegInt(v.baselineRevision) || !isNullableNonNegInt(v.bootstrapTargetRevision) || !isNullableNonNegInt(v.latestKnownRevision) || !isNullableNonNegInt(v.revisionLag))
+  if (typeof v.mode != "string" || !FAST_BOOTSTRAP_MODE_SET.has(v.mode) || typeof v.phase != "string" || !FAST_BOOTSTRAP_PHASE_SET.has(v.phase) || typeof v.usable != "boolean" || typeof v.isCurrent != "boolean" || !isNullableNonNegInt(v.baselineRevision) || !isNullableNonNegInt(v.bootstrapTargetRevision) || !isNullableNonNegInt(v.latestKnownRevision) || !isNullableNonNegInt(v.revisionLag))
     return;
   let progress = normalizeFastBootstrapProgress(v.progress);
   if (!progress) return;
   let fallbackReason = v.fallbackReason;
-  if (!(fallbackReason === null || typeof fallbackReason == "string" && FAST_SYNC_FALLBACK_REASON_SET.has(fallbackReason)))
+  if (!(fallbackReason === null || typeof fallbackReason == "string" && FAST_BOOTSTRAP_STATUS_REASON_SET.has(fallbackReason)))
     return;
   let fallbackSeverity = v.fallbackSeverity;
-  if ((fallbackSeverity === null || typeof fallbackSeverity == "string" && FAST_BOOTSTRAP_SEVERITIES.has(fallbackSeverity)) && (v.attemptId === null || typeof v.attemptId == "string"))
-    return {
-      mode: v.mode,
-      phase: v.phase,
-      usable: v.usable,
-      isCurrent: v.isCurrent,
-      baselineRevision: v.baselineRevision,
-      bootstrapTargetRevision: v.bootstrapTargetRevision,
-      latestKnownRevision: v.latestKnownRevision,
-      revisionLag: v.revisionLag,
-      progress,
-      fallbackReason: v.fallbackReason,
-      fallbackSeverity: v.fallbackSeverity,
-      attemptId: v.attemptId
-    };
+  if (!(fallbackSeverity === null || typeof fallbackSeverity == "string" && FAST_BOOTSTRAP_SEVERITY_SET.has(fallbackSeverity)) || !(v.attemptId === null || typeof v.attemptId == "string"))
+    return;
+  let retryAfterMs = typeof v.retryAfterMs == "number" && Number.isSafeInteger(v.retryAfterMs) && v.retryAfterMs > 0 ? v.retryAfterMs : void 0, retryCount = typeof v.retryCount == "number" && Number.isSafeInteger(v.retryCount) && v.retryCount >= 0 ? v.retryCount : void 0, retryAgeMs = typeof v.retryAgeMs == "number" && Number.isSafeInteger(v.retryAgeMs) && v.retryAgeMs >= 0 ? v.retryAgeMs : void 0, nextRetryAt = typeof v.nextRetryAt == "string" && !Number.isNaN(Date.parse(v.nextRetryAt)) ? v.nextRetryAt : void 0;
+  return {
+    mode: v.mode,
+    phase: v.phase,
+    usable: v.usable,
+    isCurrent: v.isCurrent,
+    baselineRevision: v.baselineRevision,
+    bootstrapTargetRevision: v.bootstrapTargetRevision,
+    latestKnownRevision: v.latestKnownRevision,
+    revisionLag: v.revisionLag,
+    progress,
+    fallbackReason: v.fallbackReason,
+    fallbackSeverity: v.fallbackSeverity,
+    attemptId: v.attemptId,
+    ...retryAfterMs !== void 0 ? { retryAfterMs } : {},
+    ...retryCount !== void 0 ? { retryCount } : {},
+    ...retryAgeMs !== void 0 ? { retryAgeMs } : {},
+    ...nextRetryAt !== void 0 ? { nextRetryAt } : {}
+  };
 }
 function normalizeDaemonStatus(raw) {
   if (!raw || typeof raw != "object") return null;
@@ -22615,9 +23177,9 @@ function normalizeDaemonStatus(raw) {
     ...warnings ? { warnings } : {}
   };
 }
-async function readDaemonStatus(path2) {
+async function readDaemonStatus(path) {
   try {
-    let raw = await readFile13(path2, "utf8");
+    let raw = await readFile13(path, "utf8");
     return normalizeDaemonStatus(JSON.parse(raw));
   } catch {
     return null;
@@ -22733,14 +23295,14 @@ var FileEncryptedKeyStore = class {
   pathFor(id) {
     if (!/^[A-Za-z0-9._-]+$/.test(id) || id === "." || id === "..")
       throw new KeyStoreError(`invalid key id: ${JSON.stringify(id)}`);
-    let root = resolve6(this.root), path2 = resolve6(join20(root, `${id}.json`));
-    if (path2 !== join20(root, `${id}.json`) || !path2.startsWith(root + sep6))
+    let root = resolve6(this.root), path = resolve6(join20(root, `${id}.json`));
+    if (path !== join20(root, `${id}.json`) || !path.startsWith(root + sep6))
       throw new KeyStoreError(`key id escapes the store root: ${id}`);
     if (isAbsolute2(id)) throw new KeyStoreError(`invalid key id: ${id}`);
-    return path2;
+    return path;
   }
   async save(id, privateKeyPem, passphrase) {
-    let path2 = this.pathFor(id), salt = randomBytes3(SALT_BYTES), iv = randomBytes3(IV_BYTES), meta = {
+    let path = this.pathFor(id), salt = randomBytes3(SALT_BYTES), iv = randomBytes3(IV_BYTES), meta = {
       v: RECORD_VERSION,
       alg: ALG,
       kdf: KDF,
@@ -22761,16 +23323,16 @@ var FileEncryptedKeyStore = class {
         tag: cipher.getAuthTag().toString("base64url")
       };
       await mkdir12(this.root, { recursive: !0, mode: 448 });
-      let tmp = `${path2}.tmp-${randomBytes3(6).toString("hex")}`;
-      await writeFile8(tmp, JSON.stringify(record), { mode: 384 }), await rename8(tmp, path2);
+      let tmp = `${path}.tmp-${randomBytes3(6).toString("hex")}`;
+      await writeFile8(tmp, JSON.stringify(record), { mode: 384 }), await rename8(tmp, path);
     } finally {
       key.fill(0);
     }
   }
   async load(id, passphrase) {
-    let path2 = this.pathFor(id), raw;
+    let path = this.pathFor(id), raw;
     try {
-      raw = await readFile14(path2, "utf8");
+      raw = await readFile14(path, "utf8");
     } catch (e) {
       if (e.code === "ENOENT") return null;
       throw new KeyStoreError(`cannot read key ${id}: ${e.message}`);
@@ -22917,7 +23479,7 @@ function parseDefaultSpaceField(value2) {
   if (!Object.prototype.hasOwnProperty.call(value2, "defaultSpaceId"))
     return { kind: "omitted" };
   if (value2.defaultSpaceId === null) return { kind: "clear" };
-  if (typeof value2.defaultSpaceId == "string" && isUuidV4(value2.defaultSpaceId))
+  if (typeof value2.defaultSpaceId == "string" && isUuid(value2.defaultSpaceId))
     return { kind: "set", spaceId: value2.defaultSpaceId };
   throw new Error("invalid defaultSpaceId");
 }
@@ -23010,9 +23572,9 @@ async function hasDaemonAuthProvider(input) {
 // src/sync/daemon-auth-identity-reader.ts
 import { readFile as readFile16 } from "node:fs/promises";
 async function readCurrentDaemonAuthIdentity(projectsRoot) {
-  let path2 = daemonAuthPath(projectsRoot), raw;
+  let path = daemonAuthPath(projectsRoot), raw;
   try {
-    raw = JSON.parse(await readFile16(path2, "utf8"));
+    raw = JSON.parse(await readFile16(path, "utf8"));
   } catch (err) {
     if (err.code === "ENOENT")
       raw = null;
@@ -23046,9 +23608,9 @@ function parseJwtPayload(token) {
     if (typeof raw != "object" || raw === null)
       throw new Error("invalid JWT membership");
     let m = raw;
-    if (typeof m.teamId != "string" || !isUuidV4(m.teamId))
+    if (typeof m.teamId != "string" || !isUuid(m.teamId))
       throw new Error("invalid JWT teamId");
-    if (typeof m.spaceId != "string" || !isUuidV4(m.spaceId))
+    if (typeof m.spaceId != "string" || !isUuid(m.spaceId))
       throw new Error("invalid JWT spaceId");
     if (typeof m.role != "string" || m.role.trim().length === 0)
       throw new Error("invalid JWT role");
@@ -23093,11 +23655,11 @@ function syncModeForSpace(mint, teamId, spaceId) {
 }
 
 // src/sync/device-flow.ts
-import { chmod as chmod8, mkdir as mkdir15, readFile as readFile18, rename as rename9, rm as rm13, writeFile as writeFile10 } from "node:fs/promises";
+import { chmod as chmod8, mkdir as mkdir15, readFile as readFile18, rename as rename9, rm as rm14, writeFile as writeFile10 } from "node:fs/promises";
 import { dirname as dirname12, join as join26 } from "node:path";
 
 // src/sync/pidfile.ts
-import { chmod as chmod7, mkdir as mkdir14, open as open2, readFile as readFile17, rm as rm12 } from "node:fs/promises";
+import { chmod as chmod7, mkdir as mkdir14, open as open2, readFile as readFile17, rm as rm13 } from "node:fs/promises";
 import { join as join22 } from "node:path";
 var FILE = "daemon.pid";
 async function readPid(daemonDir2) {
@@ -23121,7 +23683,7 @@ async function readPid(daemonDir2) {
   }
 }
 async function removePid(daemonDir2) {
-  await rm12(join22(daemonDir2, FILE), { force: !0 });
+  await rm13(join22(daemonDir2, FILE), { force: !0 });
 }
 function isAlive(pid) {
   try {
@@ -23209,11 +23771,11 @@ function withFs(overrides = {}) {
     ...overrides
   };
 }
-function ensureActiveLog(path2, fs) {
-  let fd = fs.openSync(path2, "a", 384);
+function ensureActiveLog(path, fs) {
+  let fd = fs.openSync(path, "a", 384);
   fs.closeSync(fd);
   try {
-    fs.chmodSync(path2, 384);
+    fs.chmodSync(path, 384);
   } catch {
   }
 }
@@ -23227,9 +23789,9 @@ function pruneRotatedLogs(dir, now, retentionMs, fs) {
   let cutoff = now.getTime() - retentionMs;
   for (let name of names) {
     if (!isRotatedDaemonLog(name)) continue;
-    let path2 = join23(dir, name);
+    let path = join23(dir, name);
     try {
-      fs.statSync(path2).mtimeMs < cutoff && fs.rmSync(path2, { force: !0 });
+      fs.statSync(path).mtimeMs < cutoff && fs.rmSync(path, { force: !0 });
     } catch {
     }
   }
@@ -23329,7 +23891,7 @@ function deviceFlowStatePath(projectsRoot) {
   return join26(projectsRoot, ".daemon", "device-flow.json");
 }
 async function abortPendingDeviceFlow(projectsRoot) {
-  await rm13(deviceFlowStatePath(projectsRoot), { force: !0 });
+  await rm14(deviceFlowStatePath(projectsRoot), { force: !0 });
 }
 
 // src/sync/auth-actions.ts
@@ -23409,12 +23971,12 @@ import {
   rename as rename10,
   writeFile as writeFile11
 } from "node:fs/promises";
-import { randomUUID as randomUUID5 } from "node:crypto";
+import { randomUUID as randomUUID6 } from "node:crypto";
 import { dirname as dirname13, join as join27 } from "node:path";
 var FILE2 = "sync.json";
-async function pathExists(path2) {
+async function pathExists(path) {
   try {
-    return await access2(path2), !0;
+    return await access2(path), !0;
   } catch {
     return !1;
   }
@@ -23440,9 +24002,9 @@ async function readConfig(syncDir) {
 }
 async function writeConfig(syncDir, cfg) {
   await mkdir16(syncDir, { recursive: !0 });
-  let path2 = join27(syncDir, FILE2), tmp = join27(syncDir, `.${FILE2}.${randomUUID5()}.tmp`);
+  let path = join27(syncDir, FILE2), tmp = join27(syncDir, `.${FILE2}.${randomUUID6()}.tmp`);
   await writeFile11(tmp, JSON.stringify(cfg, null, 2) + `
-`, { mode: 384 }), await chmod9(tmp, 384), await rename10(tmp, path2);
+`, { mode: 384 }), await chmod9(tmp, 384), await rename10(tmp, path);
 }
 function resolveApiKey(cfg) {
   return cfg.apiKey;
@@ -23462,6 +24024,12 @@ function redactSecrets(value2) {
   return value2.replace(/brv_[A-Za-z0-9._-]+/g, "brv_[redacted]").replace(/Bearer\s+[A-Za-z0-9._-]+/g, "Bearer [redacted]").replace(
     /eyJ[A-Za-z0-9._-]+\.[A-Za-z0-9._-]+\.[A-Za-z0-9._-]+/g,
     "[jwt redacted]"
+  ).replace(
+    // Absolute filesystem paths (POSIX home-ish roots + Windows) that can
+    // embed the OS username. Stop at whitespace/quote so surrounding text
+    // survives.
+    /(?:\/(?:home|Users|root|tmp|var|private)\/[^\s"']*)|(?:[A-Za-z]:\\[^\s"']*)/g,
+    "[path redacted]"
   );
 }
 function redactNullable(value2) {
@@ -23470,12 +24038,12 @@ function redactNullable(value2) {
 
 // src/sync/readiness.ts
 import { constants } from "node:fs";
-import { chmod as chmod10, mkdir as mkdir17, open as open3, readFile as readFile20, rm as rm14, writeFile as writeFile12 } from "node:fs/promises";
+import { chmod as chmod10, mkdir as mkdir17, open as open3, readFile as readFile20, rm as rm15, writeFile as writeFile12 } from "node:fs/promises";
 var MAX_DAEMON_READY_JSON_BYTES = 64 * 1024;
-async function readDaemonReadyJson(path2) {
+async function readDaemonReadyJson(path) {
   let file = null;
   try {
-    file = await open3(path2, constants.O_RDONLY | constants.O_NOFOLLOW);
+    file = await open3(path, constants.O_RDONLY | constants.O_NOFOLLOW);
     let stat7 = await file.stat();
     if (!stat7.isFile() || stat7.size > MAX_DAEMON_READY_JSON_BYTES) return null;
     let buffer = Buffer.alloc(stat7.size);

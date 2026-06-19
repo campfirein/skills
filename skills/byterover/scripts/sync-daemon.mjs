@@ -32,6 +32,452 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   mod
 ));
 
+// ../../packages/realtime-contracts/index.cjs
+var require_realtime_contracts = __commonJS({
+  "../../packages/realtime-contracts/index.cjs"(exports, module) {
+    "use strict";
+    var __create2 = Object.create, __defProp2 = Object.defineProperty, __getOwnPropDesc2 = Object.getOwnPropertyDescriptor, __getOwnPropNames2 = Object.getOwnPropertyNames, __getProtoOf2 = Object.getPrototypeOf, __hasOwnProp2 = Object.prototype.hasOwnProperty, __export2 = (target, all) => {
+      for (var name in all)
+        __defProp2(target, name, { get: all[name], enumerable: !0 });
+    }, __copyProps2 = (to, from, except, desc) => {
+      if (from && typeof from == "object" || typeof from == "function")
+        for (let key of __getOwnPropNames2(from))
+          !__hasOwnProp2.call(to, key) && key !== except && __defProp2(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc2(from, key)) || desc.enumerable });
+      return to;
+    }, __toESM2 = (mod, isNodeMode, target) => (target = mod != null ? __create2(__getProtoOf2(mod)) : {}, __copyProps2(
+      // If the importer is in node compatibility mode or this is not an ESM
+      // file that has been converted to a CommonJS file using a Babel-
+      // compatible transform (i.e. "__esModule" has not been set), then set
+      // "default" to the CommonJS "module.exports" for node compatibility.
+      isNodeMode || !mod || !mod.__esModule ? __defProp2(target, "default", { value: mod, enumerable: !0 }) : target,
+      mod
+    )), __toCommonJS = (mod) => __copyProps2(__defProp2({}, "__esModule", { value: !0 }), mod), index_exports = {};
+    __export2(index_exports, {
+      BOOTSTRAP_FALLBACK_REASONS: () => BOOTSTRAP_FALLBACK_REASONS,
+      CAPABILITY_CHANGED_EVENT: () => CAPABILITY_CHANGED_EVENT2,
+      CAPABILITY_PUBLISH_MAX_EVENTS: () => CAPABILITY_PUBLISH_MAX_EVENTS,
+      CAPABILITY_PUBLISH_REASONS: () => CAPABILITY_PUBLISH_REASONS,
+      CHANGES_FALLBACK_REASONS: () => CHANGES_FALLBACK_REASONS,
+      FAST_BOOTSTRAP_LOCAL_REASONS: () => FAST_BOOTSTRAP_LOCAL_REASONS,
+      FAST_BOOTSTRAP_MODES: () => FAST_BOOTSTRAP_MODES2,
+      FAST_BOOTSTRAP_PHASES: () => FAST_BOOTSTRAP_PHASES2,
+      FAST_BOOTSTRAP_SEVERITIES: () => FAST_BOOTSTRAP_SEVERITIES2,
+      FAST_BOOTSTRAP_STATUS_REASONS: () => FAST_BOOTSTRAP_STATUS_REASONS2,
+      FAST_SYNC_BACKEND_REASONS: () => FAST_SYNC_BACKEND_REASONS,
+      FAST_SYNC_FALLBACK_ACTIONS: () => FAST_SYNC_FALLBACK_ACTIONS,
+      FAST_SYNC_FALLBACK_REASONS: () => FAST_SYNC_FALLBACK_REASONS,
+      INVITATIONS_CHANGED_EVENT: () => INVITATIONS_CHANGED_EVENT,
+      INVITATION_CHANGED_REASONS: () => INVITATION_CHANGED_REASONS,
+      INVITATION_PUBLISH_MAX_EVENTS: () => INVITATION_PUBLISH_MAX_EVENTS,
+      INVITATION_PUBLISH_PATH: () => INVITATION_PUBLISH_PATH,
+      NOTIFICATIONS_CHANGED_EVENT: () => NOTIFICATIONS_CHANGED_EVENT,
+      NOTIFICATION_CHANGED_REASONS: () => NOTIFICATION_CHANGED_REASONS,
+      NOTIFICATION_PUBLISH_MAX_EVENTS: () => NOTIFICATION_PUBLISH_MAX_EVENTS,
+      NOTIFICATION_PUBLISH_PATH: () => NOTIFICATION_PUBLISH_PATH,
+      assertSafeTarEntryName: () => assertSafeTarEntryName3,
+      buildCapabilityChangedEvent: () => buildCapabilityChangedEvent,
+      buildInvitationsChangedEvent: () => buildInvitationsChangedEvent,
+      buildNotificationsChangedEvent: () => buildNotificationsChangedEvent,
+      buildUserRoom: () => buildUserRoom,
+      hasOnlyKeys: () => hasOnlyKeys,
+      isBootstrapResponse: () => isBootstrapResponse2,
+      isCapabilityChangedEvent: () => isCapabilityChangedEvent2,
+      isCapabilityPublishEvent: () => isCapabilityPublishEvent,
+      isCapabilityPublishRequest: () => isCapabilityPublishRequest,
+      isChangesResponse: () => isChangesResponse2,
+      isFastBootstrapStatusReason: () => isFastBootstrapStatusReason2,
+      isInvitationPublishEvent: () => isInvitationPublishEvent,
+      isInvitationPublishRequest: () => isInvitationPublishRequest,
+      isInvitationsChangedEvent: () => isInvitationsChangedEvent,
+      isMemoryChangedEvent: () => isMemoryChangedEvent2,
+      isNotificationPublishEvent: () => isNotificationPublishEvent,
+      isNotificationPublishRequest: () => isNotificationPublishRequest,
+      isNotificationsChangedEvent: () => isNotificationsChangedEvent,
+      isPushBundleResult: () => isPushBundleResult2,
+      isRevisionRecord: () => isRevisionRecord,
+      isSafeSyncKey: () => isSafeSyncKey,
+      isSnapshotManifest: () => isSnapshotManifest,
+      makeCapabilityPublishEvent: () => makeCapabilityPublishEvent,
+      makeInvitationPublishEvent: () => makeInvitationPublishEvent,
+      makeNotificationPublishEvent: () => makeNotificationPublishEvent,
+      makeRevisionRange: () => makeRevisionRange,
+      requiresSpaceId: () => requiresSpaceId,
+      requiresTeamId: () => requiresTeamId,
+      zeroPadRevision: () => zeroPadRevision
+    });
+    module.exports = __toCommonJS(index_exports);
+    var import_node_path44 = __toESM2(__require("node:path"), 1);
+    function assertSafeTarEntryName3(name, options = {}) {
+      if (options.type && options.type !== "file")
+        throw new Error("unsafe tar entry");
+      if (name.includes("\\") || name.includes("\0") || import_node_path44.default.posix.isAbsolute(name))
+        throw new Error("unsafe tar entry");
+      let normalized = import_node_path44.default.posix.normalize(name);
+      if (normalized === "." || normalized === ".." || normalized.startsWith("../"))
+        throw new Error("unsafe tar entry");
+      if (options.seen?.has(normalized)) throw new Error("duplicate tar entry");
+      return normalized;
+    }
+    function isMemoryChangedEvent2(value2) {
+      return !(!isRecord6(value2) || typeof value2.teamId != "string" || typeof value2.spaceId != "string" || typeof value2.key != "string" || typeof value2.at != "string" || value2.op !== "put" && value2.op !== "delete" || value2.md5 !== void 0 && typeof value2.md5 != "string" || value2.rev !== void 0 && !isRevisionNumber(value2.rev) || value2.prevRev !== void 0 && value2.prevRev !== null && !isRevisionNumber(value2.prevRev));
+    }
+    var CAPABILITY_CHANGED_EVENT2 = "capabilities.changed", INVITATIONS_CHANGED_EVENT = "invitations.changed", NOTIFICATIONS_CHANGED_EVENT = "notifications.changed", CAPABILITY_PUBLISH_MAX_EVENTS = 500, INVITATION_PUBLISH_MAX_EVENTS = 500, INVITATION_PUBLISH_PATH = "/internal/invitations", NOTIFICATION_PUBLISH_MAX_EVENTS = 100, NOTIFICATION_PUBLISH_PATH = "/internal/notifications", CAPABILITY_PUBLISH_REASONS = [
+      "team_created",
+      "team_updated",
+      "team_deleted",
+      "team_activation_changed",
+      "billing_sync_state_changed",
+      "space_created",
+      "space_updated",
+      "space_deleted",
+      "space_archived",
+      "membership_added",
+      "membership_removed",
+      "membership_role_changed",
+      "membership_left",
+      "ownership_transferred",
+      "space_grant_added",
+      "space_grant_changed",
+      "space_grant_removed"
+    ], INVITATION_CHANGED_REASONS = [
+      "created",
+      "revoked",
+      "accepted",
+      "rejected"
+    ], NOTIFICATION_CHANGED_REASONS = [
+      "created",
+      "updated",
+      "read",
+      "archived"
+    ], UUID_RE2 = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, reasons = new Set(CAPABILITY_PUBLISH_REASONS), invitationReasons = new Set(INVITATION_CHANGED_REASONS), notificationReasons = new Set(NOTIFICATION_CHANGED_REASONS);
+    function buildUserRoom(userId) {
+      if (!UUID_RE2.test(userId)) throw new Error("invalid user id");
+      return `user:${userId}`;
+    }
+    function buildCapabilityChangedEvent(input) {
+      return {
+        ...input.capabilityVersion === void 0 ? {} : { capabilityVersion: input.capabilityVersion },
+        at: input.at ?? (/* @__PURE__ */ new Date()).toISOString()
+      };
+    }
+    function makeCapabilityPublishEvent(input) {
+      let raw = input;
+      if (!isCapabilityPublishEvent(input))
+        throw requiresSpaceId(raw.reason) && !raw.spaceId ? new Error("spaceId is required") : requiresTeamId(raw.reason) && !raw.teamId ? new Error("teamId is required") : new Error("invalid capability publish event");
+      return input;
+    }
+    function isCapabilityChangedEvent2(value2) {
+      return !(!isRecord6(value2) || !Object.keys(value2).every((key) => key === "capabilityVersion" || key === "at") || typeof value2.at != "string" || Number.isNaN(Date.parse(value2.at)) || "capabilityVersion" in value2 && !isNonNegativeSafeInteger(value2.capabilityVersion));
+    }
+    function isCapabilityPublishRequest(value2) {
+      return !isRecord6(value2) || !Array.isArray(value2.events) || value2.events.length === 0 || value2.events.length > 500 ? !1 : value2.events.every(isCapabilityPublishEvent);
+    }
+    function isCapabilityPublishEvent(value2) {
+      return !(!isRecord6(value2) || typeof value2.userId != "string" || !UUID_RE2.test(value2.userId) || !isNonNegativeSafeInteger(value2.capabilityVersion) || typeof value2.reason != "string" || !reasons.has(value2.reason) || "teamId" in value2 && !isOptionalUuid(value2.teamId) || "spaceId" in value2 && !isOptionalUuid(value2.spaceId) || requiresTeamId(value2.reason) && typeof value2.teamId != "string" || requiresSpaceId(value2.reason) && typeof value2.spaceId != "string");
+    }
+    function requiresTeamId(reason) {
+      return reason !== "billing_sync_state_changed";
+    }
+    function requiresSpaceId(reason) {
+      return reason === "space_created" || reason === "space_updated" || reason === "space_deleted" || reason === "space_archived" || reason === "space_grant_added" || reason === "space_grant_changed" || reason === "space_grant_removed";
+    }
+    function buildInvitationsChangedEvent(input) {
+      return {
+        reason: input.reason,
+        at: input.at ?? (/* @__PURE__ */ new Date()).toISOString()
+      };
+    }
+    function makeInvitationPublishEvent(input) {
+      if (!isInvitationPublishEvent(input))
+        throw new Error("invalid invitation publish event");
+      return input;
+    }
+    function isInvitationsChangedEvent(value2) {
+      return !(!isRecord6(value2) || !Object.keys(value2).every((key) => key === "reason" || key === "at") || typeof value2.reason != "string" || !invitationReasons.has(value2.reason) || typeof value2.at != "string" || Number.isNaN(Date.parse(value2.at)));
+    }
+    function isInvitationPublishRequest(value2) {
+      if (!isRecord6(value2)) return !1;
+      let keys = Object.keys(value2);
+      return keys.length !== 1 || keys[0] !== "events" || !Array.isArray(value2.events) || value2.events.length === 0 || value2.events.length > INVITATION_PUBLISH_MAX_EVENTS ? !1 : value2.events.every(isInvitationPublishEvent);
+    }
+    function isInvitationPublishEvent(value2) {
+      if (!isRecord6(value2)) return !1;
+      let keys = Object.keys(value2), hasAt = "at" in value2;
+      if (hasAt) {
+        if (!keys.every((key) => key === "userId" || key === "reason" || key === "at"))
+          return !1;
+      } else if (!keys.every((key) => key === "userId" || key === "reason"))
+        return !1;
+      return !(typeof value2.userId != "string" || !UUID_RE2.test(value2.userId) || typeof value2.reason != "string" || !invitationReasons.has(value2.reason) || hasAt && (typeof value2.at != "string" || Number.isNaN(Date.parse(value2.at))));
+    }
+    function buildNotificationsChangedEvent(input) {
+      return {
+        reason: input.reason,
+        at: input.at ?? (/* @__PURE__ */ new Date()).toISOString()
+      };
+    }
+    function makeNotificationPublishEvent(input) {
+      if (!isNotificationPublishEvent(input))
+        throw new Error("invalid notification publish event");
+      return input;
+    }
+    function isNotificationsChangedEvent(value2) {
+      return !(!isRecord6(value2) || !Object.keys(value2).every((key) => key === "reason" || key === "at") || typeof value2.reason != "string" || !notificationReasons.has(value2.reason) || typeof value2.at != "string" || Number.isNaN(Date.parse(value2.at)));
+    }
+    function isNotificationPublishRequest(value2) {
+      if (!isRecord6(value2)) return !1;
+      let keys = Object.keys(value2);
+      return keys.length !== 1 || keys[0] !== "events" || !Array.isArray(value2.events) || value2.events.length === 0 || value2.events.length > NOTIFICATION_PUBLISH_MAX_EVENTS ? !1 : value2.events.every(isNotificationPublishEvent);
+    }
+    function isNotificationPublishEvent(value2) {
+      if (!isRecord6(value2)) return !1;
+      let keys = Object.keys(value2), hasAt = "at" in value2;
+      if (hasAt) {
+        if (!keys.every((key) => key === "userId" || key === "reason" || key === "at"))
+          return !1;
+      } else if (!keys.every((key) => key === "userId" || key === "reason"))
+        return !1;
+      return !(typeof value2.userId != "string" || !UUID_RE2.test(value2.userId) || typeof value2.reason != "string" || !notificationReasons.has(value2.reason) || hasAt && (typeof value2.at != "string" || Number.isNaN(Date.parse(value2.at))));
+    }
+    function isRecord6(value2) {
+      return typeof value2 == "object" && value2 !== null && !Array.isArray(value2);
+    }
+    function isOptionalUuid(value2) {
+      return value2 === void 0 || typeof value2 == "string" && UUID_RE2.test(value2);
+    }
+    function isNonNegativeSafeInteger(value2) {
+      return typeof value2 == "number" && Number.isSafeInteger(value2) && value2 >= 0;
+    }
+    var BOOTSTRAP_FALLBACK_REASONS = [
+      "unsupported_layer",
+      "snapshot_missing",
+      "snapshot_stale",
+      "snapshot_building",
+      "snapshot_artifact_missing",
+      "snapshot_corrupt",
+      "unsafe_revision_log",
+      "authz_denied"
+    ], CHANGES_FALLBACK_REASONS = [
+      "unsupported_layer",
+      "revision_gap",
+      "delta_too_large",
+      "delta_body_too_large",
+      "unsafe_revision_log",
+      "authz_denied"
+    ], FAST_SYNC_FALLBACK_REASONS = [
+      ...BOOTSTRAP_FALLBACK_REASONS,
+      ...CHANGES_FALLBACK_REASONS
+    ], FAST_SYNC_FALLBACK_ACTIONS = [
+      "legacy",
+      "retry_bootstrap",
+      "blocked"
+    ], FAST_BOOTSTRAP_MODES2 = ["snapshot", "legacy"], FAST_SYNC_BACKEND_REASONS = [
+      "unsupported_layer",
+      "snapshot_missing",
+      "snapshot_stale",
+      "snapshot_building",
+      "snapshot_artifact_missing",
+      "snapshot_corrupt",
+      "unsafe_revision_log",
+      "authz_denied",
+      "revision_gap",
+      "delta_too_large",
+      "delta_body_too_large"
+    ], FAST_BOOTSTRAP_LOCAL_REASONS = [
+      "dirty_local_tree",
+      "snapshot_promote_pending",
+      "bundle_handle_expired_or_mismatched",
+      "bootstrap_transport_error",
+      "bootstrap_contract_invalid",
+      "worker_revoked",
+      "too_many_syncable_spaces"
+    ], FAST_BOOTSTRAP_STATUS_REASONS2 = [
+      ...FAST_SYNC_BACKEND_REASONS,
+      ...FAST_BOOTSTRAP_LOCAL_REASONS
+    ];
+    function isFastBootstrapStatusReason2(value2) {
+      return typeof value2 == "string" && FAST_BOOTSTRAP_STATUS_REASONS2.includes(value2);
+    }
+    var FAST_BOOTSTRAP_SEVERITIES2 = [
+      "silent",
+      "informational",
+      "warning",
+      "error"
+    ], FAST_BOOTSTRAP_PHASES2 = [
+      "idle",
+      "checking_bootstrap",
+      "snapshot_downloading",
+      "snapshot_unpacking",
+      "snapshot_verifying",
+      "delta_applying",
+      "tail_catching_up",
+      "promoting",
+      "baseline_seeding",
+      "index_rebuilding",
+      "ready",
+      "legacy_bootstrap",
+      "retry_waiting",
+      "failed",
+      "cancelled"
+    ];
+    function makeRevisionRange(fromRevExclusive, toRevInclusive) {
+      if (!isRevisionCursor(fromRevExclusive) || !isRevisionNumber(toRevInclusive) || toRevInclusive < fromRevExclusive)
+        throw new Error("invalid revision range");
+      return { fromRevExclusive, toRevInclusive };
+    }
+    function zeroPadRevision(rev) {
+      if (!isRevisionNumber(rev)) throw new Error("invalid revision");
+      return String(rev).padStart(18, "0");
+    }
+    function isRevisionRecord(value2) {
+      if (!isRecord6(value2) || !hasExactBaseKeys(value2)) return !1;
+      if (value2.op === "put") {
+        let putKeys = [
+          "schemaVersion",
+          "rev",
+          "prevRev",
+          "teamId",
+          "spaceId",
+          "requestId",
+          "createdAt",
+          "op",
+          "entry",
+          "objectGeneration",
+          "contentSha256",
+          ...value2.body === void 0 ? [] : ["body"]
+        ];
+        return hasOnlyKeys(value2, putKeys) && isManifestEntry(value2.entry) && typeof value2.objectGeneration == "string" && isSha256(value2.contentSha256) && (value2.body === void 0 || isInlineRevisionBody(value2.body));
+      }
+      return value2.op === "delete" ? hasOnlyKeys(value2, [
+        "schemaVersion",
+        "rev",
+        "prevRev",
+        "teamId",
+        "spaceId",
+        "requestId",
+        "createdAt",
+        "op",
+        "key"
+      ]) && isSafeSyncKey(value2.key) : value2.op === "delete_folder" ? hasOnlyKeys(value2, [
+        "schemaVersion",
+        "rev",
+        "prevRev",
+        "teamId",
+        "spaceId",
+        "requestId",
+        "createdAt",
+        "op",
+        "deleteScope",
+        "deletePrefix",
+        "deletedKeys"
+      ]) && value2.deleteScope === "exact_keys" && isSafeSyncKey(value2.deletePrefix) && Array.isArray(value2.deletedKeys) && value2.deletedKeys.every(isSafeSyncKey) && isSorted(value2.deletedKeys) : !1;
+    }
+    function isBootstrapResponse2(value2) {
+      return isRecord6(value2) ? value2.kind === "snapshot" ? hasOnlyKeys(value2, ["kind", "manifest", "currentRevision", "bundle"]) && isSnapshotManifest(value2.manifest) && isRevisionCursor(value2.currentRevision) && isRecord6(value2.bundle) && hasOnlyKeys(value2.bundle, ["kind", "handle"]) && value2.bundle.kind === "backend-handle" && typeof value2.bundle.handle == "string" && value2.bundle.handle.length > 0 : value2.kind === "fallback_required" ? isFallbackResponse(value2, BOOTSTRAP_FALLBACK_REASONS, !0) : !1 : !1;
+    }
+    function isChangesResponse2(value2) {
+      return isRecord6(value2) ? value2.kind === "revision_list" ? hasOnlyKeys(value2, [
+        "kind",
+        "fromRevExclusive",
+        "toRevInclusive",
+        "records"
+      ]) && isRevisionCursor(value2.fromRevExclusive) && isRevisionNumber(value2.toRevInclusive) && value2.toRevInclusive >= value2.fromRevExclusive && Array.isArray(value2.records) && value2.records.every(isRevisionRecord) : value2.kind === "fallback_required" ? isFallbackResponse(value2, CHANGES_FALLBACK_REASONS, !1) : !1 : !1;
+    }
+    function isSnapshotManifest(value2) {
+      return isRecord6(value2) && hasOnlyKeys(value2, [
+        "schemaVersion",
+        "formatVersion",
+        "teamId",
+        "spaceId",
+        "snapshotRevision",
+        "createdAt",
+        "fileCount",
+        "totalBytes",
+        "bundleSha256",
+        "bundleByteCount",
+        "objectGeneration",
+        "manifestEntries"
+      ]) && value2.schemaVersion === 1 && value2.formatVersion === "tar-gzip-v1" && typeof value2.teamId == "string" && typeof value2.spaceId == "string" && isRevisionCursor(value2.snapshotRevision) && typeof value2.createdAt == "string" && !Number.isNaN(Date.parse(value2.createdAt)) && isNonNegativeSafeInteger(value2.fileCount) && isNonNegativeSafeInteger(value2.totalBytes) && isSha256(value2.bundleSha256) && isNonNegativeSafeInteger(value2.bundleByteCount) && typeof value2.objectGeneration == "string" && Array.isArray(value2.manifestEntries) && value2.manifestEntries.every(isManifestEntry);
+    }
+    function isManifestEntry(value2) {
+      return isRecord6(value2) && hasOnlyKeys(value2, ["key", "md5", "size", "contentType", "updatedAt"]) && isSafeSyncKey(value2.key) && typeof value2.md5 == "string" && /^[0-9a-f]{32}$/.test(value2.md5) && isNonNegativeSafeInteger(value2.size) && typeof value2.contentType == "string" && typeof value2.updatedAt == "string" && !Number.isNaN(Date.parse(value2.updatedAt));
+    }
+    function hasExactBaseKeys(value2) {
+      return value2.schemaVersion === 1 && isRevisionNumber(value2.rev) && (value2.prevRev === null || isRevisionNumber(value2.prevRev)) && typeof value2.teamId == "string" && typeof value2.spaceId == "string" && typeof value2.requestId == "string" && typeof value2.createdAt == "string" && !Number.isNaN(Date.parse(value2.createdAt));
+    }
+    function hasOnlyKeys(value2, keys) {
+      let allowed = new Set(keys);
+      return Object.keys(value2).every((key) => allowed.has(key)) && keys.every((key) => key in value2);
+    }
+    function isRevisionNumber(value2) {
+      return typeof value2 == "number" && Number.isSafeInteger(value2) && value2 > 0;
+    }
+    function isRevisionCursor(value2) {
+      return typeof value2 == "number" && Number.isSafeInteger(value2) && value2 >= 0;
+    }
+    function isSha256(value2) {
+      return typeof value2 == "string" && /^[0-9a-f]{64}$/.test(value2);
+    }
+    function isSafeSyncKey(value2) {
+      return !(typeof value2 != "string" || value2.length === 0 || value2.startsWith("/") || value2.includes(".."));
+    }
+    function isSorted(values) {
+      for (let i = 1; i < values.length; i += 1)
+        if (values[i - 1].localeCompare(values[i]) > 0) return !1;
+      return !0;
+    }
+    function isOneOf(value2, allowed) {
+      return typeof value2 == "string" && allowed.includes(value2);
+    }
+    function isPositiveSafeInteger(value2) {
+      return typeof value2 == "number" && Number.isSafeInteger(value2) && value2 > 0;
+    }
+    function isInlineRevisionBody(value2) {
+      return isRecord6(value2) && hasOnlyKeys(value2, ["kind", "base64"]) && value2.kind === "inline-base64" && typeof value2.base64 == "string" && value2.base64.length > 0 && value2.base64.length <= 4 * 1024 * 1024 && /^[A-Za-z0-9+/]*={0,2}$/.test(value2.base64) && Buffer.from(value2.base64, "base64").toString("base64") === value2.base64;
+    }
+    function isFastSyncSpaceSizePolicy(value2) {
+      return isRecord6(value2) && hasOnlyKeys(value2, [
+        "class",
+        "fileCount",
+        "totalBytes",
+        "largeFileThreshold",
+        "largeBytesThreshold"
+      ]) && (value2.class === "small" || value2.class === "large") && isNonNegativeSafeInteger(value2.fileCount) && isNonNegativeSafeInteger(value2.totalBytes) && isPositiveSafeInteger(value2.largeFileThreshold) && isPositiveSafeInteger(value2.largeBytesThreshold);
+    }
+    function isFallbackResponse(value2, allowedReasons, allowBootstrapMetadata) {
+      if (!isOneOf(value2.reason, allowedReasons) || !["legacy", "retry_bootstrap", "blocked"].includes(String(value2.fallback)) || value2.fallback === "legacy" && value2.legacyAllowed !== !0 || value2.fallback !== "legacy" && value2.legacyAllowed !== !1 || value2.fallback === "legacy" && Object.prototype.hasOwnProperty.call(value2, "retryAfterMs") || value2.fallback === "retry_bootstrap" && !isPositiveSafeInteger(value2.retryAfterMs) || value2.fallback === "blocked" && value2.retryAfterMs !== void 0 && !isPositiveSafeInteger(value2.retryAfterMs))
+        return !1;
+      if (value2.reason === "unsupported_layer" || value2.reason === "authz_denied")
+        return hasOnlyKeys(value2, [
+          "kind",
+          "reason",
+          "fallback",
+          "legacyAllowed",
+          ...value2.retryAfterMs === void 0 ? [] : ["retryAfterMs"]
+        ]);
+      let bootstrapMetadataKeys = [
+        ...value2.spaceSizePolicy === void 0 ? [] : ["spaceSizePolicy"],
+        ...value2.currentRevision === void 0 ? [] : ["currentRevision"],
+        ...value2.snapshotRevision === void 0 ? [] : ["snapshotRevision"],
+        ...value2.maxCatchupRecords === void 0 ? [] : ["maxCatchupRecords"]
+      ];
+      return value2.spaceSizePolicy !== void 0 && !isFastSyncSpaceSizePolicy(value2.spaceSizePolicy) || value2.currentRevision !== void 0 && !isRevisionCursor(value2.currentRevision) || value2.snapshotRevision !== void 0 && !isRevisionNumber(value2.snapshotRevision) || value2.maxCatchupRecords !== void 0 && !isPositiveSafeInteger(value2.maxCatchupRecords) ? !1 : hasOnlyKeys(value2, [
+        "kind",
+        "reason",
+        "fallback",
+        "legacyAllowed",
+        ...value2.retryAfterMs === void 0 ? [] : ["retryAfterMs"],
+        ...allowBootstrapMetadata ? bootstrapMetadataKeys : []
+      ]);
+    }
+    function isPushBundleResult2(value2) {
+      return !isRecord6(value2) || !hasOnlyKeys(value2, ["revision", "files"]) || !isRevisionNumber(value2.revision) || !Array.isArray(value2.files) ? !1 : value2.files.every(
+        (f) => isRecord6(f) && hasOnlyKeys(f, ["key", "md5", "updatedAt"]) && isSafeSyncKey(f.key) && typeof f.md5 == "string" && /^[0-9a-f]{32}$/.test(f.md5) && typeof f.updatedAt == "string" && !Number.isNaN(Date.parse(f.updatedAt))
+      );
+    }
+  }
+});
+
 // ../../node_modules/.pnpm/xmlhttprequest-ssl@2.1.2/node_modules/xmlhttprequest-ssl/lib/XMLHttpRequest.js
 var require_XMLHttpRequest = __commonJS({
   "../../node_modules/.pnpm/xmlhttprequest-ssl@2.1.2/node_modules/xmlhttprequest-ssl/lib/XMLHttpRequest.js"(exports, module) {
@@ -5417,7 +5863,7 @@ function getErrorMap() {
 
 // ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/helpers/parseUtil.js
 var makeIssue = (params) => {
-  let { data, path: path2, errorMaps, issueData } = params, fullPath = [...path2, ...issueData.path || []], fullIssue = {
+  let { data, path, errorMaps, issueData } = params, fullPath = [...path, ...issueData.path || []], fullIssue = {
     ...issueData,
     path: fullPath
   };
@@ -5506,8 +5952,8 @@ var errorUtil;
 
 // ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/types.js
 var ParseInputLazyPath = class {
-  constructor(parent, value2, path2, key) {
-    this._cachedPath = [], this.parent = parent, this.data = value2, this._path = path2, this._key = key;
+  constructor(parent, value2, path, key) {
+    this._cachedPath = [], this.parent = parent, this.data = value2, this._path = path, this._key = key;
   }
   get path() {
     return this._cachedPath.length || (Array.isArray(this._key) ? this._cachedPath.push(...this._path, ...this._key) : this._cachedPath.push(...this._path, this._key)), this._cachedPath;
@@ -14049,8 +14495,8 @@ var FileBlobStorage = class {
     return resolveWithin(this.root, key);
   }
   async put(key, data) {
-    let path2 = this.pathFor(key);
-    await mkdir(dirname(path2), { recursive: !0 }), await writeFile(path2, data);
+    let path = this.pathFor(key);
+    await mkdir(dirname(path), { recursive: !0 }), await writeFile(path, data);
   }
   async get(key) {
     try {
@@ -14177,9 +14623,9 @@ import { homedir, platform } from "node:os";
 import { basename, dirname as dirname3, isAbsolute, join as join3, resolve as resolve2, sep as sep2 } from "node:path";
 
 // ../../packages/core/src/identity/uuid-v4.ts
-var UUID_V4_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
-function isUuidV4(value2) {
-  return typeof value2 == "string" && UUID_V4_REGEX.test(value2);
+var UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
+function isUuid(value2) {
+  return typeof value2 == "string" && UUID_REGEX.test(value2);
 }
 
 // ../../packages/core/src/tree/paths.ts
@@ -14209,12 +14655,12 @@ function getGlobalDataDir() {
 function getProjectsDir() {
   return join3(getGlobalDataDir(), PROJECTS_DIRNAME);
 }
-function assertAbsolutePath(label, path2) {
-  if (!isAbsolute(path2))
+function assertAbsolutePath(label, path) {
+  if (!isAbsolute(path))
     throw new Error(`${label} must be absolute`);
 }
 function assertValidSpaceId(spaceId) {
-  if (!isUuidV4(spaceId) || isAbsolute(spaceId) || spaceId.includes("/") || spaceId.includes("\\") || spaceId === "." || spaceId === "..")
+  if (!isUuid(spaceId) || isAbsolute(spaceId) || spaceId.includes("/") || spaceId.includes("\\") || spaceId === "." || spaceId === "..")
     throw new Error(`invalid spaceId for sync state path: ${spaceId}`);
 }
 function daemonSpaceStateDirForSpace(projectsRoot2, spaceId) {
@@ -14348,8 +14794,8 @@ var TOPIC_ID_REGEX = /^tpc_[0-9a-f]{32}$/;
 
 // ../../packages/core/src/tree/topics.ts
 var INDEX_FILE = "index.html", DERIVED_ARTIFACT_RE = /\.(abstract|full|overview)\.html$/i;
-function isDerivedArtifact(path2) {
-  return DERIVED_ARTIFACT_RE.test(path2);
+function isDerivedArtifact(path) {
+  return DERIVED_ARTIFACT_RE.test(path);
 }
 function estimateTokens(text) {
   return Math.ceil(text.trim().length / 4);
@@ -14511,9 +14957,9 @@ function signalStore(root) {
 }
 async function getManySignals(root, topicPaths) {
   let store = signalStore(root), out = /* @__PURE__ */ new Map();
-  for (let path2 of topicPaths) {
-    let signals = await store.get(path2) ?? createDefaultRuntimeSignals();
-    out.set(path2, signals);
+  for (let path of topicPaths) {
+    let signals = await store.get(path) ?? createDefaultRuntimeSignals();
+    out.set(path, signals);
   }
   return out;
 }
@@ -14596,12 +15042,12 @@ function escapeText2(text) {
 }
 async function rebuildIndex(root, options = {}) {
   let paths = await listTopics(root), byDomain = /* @__PURE__ */ new Map();
-  for (let path2 of paths) {
-    let topic = await readTopic(root, path2), domain = path2.includes("/") ? path2.split("/")[0] : "(root)", list = byDomain.get(domain) ?? [];
+  for (let path of paths) {
+    let topic = await readTopic(root, path), domain = path.includes("/") ? path.split("/")[0] : "(root)", list = byDomain.get(domain) ?? [];
     list.push({
-      path: path2,
+      path,
       summary: topic.attributes.summary ?? "",
-      title: topic.attributes.title ?? path2
+      title: topic.attributes.title ?? path
     }), byDomain.set(domain, list);
   }
   let now = options.now ?? "", project = options.project ?? "context-tree", domains = [...byDomain.entries()].sort(
@@ -14636,17 +15082,17 @@ async function rebuildManifest(root, options = {}) {
     summaries: [],
     topics: []
   }, fingerprintParts = [];
-  for (let path2 of paths) {
-    let topic = await readTopic(root, path2), tokens = estimateTokens(topic.bodyText) + estimateTokens(topic.attributes.summary ?? ""), type2 = topic.attributes.type ?? "topic", lane = laneFor(type2), importance = signals.get(path2)?.importance ?? 50;
+  for (let path of paths) {
+    let topic = await readTopic(root, path), tokens = estimateTokens(topic.bodyText) + estimateTokens(topic.attributes.summary ?? ""), type2 = topic.attributes.type ?? "topic", lane = laneFor(type2), importance = signals.get(path)?.importance ?? 50;
     byLane[lane].push({
       importance,
       lane,
-      path: path2,
-      title: topic.attributes.title ?? path2,
+      path,
+      title: topic.attributes.title ?? path,
       tokens,
       type: type2
     }), fingerprintParts.push(
-      await fingerprintLine(root, path2, signals.get(path2), fingerprintMode)
+      await fingerprintLine(root, path, signals.get(path), fingerprintMode)
     );
   }
   let active = [], laneTokens = {
@@ -14678,20 +15124,20 @@ async function rebuildManifest(root, options = {}) {
     "utf8"
   ), manifest;
 }
-async function fingerprintLine(root, path2, signal, mode) {
+async function fingerprintLine(root, path, signal, mode) {
   let sig = `${signal?.importance ?? 50} ${signal?.maturity ?? "draft"}`;
   if (mode === "content")
     try {
-      let content = await readFile4(resolveWithinTree(root, path2), "utf8");
-      return `${path2} ${canonicalTopicHash(content)} ${sig}`;
+      let content = await readFile4(resolveWithinTree(root, path), "utf8");
+      return `${path} ${canonicalTopicHash(content)} ${sig}`;
     } catch {
-      return `${path2} ? ${sig}`;
+      return `${path} ? ${sig}`;
     }
   try {
-    let s = await stat(resolveWithinTree(root, path2));
-    return `${path2} ${s.mtimeMs} ${s.size} ${sig}`;
+    let s = await stat(resolveWithinTree(root, path));
+    return `${path} ${s.mtimeMs} ${s.size} ${sig}`;
   } catch {
-    return `${path2} ? ? ${sig}`;
+    return `${path} ? ? ${sig}`;
   }
 }
 
@@ -16173,23 +16619,23 @@ function emptyRegistryDocument() {
 function isBinding(value2) {
   if (typeof value2 != "object" || value2 === null) return !1;
   let v = value2;
-  return typeof v.folder == "string" && isUuidV4(v.space_id) && typeof v.addedAt == "string" && (v.removedAt === void 0 || typeof v.removedAt == "string");
+  return typeof v.folder == "string" && isUuid(v.space_id) && typeof v.addedAt == "string" && (v.removedAt === void 0 || typeof v.removedAt == "string");
 }
 function isDeletedSpace(value2) {
   if (typeof value2 != "object" || value2 === null) return !1;
   let v = value2;
-  return isUuidV4(v.space_id) && typeof v.deletedAt == "string" && typeof v.hard == "boolean";
+  return isUuid(v.space_id) && typeof v.deletedAt == "string" && typeof v.hard == "boolean";
 }
 function normalizeRegistryDocument(obj) {
   let bindings = Array.isArray(obj.bindings) ? obj.bindings.filter((v) => isBinding(v)) : [], deletedSpaces = Array.isArray(obj.deletedSpaces) ? obj.deletedSpaces.filter((v) => isDeletedSpace(v)) : [], doc = { ...obj, bindings, deletedSpaces };
-  return isUuidV4(obj.defaultSpaceId) ? doc.defaultSpaceId = obj.defaultSpaceId : delete doc.defaultSpaceId, doc;
+  return isUuid(obj.defaultSpaceId) ? doc.defaultSpaceId = obj.defaultSpaceId : delete doc.defaultSpaceId, doc;
 }
 function assertRegistryDocumentForMutation(obj) {
   if (obj.bindings !== void 0 && !Array.isArray(obj.bindings))
     throw new MalformedRegistryError("bindings registry is malformed");
   if (obj.deletedSpaces !== void 0 && !Array.isArray(obj.deletedSpaces))
     throw new MalformedRegistryError("bindings registry is malformed");
-  if (obj.defaultSpaceId !== void 0 && !isUuidV4(obj.defaultSpaceId))
+  if (obj.defaultSpaceId !== void 0 && !isUuid(obj.defaultSpaceId))
     throw new MalformedRegistryError("bindings registry is malformed");
   if (Array.isArray(obj.bindings) && !obj.bindings.every(isBinding))
     throw new MalformedRegistryError("bindings registry is malformed");
@@ -16276,18 +16722,18 @@ async function mutateRegistry(mutate) {
 }
 async function projectActiveTeamRegistry(input) {
   for (let space_id of input.spaceIds)
-    if (!isUuidV4(space_id))
+    if (!isUuid(space_id))
       throw new Error(
-        "projectActiveTeamRegistry: spaceIds must be UUID v4 strings"
+        "projectActiveTeamRegistry: spaceIds must be UUID strings"
       );
   for (let space_id of input.restoreSpaceIds)
-    if (!isUuidV4(space_id))
+    if (!isUuid(space_id))
       throw new Error(
-        "projectActiveTeamRegistry: restoreSpaceIds must be UUID v4 strings"
+        "projectActiveTeamRegistry: restoreSpaceIds must be UUID strings"
       );
-  if (input.defaultSpaceId !== void 0 && input.defaultSpaceId !== null && !isUuidV4(input.defaultSpaceId))
+  if (input.defaultSpaceId !== void 0 && input.defaultSpaceId !== null && !isUuid(input.defaultSpaceId))
     throw new Error(
-      "projectActiveTeamRegistry: defaultSpaceId must be a UUID v4 string, null, or omitted"
+      "projectActiveTeamRegistry: defaultSpaceId must be a UUID string, null, or omitted"
     );
   let projectsRoot2 = input.projectsRoot ?? getProjectsDir(), uniqueSpaceIds = [...new Set(input.spaceIds)], restoreSpaceIds = new Set(input.restoreSpaceIds), mirrorFolders = new Map(
     uniqueSpaceIds.map((space_id) => [space_id, join8(projectsRoot2, space_id)])
@@ -16322,7 +16768,7 @@ function isCloudMirrorFolder(folder, projectsRoot2) {
   let relative3 = folder.slice(
     projectsRoot2.endsWith(sep4) ? projectsRoot2.length : projectsRoot2.length + 1
   );
-  return isUuidV4(relative3) && !relative3.includes(sep4);
+  return isUuid(relative3) && !relative3.includes(sep4);
 }
 function isErrnoCode(err, code) {
   return typeof err == "object" && err !== null && "code" in err && err.code === code;
@@ -16339,8 +16785,8 @@ var STALE_DAYS = {
 // ../../packages/core/src/tree/topic-index.ts
 async function buildTopicIndex(root, now) {
   let paths = await listTopics(root), entries = [];
-  for (let path2 of paths) {
-    let topic = await readTopic(root, path2), topicId = topic.attributes.id;
+  for (let path of paths) {
+    let topic = await readTopic(root, path), topicId = topic.attributes.id;
     typeof topicId == "string" && TOPIC_ID_REGEX.test(topicId) && entries.push({ topicId, path: topic.path });
   }
   return entries.sort((a, b) => a.path.localeCompare(b.path)), { version: 1, generatedAt: now, entries };
@@ -16650,26 +17096,26 @@ function describeErr(err) {
 import { appendFile, mkdir as mkdir5, readFile as readFile8, rm as rm7, stat as stat3, writeFile as writeFile5 } from "node:fs/promises";
 import { dirname as dirname5 } from "node:path";
 var MAX_ANALYTICS_BYTES = 50 * 1024 * 1024, COMPACT_TARGET_RATIO = 0.5, compactionChains = /* @__PURE__ */ new Map();
-function serializeCompaction(path2, run) {
-  let result = (compactionChains.get(path2) ?? Promise.resolve()).then(run, run), tail = result.then(
+function serializeCompaction(path, run) {
+  let result = (compactionChains.get(path) ?? Promise.resolve()).then(run, run), tail = result.then(
     () => {
     },
     () => {
     }
   );
-  return compactionChains.set(path2, tail), tail.then(() => {
-    compactionChains.get(path2) === tail && compactionChains.delete(path2);
+  return compactionChains.set(path, tail), tail.then(() => {
+    compactionChains.get(path) === tail && compactionChains.delete(path);
   }), result;
 }
-async function boundedAppendLine(path2, jsonLine, opts) {
+async function boundedAppendLine(path, jsonLine, opts) {
   let maxBytes = opts?.maxBytes ?? MAX_ANALYTICS_BYTES, line = jsonLine.endsWith(`
 `) ? jsonLine : jsonLine + `
 `, lineBytes = Buffer.byteLength(line, "utf8");
   try {
-    await mkdir5(dirname5(path2), { recursive: !0 });
+    await mkdir5(dirname5(path), { recursive: !0 });
     let dropped = 0, currentSize = 0;
     try {
-      currentSize = (await stat3(path2)).size;
+      currentSize = (await stat3(path)).size;
     } catch {
       currentSize = 0;
     }
@@ -16679,19 +17125,19 @@ async function boundedAppendLine(path2, jsonLine, opts) {
         Math.floor(maxBytes * COMPACT_TARGET_RATIO)
       );
       dropped = await serializeCompaction(
-        path2,
-        () => compactToFit(path2, Math.max(0, target))
+        path,
+        () => compactToFit(path, Math.max(0, target))
       );
     }
-    return await appendFile(path2, line, "utf8"), dropped;
+    return await appendFile(path, line, "utf8"), dropped;
   } catch {
     return 0;
   }
 }
-async function compactToFit(path2, budgetBytes) {
+async function compactToFit(path, budgetBytes) {
   let raw;
   try {
-    raw = await readFile8(path2, "utf8");
+    raw = await readFile8(path, "utf8");
   } catch {
     return 0;
   }
@@ -16708,9 +17154,9 @@ async function compactToFit(path2, budgetBytes) {
   let kept = keptReversed.reverse(), dropped = lines.length - kept.length;
   if (dropped === 0) return 0;
   let body = kept.length > 0 ? kept.map((l) => l + `
-`).join("") : "", tmp = `${path2}.${process.pid}.compact.tmp`;
+`).join("") : "", tmp = `${path}.${process.pid}.compact.tmp`;
   try {
-    await writeFile5(tmp, body, "utf8"), await renameWithRetry(tmp, path2);
+    await writeFile5(tmp, body, "utf8"), await renameWithRetry(tmp, path);
   } catch {
     return await rm7(tmp, { force: !0 }).catch(() => {
     }), 0;
@@ -16738,10 +17184,10 @@ function isRecord(value2) {
 function isNonEmptyString2(value2) {
   return typeof value2 == "string" && value2.trim().length > 0;
 }
-async function readIdentityCurrent(path2 = identityCurrentPath()) {
+async function readIdentityCurrent(path = identityCurrentPath()) {
   let parsed;
   try {
-    parsed = JSON.parse(await readFile9(path2, "utf8"));
+    parsed = JSON.parse(await readFile9(path, "utf8"));
   } catch {
     return;
   }
@@ -16754,10 +17200,10 @@ async function readIdentityCurrent(path2 = identityCurrentPath()) {
       ...isNonEmptyString2(parsed.desktopHeartbeatAt) ? { desktopHeartbeatAt: parsed.desktopHeartbeatAt } : {}
     };
 }
-async function readIdentityTimeline(path2 = identityEventsPath()) {
+async function readIdentityTimeline(path = identityEventsPath()) {
   let raw;
   try {
-    raw = await readFile9(path2, "utf8");
+    raw = await readFile9(path, "utf8");
   } catch {
     return [];
   }
@@ -16783,10 +17229,10 @@ async function readIdentityTimeline(path2 = identityEventsPath()) {
   }
   return out;
 }
-async function readDeliveryFlag(path2 = deliveryFlagPath()) {
+async function readDeliveryFlag(path = deliveryFlagPath()) {
   let parsed;
   try {
-    parsed = JSON.parse(await readFile9(path2, "utf8"));
+    parsed = JSON.parse(await readFile9(path, "utf8"));
   } catch {
     return;
   }
@@ -16799,13 +17245,13 @@ async function readDeliveryFlag(path2 = deliveryFlagPath()) {
       ...isNonEmptyString2(parsed.source) ? { source: parsed.source } : {}
     };
 }
-async function ensureAnalyticsDeliveryDefault(path2 = deliveryFlagPath()) {
+async function ensureAnalyticsDeliveryDefault(path = deliveryFlagPath()) {
   try {
-    if (await readDeliveryFlag(path2) !== void 0)
+    if (await readDeliveryFlag(path) !== void 0)
       return { created: !1, preserved: !0, wasMalformed: !1 };
     let fileExists = !1;
     try {
-      await readFile9(path2, "utf8"), fileExists = !0;
+      await readFile9(path, "utf8"), fileExists = !0;
     } catch {
       fileExists = !1;
     }
@@ -16815,13 +17261,13 @@ async function ensureAnalyticsDeliveryDefault(path2 = deliveryFlagPath()) {
       source: "default_bootstrap",
       updatedAt: (/* @__PURE__ */ new Date()).toISOString()
     }, body = JSON.stringify(doc, null, 2);
-    await mkdir6(dirname6(path2), { recursive: !0 });
-    let tmp = `${path2}.${randomUUID2()}.tmp`;
+    await mkdir6(dirname6(path), { recursive: !0 });
+    let tmp = `${path}.${randomUUID2()}.tmp`;
     try {
       await writeFile6(tmp, body, {
         encoding: "utf8",
         mode: RESTRICTED_FILE_MODE
-      }), await renameWithRetry(tmp, path2);
+      }), await renameWithRetry(tmp, path);
     } catch (err) {
       throw await rm8(tmp, { force: !0 }).catch(() => {
       }), err;
@@ -16840,10 +17286,10 @@ var DAEMON_IDENTITY_FILE = "analytics-daemon-identity.json";
 function daemonIdentityPath() {
   return join10(getGlobalDataDir(), DAEMON_IDENTITY_FILE);
 }
-async function readDaemonIdentity(path2 = daemonIdentityPath()) {
+async function readDaemonIdentity(path = daemonIdentityPath()) {
   let parsed;
   try {
-    parsed = JSON.parse(await readFile9(path2, "utf8"));
+    parsed = JSON.parse(await readFile9(path, "utf8"));
   } catch {
     return;
   }
@@ -16853,9 +17299,9 @@ async function readDaemonIdentity(path2 = daemonIdentityPath()) {
       ...isNonEmptyString2(parsed.publishedAt) ? { publishedAt: parsed.publishedAt } : {}
     };
 }
-async function writeDaemonIdentity(userId, now = (/* @__PURE__ */ new Date()).toISOString(), path2 = daemonIdentityPath()) {
+async function writeDaemonIdentity(userId, now = (/* @__PURE__ */ new Date()).toISOString(), path = daemonIdentityPath()) {
   if (!isNonEmptyString2(userId)) {
-    await rm8(path2, { force: !0 }).catch(() => {
+    await rm8(path, { force: !0 }).catch(() => {
     });
     return;
   }
@@ -16865,10 +17311,10 @@ async function writeDaemonIdentity(userId, now = (/* @__PURE__ */ new Date()).to
     userId,
     publishedAt: now
   }, null, 2);
-  await mkdir6(dirname6(path2), { recursive: !0 });
-  let tmp = `${path2}.${randomUUID2()}.tmp`;
+  await mkdir6(dirname6(path), { recursive: !0 });
+  let tmp = `${path}.${randomUUID2()}.tmp`;
   try {
-    await writeFile6(tmp, body, { encoding: "utf8", mode: RESTRICTED_FILE_MODE }), await renameWithRetry(tmp, path2);
+    await writeFile6(tmp, body, { encoding: "utf8", mode: RESTRICTED_FILE_MODE }), await renameWithRetry(tmp, path);
   } catch (err) {
     throw await rm8(tmp, { force: !0 }).catch(() => {
     }), err;
@@ -17118,11 +17564,11 @@ function describeErr3(err) {
 }
 
 // src/sync/daemon.ts
-import { appendFile as appendFile2, chmod as chmod9, readFile as readFile27, rm as rm21 } from "node:fs/promises";
+import { appendFile as appendFile2, chmod as chmod9, readFile as readFile27, rm as rm22 } from "node:fs/promises";
 import { join as join35 } from "node:path";
 
 // src/config.ts
-var SKILL_VERSION = "0.6.2", AUTH_URL = "https://prod4-app.byterover.dev", BASE_URL = "https://prod4-be.byterover.dev", CAPABILITY_WS_URL = "https://prod4-be.byterover.dev", ANALYTICS_TELEMETRY_URL = "https://prod4-telemetry.byterover.dev", ANALYTICS_ENABLED = ANALYTICS_TELEMETRY_URL.length > 0, rawMaxBytes = 0, EVENT_MAX_BYTES = Number.isInteger(rawMaxBytes) && rawMaxBytes > 0 ? rawMaxBytes : 4096, rawCapabilityRefresh = "", CAPABILITY_REFRESH_ENABLED = !["0", "false", "off"].includes(
+var SKILL_VERSION = "0.6.3", AUTH_URL = "https://prod4-app.byterover.dev", BASE_URL = "https://prod4-be.byterover.dev", CAPABILITY_WS_URL = "https://prod4-be.byterover.dev", ANALYTICS_TELEMETRY_URL = "https://prod4-telemetry.byterover.dev", ANALYTICS_ENABLED = ANALYTICS_TELEMETRY_URL.length > 0, rawMaxBytes = 0, EVENT_MAX_BYTES = Number.isInteger(rawMaxBytes) && rawMaxBytes > 0 ? rawMaxBytes : 4096, rawCapabilityRefresh = "", CAPABILITY_REFRESH_ENABLED = !["0", "false", "off"].includes(
   rawCapabilityRefresh.trim().toLowerCase()
 );
 
@@ -17195,11 +17641,11 @@ function withFs(overrides = {}) {
     ...overrides
   };
 }
-function ensureActiveLog(path2, fs2) {
-  let fd = fs2.openSync(path2, "a", 384);
+function ensureActiveLog(path, fs2) {
+  let fd = fs2.openSync(path, "a", 384);
   fs2.closeSync(fd);
   try {
-    fs2.chmodSync(path2, 384);
+    fs2.chmodSync(path, 384);
   } catch {
   }
 }
@@ -17213,9 +17659,9 @@ function pruneRotatedLogs(dir, now, retentionMs, fs2) {
   let cutoff = now.getTime() - retentionMs;
   for (let name of names) {
     if (!isRotatedDaemonLog(name)) continue;
-    let path2 = join12(dir, name);
+    let path = join12(dir, name);
     try {
-      fs2.statSync(path2).mtimeMs < cutoff && fs2.rmSync(path2, { force: !0 });
+      fs2.statSync(path).mtimeMs < cutoff && fs2.rmSync(path, { force: !0 });
     } catch {
     }
   }
@@ -17258,215 +17704,8 @@ function formatLogFields(fields) {
 import { mkdir as mkdir12 } from "node:fs/promises";
 
 // ../../packages/sync/src/http-client.ts
+var import_realtime_contracts = __toESM(require_realtime_contracts());
 import { randomUUID as randomUUID4 } from "node:crypto";
-
-// ../../packages/realtime-contracts/src/index.ts
-function isMemoryChangedEvent(value2) {
-  return !(!isRecord2(value2) || typeof value2.teamId != "string" || typeof value2.spaceId != "string" || typeof value2.key != "string" || typeof value2.at != "string" || value2.op !== "put" && value2.op !== "delete" || value2.md5 !== void 0 && typeof value2.md5 != "string" || value2.rev !== void 0 && !isRevisionNumber(value2.rev) || value2.prevRev !== void 0 && value2.prevRev !== null && !isRevisionNumber(value2.prevRev));
-}
-var CAPABILITY_CHANGED_EVENT = "capabilities.changed";
-var CAPABILITY_PUBLISH_REASONS = [
-  "team_created",
-  "team_updated",
-  "team_deleted",
-  "team_activation_changed",
-  "billing_sync_state_changed",
-  "space_created",
-  "space_updated",
-  "space_deleted",
-  "space_archived",
-  "membership_added",
-  "membership_removed",
-  "membership_role_changed",
-  "membership_left",
-  "ownership_transferred",
-  "space_grant_added",
-  "space_grant_changed",
-  "space_grant_removed"
-], INVITATION_CHANGED_REASONS = [
-  "created",
-  "revoked",
-  "accepted",
-  "rejected"
-], NOTIFICATION_CHANGED_REASONS = [
-  "created",
-  "updated",
-  "read",
-  "archived"
-];
-var reasons = new Set(CAPABILITY_PUBLISH_REASONS), invitationReasons = new Set(INVITATION_CHANGED_REASONS), notificationReasons = new Set(NOTIFICATION_CHANGED_REASONS);
-function isCapabilityChangedEvent(value2) {
-  return !(!isRecord2(value2) || !Object.keys(value2).every((key) => key === "capabilityVersion" || key === "at") || typeof value2.at != "string" || Number.isNaN(Date.parse(value2.at)) || "capabilityVersion" in value2 && !isNonNegativeSafeInteger(value2.capabilityVersion));
-}
-function isRecord2(value2) {
-  return typeof value2 == "object" && value2 !== null && !Array.isArray(value2);
-}
-function isNonNegativeSafeInteger(value2) {
-  return typeof value2 == "number" && Number.isSafeInteger(value2) && value2 >= 0;
-}
-var BOOTSTRAP_FALLBACK_REASONS = [
-  "unsupported_layer",
-  "snapshot_missing",
-  "snapshot_stale",
-  "snapshot_building",
-  "snapshot_artifact_missing",
-  "snapshot_corrupt",
-  "unsafe_revision_log",
-  "authz_denied"
-], CHANGES_FALLBACK_REASONS = [
-  "unsupported_layer",
-  "revision_gap",
-  "delta_too_large",
-  "delta_body_too_large",
-  "unsafe_revision_log",
-  "authz_denied"
-], FAST_SYNC_FALLBACK_REASONS = [
-  ...BOOTSTRAP_FALLBACK_REASONS,
-  ...CHANGES_FALLBACK_REASONS
-];
-function isRevisionRecord(value2) {
-  if (!isRecord2(value2) || !hasExactBaseKeys(value2)) return !1;
-  if (value2.op === "put") {
-    let putKeys = [
-      "schemaVersion",
-      "rev",
-      "prevRev",
-      "teamId",
-      "spaceId",
-      "requestId",
-      "createdAt",
-      "op",
-      "entry",
-      "objectGeneration",
-      "contentSha256",
-      ...value2.body === void 0 ? [] : ["body"]
-    ];
-    return hasOnlyKeys(value2, putKeys) && isManifestEntry(value2.entry) && typeof value2.objectGeneration == "string" && isSha256(value2.contentSha256) && (value2.body === void 0 || isInlineRevisionBody(value2.body));
-  }
-  return value2.op === "delete" ? hasOnlyKeys(value2, [
-    "schemaVersion",
-    "rev",
-    "prevRev",
-    "teamId",
-    "spaceId",
-    "requestId",
-    "createdAt",
-    "op",
-    "key"
-  ]) && isSafeSyncKey(value2.key) : value2.op === "delete_folder" ? hasOnlyKeys(value2, [
-    "schemaVersion",
-    "rev",
-    "prevRev",
-    "teamId",
-    "spaceId",
-    "requestId",
-    "createdAt",
-    "op",
-    "deleteScope",
-    "deletePrefix",
-    "deletedKeys"
-  ]) && value2.deleteScope === "exact_keys" && isSafeSyncKey(value2.deletePrefix) && Array.isArray(value2.deletedKeys) && value2.deletedKeys.every(isSafeSyncKey) && isSorted(value2.deletedKeys) : !1;
-}
-function isBootstrapResponse(value2) {
-  return isRecord2(value2) ? value2.kind === "snapshot" ? hasOnlyKeys(value2, ["kind", "manifest", "currentRevision", "bundle"]) && isSnapshotManifest(value2.manifest) && isRevisionNumber(value2.currentRevision) && isRecord2(value2.bundle) && hasOnlyKeys(value2.bundle, ["kind", "handle"]) && value2.bundle.kind === "backend-handle" && typeof value2.bundle.handle == "string" && value2.bundle.handle.length > 0 : value2.kind === "fallback_required" ? isFallbackResponse(value2, BOOTSTRAP_FALLBACK_REASONS, !0) : !1 : !1;
-}
-function isChangesResponse(value2) {
-  return isRecord2(value2) ? value2.kind === "revision_list" ? hasOnlyKeys(value2, [
-    "kind",
-    "fromRevExclusive",
-    "toRevInclusive",
-    "records"
-  ]) && isRevisionCursor(value2.fromRevExclusive) && isRevisionNumber(value2.toRevInclusive) && value2.toRevInclusive >= value2.fromRevExclusive && Array.isArray(value2.records) && value2.records.every(isRevisionRecord) : value2.kind === "fallback_required" ? isFallbackResponse(value2, CHANGES_FALLBACK_REASONS, !1) : !1 : !1;
-}
-function isSnapshotManifest(value2) {
-  return isRecord2(value2) && hasOnlyKeys(value2, [
-    "schemaVersion",
-    "formatVersion",
-    "teamId",
-    "spaceId",
-    "snapshotRevision",
-    "createdAt",
-    "fileCount",
-    "totalBytes",
-    "bundleSha256",
-    "bundleByteCount",
-    "objectGeneration",
-    "manifestEntries"
-  ]) && value2.schemaVersion === 1 && value2.formatVersion === "tar-gzip-v1" && typeof value2.teamId == "string" && typeof value2.spaceId == "string" && isRevisionNumber(value2.snapshotRevision) && typeof value2.createdAt == "string" && !Number.isNaN(Date.parse(value2.createdAt)) && isNonNegativeSafeInteger(value2.fileCount) && isNonNegativeSafeInteger(value2.totalBytes) && isSha256(value2.bundleSha256) && isNonNegativeSafeInteger(value2.bundleByteCount) && typeof value2.objectGeneration == "string" && Array.isArray(value2.manifestEntries) && value2.manifestEntries.every(isManifestEntry);
-}
-function isManifestEntry(value2) {
-  return isRecord2(value2) && hasOnlyKeys(value2, ["key", "md5", "size", "contentType", "updatedAt"]) && isSafeSyncKey(value2.key) && typeof value2.md5 == "string" && /^[0-9a-f]{32}$/.test(value2.md5) && isNonNegativeSafeInteger(value2.size) && typeof value2.contentType == "string" && typeof value2.updatedAt == "string" && !Number.isNaN(Date.parse(value2.updatedAt));
-}
-function hasExactBaseKeys(value2) {
-  return value2.schemaVersion === 1 && isRevisionNumber(value2.rev) && (value2.prevRev === null || isRevisionNumber(value2.prevRev)) && typeof value2.teamId == "string" && typeof value2.spaceId == "string" && typeof value2.requestId == "string" && typeof value2.createdAt == "string" && !Number.isNaN(Date.parse(value2.createdAt));
-}
-function hasOnlyKeys(value2, keys) {
-  let allowed = new Set(keys);
-  return Object.keys(value2).every((key) => allowed.has(key)) && keys.every((key) => key in value2);
-}
-function isRevisionNumber(value2) {
-  return typeof value2 == "number" && Number.isSafeInteger(value2) && value2 > 0;
-}
-function isRevisionCursor(value2) {
-  return typeof value2 == "number" && Number.isSafeInteger(value2) && value2 >= 0;
-}
-function isSha256(value2) {
-  return typeof value2 == "string" && /^[0-9a-f]{64}$/.test(value2);
-}
-function isSafeSyncKey(value2) {
-  return !(typeof value2 != "string" || value2.length === 0 || value2.startsWith("/") || value2.includes(".."));
-}
-function isSorted(values) {
-  for (let i = 1; i < values.length; i += 1)
-    if (values[i - 1].localeCompare(values[i]) > 0) return !1;
-  return !0;
-}
-function isOneOf(value2, allowed) {
-  return typeof value2 == "string" && allowed.includes(value2);
-}
-function isPositiveSafeInteger(value2) {
-  return typeof value2 == "number" && Number.isSafeInteger(value2) && value2 > 0;
-}
-function isInlineRevisionBody(value2) {
-  return isRecord2(value2) && hasOnlyKeys(value2, ["kind", "base64"]) && value2.kind === "inline-base64" && typeof value2.base64 == "string" && value2.base64.length > 0 && value2.base64.length <= 4 * 1024 * 1024 && /^[A-Za-z0-9+/]*={0,2}$/.test(value2.base64) && Buffer.from(value2.base64, "base64").toString("base64") === value2.base64;
-}
-function isFastSyncSpaceSizePolicy(value2) {
-  return isRecord2(value2) && hasOnlyKeys(value2, [
-    "class",
-    "fileCount",
-    "totalBytes",
-    "largeFileThreshold",
-    "largeBytesThreshold"
-  ]) && (value2.class === "small" || value2.class === "large") && isNonNegativeSafeInteger(value2.fileCount) && isNonNegativeSafeInteger(value2.totalBytes) && isPositiveSafeInteger(value2.largeFileThreshold) && isPositiveSafeInteger(value2.largeBytesThreshold);
-}
-function isFallbackResponse(value2, allowedReasons, allowBootstrapMetadata) {
-  if (!isOneOf(value2.reason, allowedReasons) || !["legacy", "retry_bootstrap", "blocked"].includes(String(value2.fallback)) || value2.fallback === "legacy" && value2.legacyAllowed !== !0 || value2.fallback !== "legacy" && value2.legacyAllowed !== !1 || value2.retryAfterMs !== void 0 && !isPositiveSafeInteger(value2.retryAfterMs))
-    return !1;
-  if (value2.reason === "unsupported_layer" || value2.reason === "authz_denied")
-    return hasOnlyKeys(value2, [
-      "kind",
-      "reason",
-      "fallback",
-      "legacyAllowed",
-      ...value2.retryAfterMs === void 0 ? [] : ["retryAfterMs"]
-    ]);
-  let bootstrapMetadataKeys = [
-    ...value2.spaceSizePolicy === void 0 ? [] : ["spaceSizePolicy"],
-    ...value2.currentRevision === void 0 ? [] : ["currentRevision"],
-    ...value2.snapshotRevision === void 0 ? [] : ["snapshotRevision"],
-    ...value2.maxCatchupRecords === void 0 ? [] : ["maxCatchupRecords"]
-  ];
-  return value2.spaceSizePolicy !== void 0 && !isFastSyncSpaceSizePolicy(value2.spaceSizePolicy) || value2.currentRevision !== void 0 && !isRevisionCursor(value2.currentRevision) || value2.snapshotRevision !== void 0 && !isRevisionNumber(value2.snapshotRevision) || value2.maxCatchupRecords !== void 0 && !isPositiveSafeInteger(value2.maxCatchupRecords) ? !1 : hasOnlyKeys(value2, [
-    "kind",
-    "reason",
-    "fallback",
-    "legacyAllowed",
-    ...value2.retryAfterMs === void 0 ? [] : ["retryAfterMs"],
-    ...allowBootstrapMetadata ? bootstrapMetadataKeys : []
-  ]);
-}
-
-// ../../packages/sync/src/http-client.ts
 var RateLimitedError = class extends Error {
   constructor(retryAfterMs, status2) {
     super(`rate limited (${status2})`);
@@ -17493,6 +17732,12 @@ var RateLimitedError = class extends Error {
     super(`auth:${status2}${reason ? ` (${reason})` : ""}`);
     this.status = status2;
     this.reason = reason;
+  }
+}, BundleUnsupportedError = class extends Error {
+  constructor(status2) {
+    super(`bundle endpoint unsupported (http ${status2})`);
+    this.status = status2;
+    this.name = "BundleUnsupportedError";
   }
 }, CONTENT_TYPE = {
   html: "text/html",
@@ -17541,7 +17786,7 @@ var MemoryHttpClient = class {
   }
   logHttpFailure(input) {
     try {
-      let parsed = new URL(input.url), method = input.init.method ?? "GET", err = input.error;
+      let parsed = new URL(input.url), method = input.init.method ?? "GET", err = input.error, sanitizedUrlPath = `${parsed.pathname}${parsed.search}`.replace(/\/bsh_[A-Za-z0-9_-]+/g, "/[handle]");
       Promise.resolve(
         this.cfg.log?.({
           component: "sync-engine",
@@ -17549,7 +17794,7 @@ var MemoryHttpClient = class {
           teamId: this.cfg.teamId,
           spaceId: this.cfg.spaceId,
           method,
-          urlPath: `${parsed.pathname}${parsed.search}`,
+          urlPath: sanitizedUrlPath,
           host: parsed.host,
           status: input.response?.status,
           statusText: input.response?.statusText,
@@ -17649,7 +17894,11 @@ var MemoryHttpClient = class {
   }
   async getManifest() {
     let data = await (await this.guard(
-      await this.send(`${this.base()}/manifest`, { headers: this.headers() }, { policy: "poll" })
+      await this.send(
+        `${this.base()}/manifest`,
+        { headers: this.headers() },
+        { policy: "poll" }
+      )
     )).json();
     return Array.isArray(data) ? data : data.files ?? [];
   }
@@ -17657,7 +17906,7 @@ var MemoryHttpClient = class {
     let data = await (await this.guard(
       await this.send(`${this.base()}/bootstrap`, { headers: this.headers() })
     )).json();
-    if (!isBootstrapResponse(data))
+    if (!(0, import_realtime_contracts.isBootstrapResponse)(data))
       throw new Error("invalid bootstrap response");
     return data;
   }
@@ -17671,7 +17920,7 @@ var MemoryHttpClient = class {
         { policy: "poll" }
       )
     )).json();
-    if (!isChangesResponse(data)) throw new Error("invalid changes response");
+    if (!(0, import_realtime_contracts.isChangesResponse)(data)) throw new Error("invalid changes response");
     return data;
   }
   /**
@@ -17765,6 +18014,90 @@ var MemoryHttpClient = class {
       headers: this.headers({ "content-type": "application/octet-stream" }),
       body: signedJson
     })).ok ? "ok" : "rejected";
+  }
+  /**
+   * Upload a gzip-compressed file bundle to the server.
+   *
+   * Bypasses `send()` because:
+   * 1. `send()` overwrites `x-request-id` with a random UUID — the bundle
+   *    needs a STABLE client-provided id as the idempotency key.
+   * 2. `guard()` throws before status can be read — we need to branch on
+   *    404/501/415 for `BundleUnsupportedError` without falling into the
+   *    generic error path.
+   *
+   * The buffered `Uint8Array` body is safely re-sendable on retry.
+   * Size-proportional timeout prevents stalls on large bundles over slow uplinks.
+   */
+  async putFileBundle(body, requestId, onThrottle) {
+    let url2 = `${this.base()}/bundle`, maxRetries = this.cfg.maxRetries ?? 2, init = { method: "POST" }, timeoutMs = Math.max(
+      this.cfg.requestTimeoutMs ?? 3e4,
+      Math.ceil(body.byteLength / 64)
+    );
+    for (let attempt = 0; ; attempt++) {
+      let res;
+      try {
+        res = await fetch(url2, {
+          method: "POST",
+          headers: this.headers({
+            "content-type": "application/gzip",
+            "x-request-id": requestId
+          }),
+          body,
+          // Uint8Array is a valid fetch body at runtime; cast bridges the node-lib vs DOM-lib BodyInit variance under TS 5.7
+          signal: AbortSignal.timeout(timeoutMs)
+        });
+      } catch (err) {
+        if (err instanceof Error && err.name === "TimeoutError" || attempt >= maxRetries)
+          throw this.logHttpFailure({ url: url2, init, requestId, attempt, maxRetries, error: err }), err;
+        let nextRetryMs = backoffMs(attempt);
+        this.logHttpFailure({
+          url: url2,
+          init,
+          requestId,
+          attempt,
+          maxRetries,
+          nextRetryMs,
+          error: err
+        }), await sleep(nextRetryMs);
+        continue;
+      }
+      if (res.status === 404 || res.status === 501 || res.status === 415)
+        throw new BundleUnsupportedError(res.status);
+      let retryAfterMs = parseRetryAfter(res);
+      if ((res.status === 429 || res.status === 503 && retryAfterMs !== void 0) && attempt < maxRetries) {
+        onThrottle?.();
+        let nextRetryMs = retryAfterMs ?? backoffMs(attempt);
+        this.logHttpFailure({
+          url: url2,
+          init,
+          requestId,
+          attempt,
+          maxRetries,
+          nextRetryMs,
+          response: res
+        }), await sleep(nextRetryMs);
+        continue;
+      }
+      if (res.status >= 500 && attempt < maxRetries) {
+        let nextRetryMs = backoffMs(attempt);
+        this.logHttpFailure({
+          url: url2,
+          init,
+          requestId,
+          attempt,
+          maxRetries,
+          nextRetryMs,
+          response: res
+        }), await sleep(nextRetryMs);
+        continue;
+      }
+      if (!res.ok)
+        throw this.logHttpFailure({ url: url2, init, requestId, attempt, maxRetries, response: res }), new Error(`http ${res.status} ${await res.text()}`);
+      let data = await res.json();
+      if (!(0, import_realtime_contracts.isPushBundleResult)(data))
+        throw new Error("invalid push bundle response");
+      return data;
+    }
   }
 };
 async function provisionTrustAnchor(target, publicKeyPem) {
@@ -18663,9 +18996,9 @@ function parse2(str2) {
     uri[parts[i]] = m[i] || "";
   return b != -1 && e != -1 && (uri.source = src, uri.host = uri.host.substring(1, uri.host.length - 1).replace(/;/g, ":"), uri.authority = uri.authority.replace("[", "").replace("]", "").replace(/;/g, ":"), uri.ipv6uri = !0), uri.pathNames = pathNames(uri, uri.path), uri.queryKey = queryKey(uri, uri.query), uri;
 }
-function pathNames(obj, path2) {
-  let regx = /\/{2,9}/g, names = path2.replace(regx, "/").split("/");
-  return (path2.slice(0, 1) == "/" || path2.length === 0) && names.splice(0, 1), path2.slice(-1) == "/" && names.splice(names.length - 1, 1), names;
+function pathNames(obj, path) {
+  let regx = /\/{2,9}/g, names = path.replace(regx, "/").split("/");
+  return (path.slice(0, 1) == "/" || path.length === 0) && names.splice(0, 1), path.slice(-1) == "/" && names.splice(names.length - 1, 1), names;
 }
 function queryKey(uri, query) {
   let data = {};
@@ -19041,11 +19374,11 @@ var protocol2 = Socket.protocol;
 
 // ../../node_modules/.pnpm/socket.io-client@4.8.3/node_modules/socket.io-client/build/esm-debug/url.js
 var import_debug7 = __toESM(require_src(), 1), debug7 = (0, import_debug7.default)("socket.io-client:url");
-function url(uri, path2 = "", loc) {
+function url(uri, path = "", loc) {
   let obj = uri;
   loc = loc || typeof location < "u" && location, uri == null && (uri = loc.protocol + "//" + loc.host), typeof uri == "string" && (uri.charAt(0) === "/" && (uri.charAt(1) === "/" ? uri = loc.protocol + uri : uri = loc.host + uri), /^(https?|wss?):\/\//.test(uri) || (debug7("protocol-less url %s", uri), typeof loc < "u" ? uri = loc.protocol + "//" + uri : uri = "https://" + uri), debug7("parse %s", uri), obj = parse2(uri)), obj.port || (/^(http|ws)$/.test(obj.protocol) ? obj.port = "80" : /^(http|ws)s$/.test(obj.protocol) && (obj.port = "443")), obj.path = obj.path || "/";
   let host = obj.host.indexOf(":") !== -1 ? "[" + obj.host + "]" : obj.host;
-  return obj.id = obj.protocol + "://" + host + ":" + obj.port + path2, obj.href = obj.protocol + "://" + host + (loc && loc.port === obj.port ? "" : ":" + obj.port), obj;
+  return obj.id = obj.protocol + "://" + host + ":" + obj.port + path, obj.href = obj.protocol + "://" + host + (loc && loc.port === obj.port ? "" : ":" + obj.port), obj;
 }
 
 // ../../node_modules/.pnpm/socket.io-parser@4.2.6/node_modules/socket.io-parser/build/esm-debug/index.js
@@ -20249,7 +20582,7 @@ var import_component_emitter6 = __toESM(require_cjs(), 1), import_debug10 = __to
 var import_debug11 = __toESM(require_src(), 1), debug11 = (0, import_debug11.default)("socket.io-client"), cache = {};
 function lookup(uri, opts) {
   typeof uri == "object" && (opts = uri, uri = void 0), opts = opts || {};
-  let parsed = url(uri, opts.path || "/socket.io"), source = parsed.source, id = parsed.id, path2 = parsed.path, sameNamespace = cache[id] && path2 in cache[id].nsps, newConnection = opts.forceNew || opts["force new connection"] || opts.multiplex === !1 || sameNamespace, io;
+  let parsed = url(uri, opts.path || "/socket.io"), source = parsed.source, id = parsed.id, path = parsed.path, sameNamespace = cache[id] && path in cache[id].nsps, newConnection = opts.forceNew || opts["force new connection"] || opts.multiplex === !1 || sameNamespace, io;
   return newConnection ? (debug11("ignoring socket cache for %s", source), io = new Manager(source, opts)) : (cache[id] || (debug11("new io instance for %s", source), cache[id] = new Manager(source, opts)), io = cache[id]), parsed.query && !opts.query && (opts.query = parsed.queryKey), io.socket(parsed.path, opts);
 }
 Object.assign(lookup, {
@@ -20260,6 +20593,7 @@ Object.assign(lookup, {
 });
 
 // ../../packages/sync/src/ws-client.ts
+var import_realtime_contracts2 = __toESM(require_realtime_contracts());
 function isAuthLikeConnectError(err) {
   let message = err.message ?? "";
   return /\b(?:401|403)\b|not.?authorized|authentication|(?:account|billing|subscription|team|space)\s+inactive|inactive\s+(?:account|billing|subscription|team|space)/i.test(
@@ -20285,7 +20619,7 @@ var WsClient = class {
         reconnection: !0
       });
       this.socket = socket, socket.on("memory.changed", (event) => {
-        isMemoryChangedEvent(event) && this.handlers.onEvent(event);
+        (0, import_realtime_contracts2.isMemoryChangedEvent)(event) && this.handlers.onEvent(event);
       }), socket.on("folder.deleted", (event) => {
         this.handlers.onFolderDeleted?.(event);
       }), socket.on("connect", () => {
@@ -20324,14 +20658,14 @@ function isSyncable(treeRelPath) {
 // ../../packages/sync/src/watch.ts
 function watchTree(root, debounceMs, onBatch) {
   let pending = /* @__PURE__ */ new Map(), timer, classify2 = async ([key, event]) => {
-    let path2 = join13(root, key);
+    let path = join13(root, key);
     try {
-      return await stat4(path2), {
-        path: path2,
+      return await stat4(path), {
+        path,
         type: event === "change" ? "update" : "create"
       };
     } catch {
-      return { path: path2, type: "delete" };
+      return { path, type: "delete" };
     }
   }, flush = () => {
     let entries = [...pending].filter(([key]) => isSyncable(key)), keys = entries.map(([key]) => key);
@@ -20954,9 +21288,11 @@ function nextPollDelay(input) {
 }
 
 // ../../packages/sync/src/fast-sync/bootstrap.ts
+var import_realtime_contracts3 = __toESM(require_realtime_contracts());
+import { rm as rm11 } from "node:fs/promises";
 async function tryFastBootstrap(input) {
   if (!input.enabled)
-    return { kind: "legacy_allowed", reason: "disabled", legacyAllowed: !0 };
+    return { kind: "disabled" };
   let bootstrap = await timed(
     input,
     "fast-bootstrap.get-bootstrap",
@@ -20986,23 +21322,19 @@ async function tryFastBootstrap(input) {
       )
     ), bootstrapValue.fallback === "legacy" ? {
       kind: "legacy_allowed",
-      reason: bootstrapValue.reason,
-      legacyAllowed: !0
+      reason: "backend_legacy_allowed"
     } : bootstrapValue.fallback === "retry_bootstrap" ? {
       kind: "wait_retry",
-      reason: bootstrapValue.reason,
-      legacyAllowed: !1,
-      retryAfterMs: bootstrapValue.retryAfterMs
+      reason: (0, import_realtime_contracts3.isFastBootstrapStatusReason)(bootstrapValue.reason) ? bootstrapValue.reason : "bootstrap_contract_invalid",
+      retryAfterMs: bootstrapValue.retryAfterMs ?? 3e4
     } : {
       kind: "fatal_blocked",
-      reason: bootstrapValue.reason,
-      legacyAllowed: !1
+      reason: (0, import_realtime_contracts3.isFastBootstrapStatusReason)(bootstrapValue.reason) ? bootstrapValue.reason : "bootstrap_contract_invalid"
     };
   if (!input.extractBundle || !input.applyChanges || !input.promote)
     return {
       kind: "fatal_blocked",
-      reason: "snapshot_promote_pending",
-      legacyAllowed: !1
+      reason: "snapshot_promote_pending"
     };
   if (input.targetState === "dirty")
     return input.emitStatus?.(
@@ -21012,15 +21344,26 @@ async function tryFastBootstrap(input) {
       })
     ), {
       kind: "fatal_blocked",
-      reason: "dirty_local_tree",
-      legacyAllowed: !1
+      reason: "dirty_local_tree"
     };
   input.emitStatus?.(status("snapshot", "snapshot_downloading"));
-  let handle = bootstrapValue.bundle.handle, bodyResult = await timed(
-    input,
-    "fast-bootstrap.download-bundle",
-    () => input.http.getBootstrapBundle(handle)
-  );
+  let handle = bootstrapValue.bundle.handle, bodyResult;
+  try {
+    bodyResult = await timed(
+      input,
+      "fast-bootstrap.download-bundle",
+      () => input.http.getBootstrapBundle(handle)
+    );
+  } catch (err) {
+    let msg = err instanceof Error ? err.message : String(err);
+    if (/\b(404|410)\b/.test(msg))
+      return {
+        kind: "wait_retry",
+        reason: "bundle_handle_expired_or_mismatched",
+        retryAfterMs: 3e4
+      };
+    throw err;
+  }
   input.log?.({
     action: "fast-bootstrap.download-bundle",
     durationMs: bodyResult.durationMs,
@@ -21066,19 +21409,16 @@ async function tryFastBootstrap(input) {
       toRev: bootstrapValue.currentRevision
     }
   }), changes.kind === "fallback_required")
-    return changes.fallback === "legacy" ? {
+    return await rm11(extracted.stagingPath, { recursive: !0, force: !0 }), changes.fallback === "legacy" ? {
       kind: "legacy_allowed",
-      reason: changes.reason,
-      legacyAllowed: !0
+      reason: "backend_legacy_allowed"
     } : changes.fallback === "retry_bootstrap" ? {
       kind: "wait_retry",
-      reason: changes.reason,
-      legacyAllowed: !1,
-      retryAfterMs: changes.retryAfterMs
+      reason: (0, import_realtime_contracts3.isFastBootstrapStatusReason)(changes.reason) ? changes.reason : "bootstrap_contract_invalid",
+      retryAfterMs: changes.retryAfterMs ?? 3e4
     } : {
       kind: "fatal_blocked",
-      reason: changes.reason,
-      legacyAllowed: !1
+      reason: (0, import_realtime_contracts3.isFastBootstrapStatusReason)(changes.reason) ? changes.reason : "bootstrap_contract_invalid"
     };
   let stagedRevisionResult = await timed(
     input,
@@ -21101,11 +21441,12 @@ async function tryFastBootstrap(input) {
   });
   let deltaResult = stagedRevisionResult.value;
   if (deltaResult.stagedRevision !== bootstrapValue.currentRevision)
-    return {
+    return await rm11(extracted.stagingPath, { recursive: !0, force: !0 }), {
       kind: "fatal_blocked",
-      reason: "revision_gap",
-      legacyAllowed: !1
+      reason: "revision_gap"
     };
+  if (input.shouldCancel?.())
+    return await rm11(extracted.stagingPath, { recursive: !0, force: !0 }), { kind: "cancelled", reason: "worker_revoked" };
   input.emitStatus?.(status("snapshot", "promoting"));
   let promoteResult = await timed(
     input,
@@ -21167,23 +21508,12 @@ import { mkdtemp } from "node:fs/promises";
 import { join as join19 } from "node:path";
 
 // ../../packages/sync/src/fast-sync/delta-apply.ts
-import { mkdir as mkdir9, rm as rm11 } from "node:fs/promises";
+import { mkdir as mkdir9, rm as rm12 } from "node:fs/promises";
 import { createHash as createHash5 } from "node:crypto";
 import { dirname as dirname8, join as join16 } from "node:path";
 
 // ../../packages/sync/src/fast-sync/tar-safety.ts
-import path from "node:path";
-function assertSafeTarEntryName(name, options = {}) {
-  if (options.type && options.type !== "file")
-    throw new Error("unsafe tar entry");
-  if (name.includes("\\") || name.includes("\0") || path.posix.isAbsolute(name))
-    throw new Error("unsafe tar entry");
-  let normalized = path.posix.normalize(name);
-  if (normalized === "." || normalized === ".." || normalized.startsWith("../"))
-    throw new Error("unsafe tar entry");
-  if (options.seen?.has(normalized)) throw new Error("duplicate tar entry");
-  return normalized;
-}
+var import_realtime_contracts4 = __toESM(require_realtime_contracts());
 
 // ../../packages/sync/src/fast-sync/delta-apply.ts
 async function applyRevisionRecordsToStaging(input) {
@@ -21196,25 +21526,25 @@ async function applyRevisionRecordsToStaging(input) {
     if (record.prevRev !== (stagedRevision === 0 ? null : stagedRevision))
       throw new Error("revision gap");
     if (record.op === "put") {
-      let key = assertSafeTarEntryName(record.entry.key), path2 = join16(input.stagingPath, key), body = record.body?.kind === "inline-base64" ? Buffer.from(record.body.base64, "base64") : await readBodyOrThrow(input.readBody, key);
+      let key = (0, import_realtime_contracts4.assertSafeTarEntryName)(record.entry.key), path = join16(input.stagingPath, key), body = record.body?.kind === "inline-base64" ? Buffer.from(record.body.base64, "base64") : await readBodyOrThrow(input.readBody, key);
       if (body.byteLength !== record.entry.size)
         throw new Error("size mismatch");
       if (createHash5("sha256").update(body).digest("hex") !== record.contentSha256) throw new Error("sha256 mismatch");
-      await mkdir9(dirname8(path2), { recursive: !0 }), await writeFileAtomic(path2, body), nextBaseline[key] = {
+      await mkdir9(dirname8(path), { recursive: !0 }), await writeFileAtomic(path, body), nextBaseline[key] = {
         md5: record.entry.md5,
         updatedAt: record.entry.updatedAt
       };
     } else if (record.op === "delete") {
-      let key = assertSafeTarEntryName(record.key);
-      await rm11(join16(input.stagingPath, key), { force: !0 }), delete nextBaseline[key];
+      let key = (0, import_realtime_contracts4.assertSafeTarEntryName)(record.key);
+      await rm12(join16(input.stagingPath, key), { force: !0 }), delete nextBaseline[key];
     } else {
       if ([...record.deletedKeys].sort((a, b) => a.localeCompare(b)).join(`
 `) !== record.deletedKeys.join(`
 `))
         throw new Error("deletedKeys must be sorted");
       for (let key of record.deletedKeys) {
-        let safeKey = assertSafeTarEntryName(key);
-        await rm11(join16(input.stagingPath, safeKey), { force: !0 }), delete nextBaseline[safeKey];
+        let safeKey = (0, import_realtime_contracts4.assertSafeTarEntryName)(key);
+        await rm12(join16(input.stagingPath, safeKey), { force: !0 }), delete nextBaseline[safeKey];
       }
     }
     stagedRevision = record.rev;
@@ -21246,7 +21576,7 @@ async function extractSnapshotBundle(input) {
     };
     extract.on("entry", (header, stream, next) => {
       (async () => {
-        let key = assertSafeTarEntryName(header.name);
+        let key = (0, import_realtime_contracts4.assertSafeTarEntryName)(header.name);
         if (seen.has(key)) throw new Error("duplicate tar entry");
         let entry = expected.get(key);
         if (!entry) throw new Error("manifest mismatch");
@@ -21283,38 +21613,38 @@ async function extractSnapshotBundle(input) {
 }
 
 // ../../packages/sync/src/fast-sync/promote-transaction.ts
-import { mkdir as mkdir11, readdir as readdir5, readFile as readFile12, rename as rename5, rm as rm12, stat as stat7 } from "node:fs/promises";
+import { mkdir as mkdir11, readdir as readdir5, readFile as readFile12, rename as rename5, rm as rm13, stat as stat7 } from "node:fs/promises";
 import { dirname as dirname10, join as join18 } from "node:path";
 async function promoteSnapshotTree(input) {
   await mkdir11(input.syncDir, { recursive: !0 });
   let markerPath = join18(input.syncDir, "bootstrap-transaction.json"), backupPath = join18(input.syncDir, "bootstrap-target-backup");
   if (await writeMarker2(markerPath, input, "prepared"), await mkdir11(dirname10(input.targetPath), { recursive: !0 }), !input.allowReplaceExisting && await nonEmpty2(input.targetPath))
     throw new Error("target tree is not empty");
-  await rm12(backupPath, { recursive: !0, force: !0 }), await exists(input.targetPath) && (await writeMarker2(markerPath, input, "backing_up_target"), await rename5(input.targetPath, backupPath)), await writeMarker2(markerPath, input, "promoting_tree"), await rename5(input.stagingPath, input.targetPath), await writeMarker2(markerPath, input, "writing_baseline");
+  await rm13(backupPath, { recursive: !0, force: !0 }), await exists(input.targetPath) && (await writeMarker2(markerPath, input, "backing_up_target"), await rename5(input.targetPath, backupPath)), await writeMarker2(markerPath, input, "promoting_tree"), await rename5(input.stagingPath, input.targetPath), await writeMarker2(markerPath, input, "writing_baseline");
   let state = new SyncState(input.syncDir);
-  await state.setBaseline(input.baseline), await state.setBaselineRevision(input.targetRevision), await writeMarker2(markerPath, input, "ready"), await rm12(backupPath, { recursive: !0, force: !0 }), await rm12(markerPath, { force: !0 });
+  await state.setBaseline(input.baseline), await state.setBaselineRevision(input.targetRevision), await writeMarker2(markerPath, input, "ready"), await rm13(backupPath, { recursive: !0, force: !0 }), await rm13(markerPath, { force: !0 });
 }
 async function recoverPromoteTransaction(syncDir) {
   let markerPath = join18(syncDir, "bootstrap-transaction.json");
   if (!await exists(markerPath)) return;
   let marker = JSON.parse(await readFile12(markerPath, "utf8"));
   if (marker.phase === "prepared" || marker.phase === "backing_up_target") {
-    !await exists(marker.targetPath) && await exists(marker.backupPath) && await rename5(marker.backupPath, marker.targetPath), await rm12(marker.stagingPath, { recursive: !0, force: !0 }), await rm12(marker.backupPath, { recursive: !0, force: !0 }), await rm12(markerPath, { force: !0 });
+    !await exists(marker.targetPath) && await exists(marker.backupPath) && await rename5(marker.backupPath, marker.targetPath), await rm13(marker.stagingPath, { recursive: !0, force: !0 }), await rm13(marker.backupPath, { recursive: !0, force: !0 }), await rm13(markerPath, { force: !0 });
     return;
   }
   if (marker.phase === "promoting_tree" && !await exists(marker.targetPath)) {
     if (await exists(marker.stagingPath))
       await rename5(marker.stagingPath, marker.targetPath);
     else if (await exists(marker.backupPath)) {
-      await rename5(marker.backupPath, marker.targetPath), await rm12(markerPath, { force: !0 });
+      await rename5(marker.backupPath, marker.targetPath), await rm13(markerPath, { force: !0 });
       return;
     }
   }
   if (marker.phase === "promoting_tree" || marker.phase === "writing_baseline" || marker.phase === "ready") {
     let state = new SyncState(syncDir);
-    await state.setBaseline(marker.baseline), await state.setBaselineRevision(marker.targetRevision), await rm12(marker.backupPath, { recursive: !0, force: !0 });
+    await state.setBaseline(marker.baseline), await state.setBaselineRevision(marker.targetRevision), await rm13(marker.backupPath, { recursive: !0, force: !0 });
   }
-  await rm12(markerPath, { force: !0 });
+  await rm13(markerPath, { force: !0 });
 }
 async function writeMarker2(markerPath, input, phase) {
   await writeFileAtomic(
@@ -21330,16 +21660,16 @@ async function writeMarker2(markerPath, input, phase) {
     )
   );
 }
-async function exists(path2) {
+async function exists(path) {
   try {
-    return await stat7(path2), !0;
+    return await stat7(path), !0;
   } catch {
     return !1;
   }
 }
-async function nonEmpty2(path2) {
+async function nonEmpty2(path) {
   try {
-    return (await readdir5(path2)).length > 0;
+    return (await readdir5(path)).length > 0;
   } catch {
     return !1;
   }
@@ -21375,6 +21705,105 @@ function createFastBootstrapRuntime(input) {
       });
     }
   };
+}
+
+// ../../packages/sync/src/fast-sync/bundle-plan.ts
+var DEFAULT_BUNDLE_THRESHOLDS = {
+  minFiles: 100,
+  minBytes: 26214400,
+  maxFiles: 500,
+  maxBytes: 26214400
+};
+function shouldBundle(items, t = DEFAULT_BUNDLE_THRESHOLDS) {
+  if (items.length >= t.minFiles) return !0;
+  let bytes = 0;
+  for (let it of items) bytes += it.size;
+  return bytes >= t.minBytes;
+}
+function chunkBundle(items, t = DEFAULT_BUNDLE_THRESHOLDS) {
+  let chunks = [], cur = [], curBytes = 0;
+  for (let it of items)
+    (cur.length >= t.maxFiles || cur.length > 0 && curBytes + it.size > t.maxBytes) && (chunks.push(cur), cur = [], curBytes = 0), cur.push(it), curBytes += it.size;
+  return cur.length > 0 && chunks.push(cur), chunks;
+}
+
+// ../../packages/sync/src/fast-sync/push-bundles.ts
+import { randomUUID as randomUUID7 } from "node:crypto";
+
+// ../../packages/sync/src/fast-sync/pack-bundle.ts
+var import_tar_stream2 = __toESM(require_tar_stream()), import_realtime_contracts5 = __toESM(require_realtime_contracts());
+import { gzip } from "node:zlib";
+import { promisify } from "node:util";
+var gzipAsync = promisify(gzip);
+async function packBundle(entries) {
+  let seen = /* @__PURE__ */ new Set(), pack = (0, import_tar_stream2.pack)(), chunks = [];
+  pack.on("data", (c) => chunks.push(c));
+  let finished = new Promise((resolve7, reject) => {
+    pack.on("end", () => resolve7()), pack.on("error", reject);
+  });
+  for (let e of entries) {
+    let name = (0, import_realtime_contracts5.assertSafeTarEntryName)(e.key, { seen });
+    seen.add(name);
+    let buf = Buffer.from(e.bytes);
+    pack.entry({ name, size: buf.length }, buf);
+  }
+  return pack.finalize(), await finished, new Uint8Array(await gzipAsync(Buffer.concat(chunks)));
+}
+
+// ../../packages/sync/src/fast-sync/push-bundles.ts
+async function pushKeysAsBundles(input) {
+  let acked = {}, failed = [], bytesUploaded = 0, skipped = [], newId = input.newRequestId ?? (() => randomUUID7()), items = [];
+  for (let key of input.keys) {
+    if (!input.allowedExtensions.some((ext) => key.endsWith(ext))) {
+      failed.push(key);
+      continue;
+    }
+    let text = await input.readText(key);
+    if (text === void 0) {
+      skipped.push(key);
+      continue;
+    }
+    let bytes = new TextEncoder().encode(text);
+    items.push({ key, size: bytes.byteLength, bytes });
+  }
+  let chunks = chunkBundle(
+    items,
+    input.thresholds ?? DEFAULT_BUNDLE_THRESHOLDS
+  ), unsupported = !1, sendChunk = async (chunk2) => {
+    if (unsupported) {
+      for (let it of chunk2) failed.push(it.key);
+      return;
+    }
+    let sent = new Set(chunk2.map((it) => it.key)), requestId = newId();
+    try {
+      input.onPhaseChange?.("packing");
+      let body = await packBundle(
+        chunk2.map((it) => ({ key: it.key, bytes: it.bytes }))
+      );
+      bytesUploaded += body.byteLength, input.onPhaseChange?.("uploading");
+      let result = await input.putFileBundle(
+        body,
+        requestId,
+        input.onThrottle
+      );
+      input.onPhaseChange?.("acking");
+      for (let f of result.files) {
+        if (!sent.has(f.key)) continue;
+        let a = { md5: f.md5, updatedAt: f.updatedAt };
+        acked[f.key] = a, input.onAcked?.(f.key, a);
+      }
+      for (let it of chunk2)
+        it.key in acked || failed.push(it.key);
+    } catch (err) {
+      if (err instanceof BundleUnsupportedError) {
+        unsupported = !0;
+        for (let it of chunk2) failed.push(it.key);
+        return;
+      }
+      for (let it of chunk2) failed.push(it.key);
+    }
+  }, limit = Math.max(1, input.concurrency ?? 2);
+  return await runWithConcurrency(chunks, limit, (chunk2) => sendChunk(chunk2)), { acked, failed, skipped, chunkCount: chunks.length, bytesUploaded };
 }
 
 // ../../packages/sync/src/engine.ts
@@ -21432,7 +21861,14 @@ function rejectedAfterSuccessfulReconcile(input) {
   return dedupeRejected(input.previous).filter((entry) => input.successfulKeys.has(entry.key) ? !1 : input.local.has(entry.key) || input.remote.has(entry.key) || input.nextBaseline[entry.key] !== void 0);
 }
 function createSyncEngine(inputConfig, deps = {}) {
-  let config = normalizeConfig(inputConfig), currentToken = config.token, http = new MemoryHttpClient(config, () => currentToken), tree = new TreeFs(config.contextTreeRoot), state = new SyncState(config.syncDir), mode = config.mode, bootstrapped = !config.bootstrap, fastBootstrapTried = !1, nextFastBootstrapAt, fastBootstrapBlocked = !1, activeOps = /* @__PURE__ */ new Set();
+  let config = normalizeConfig(inputConfig), currentToken = config.token, http = new MemoryHttpClient(config, () => currentToken), tree = new TreeFs(config.contextTreeRoot), state = new SyncState(config.syncDir), bundleThresholds = {
+    ...DEFAULT_BUNDLE_THRESHOLDS,
+    minFiles: config.bundleMinFiles ?? DEFAULT_BUNDLE_THRESHOLDS.minFiles,
+    minBytes: config.bundleMinBytes ?? DEFAULT_BUNDLE_THRESHOLDS.minBytes
+  }, bundleConcurrency = config.bundleConcurrency ?? 2, bundleAllowedExtensions = config.bundleAllowedExtensions ?? [
+    ".md",
+    ".html"
+  ], mode = config.mode, bootstrapped = !config.bootstrap, fastBootstrapTried = !1, nextFastBootstrapAt, fastBootstrapBlocked = !1, fastBootstrapRetryCount = 0, firstFastBootstrapRetryAt, activeOps = /* @__PURE__ */ new Set();
   function describeError(err) {
     return err instanceof Error ? err.message : String(err);
   }
@@ -21761,7 +22197,7 @@ function createSyncEngine(inputConfig, deps = {}) {
       remoteDeleted: 0,
       restored: 0,
       movesCompleted: 0
-    }, batchId = `watch-${(/* @__PURE__ */ new Date()).toISOString()}-${totalActions}`;
+    }, batchId = `watch-${(/* @__PURE__ */ new Date()).toISOString()}-${totalActions}`, watchBundleUploadPhase, watchBundleThrottled = !1;
     watchBatchOperation && totalActions > 0 && setStatus({
       state: current.state === "auth-expired" ? "auth-expired" : "syncing",
       progressPercent: 0,
@@ -21847,31 +22283,79 @@ function createSyncEngine(inputConfig, deps = {}) {
       } finally {
         inFlight.delete(key);
       }
+    }, emitWatchBatchProgress = () => {
+      if (!watchBatchOperation) return;
+      let base = {
+        kind: "action-count",
+        batchId,
+        operation: watchBatchOperation,
+        completedActions,
+        totalActions,
+        percent: Math.min(
+          100,
+          Math.round(completedActions / totalActions * 100)
+        ),
+        successfulActions: completionCounts.pushed + completionCounts.pulled + completionCounts.localDeleted + completionCounts.remoteDeleted + completionCounts.restored,
+        rejectedActions,
+        skippedActions
+      }, withPhase = watchBundleUploadPhase !== void 0 ? { ...base, uploadPhase: watchBundleUploadPhase } : base;
+      setStatus({
+        batchProgress: watchBundleThrottled ? { ...withPhase, throttled: !0 } : withPhase
+      });
     };
     try {
+      let perFileItems = attempted;
+      if (config.pushBundle) {
+        let pushCandidates = attempted.filter(
+          (it) => it.text !== void 0 && baseline[it.key]?.md5 !== md5Hex(it.text)
+        );
+        if (pushCandidates.length > 0 && shouldBundle(
+          pushCandidates.map((it) => ({
+            size: Buffer.byteLength(it.text, "utf8")
+          })),
+          bundleThresholds
+        )) {
+          let textByKey = new Map(
+            pushCandidates.map((it) => [it.key, it.text])
+          ), bundleKeys = pushCandidates.map((it) => it.key);
+          for (let key of bundleKeys) inFlight.add(key);
+          try {
+            let { acked, skipped } = await pushKeysAsBundles({
+              keys: bundleKeys,
+              readText: async (k) => textByKey.get(k),
+              putFileBundle: (body, rid, onThrottle) => http.putFileBundle(body, rid, onThrottle),
+              allowedExtensions: bundleAllowedExtensions,
+              thresholds: bundleThresholds,
+              concurrency: bundleConcurrency,
+              onAcked: (key, a) => {
+                baseline[key] = { md5: a.md5, updatedAt: a.updatedAt }, completionCounts.pushed += 1, pushed = !0, completedActions += 1, watchBundleThrottled = !1, setProgress(key, completedActions, totalActions), emitWatchBatchProgress();
+              },
+              onPhaseChange: (phase) => {
+                watchBundleUploadPhase = phase, emitWatchBatchProgress();
+              },
+              onThrottle: () => {
+                watchBundleThrottled = !0, emitWatchBatchProgress();
+              }
+            });
+            for (let _key of skipped)
+              skippedActions += 1, completedActions += 1, emitWatchBatchProgress();
+            let ackedSet = new Set(Object.keys(acked)), skippedSet = new Set(skipped);
+            perFileItems = attempted.filter(
+              (it) => !ackedSet.has(it.key) && !skippedSet.has(it.key)
+            );
+          } finally {
+            for (let key of bundleKeys) inFlight.delete(key);
+          }
+        }
+      }
       await runWithConcurrency(
-        attempted,
+        perFileItems,
         config.syncConcurrency ?? 8,
         async (item) => {
           try {
             await runKey(item.key, item.text);
           } finally {
-            completedActions += 1, setProgress(item.key, completedActions, totalActions), watchBatchOperation && setStatus({
-              batchProgress: {
-                kind: "action-count",
-                batchId,
-                operation: watchBatchOperation,
-                completedActions,
-                totalActions,
-                percent: Math.min(
-                  100,
-                  Math.round(completedActions / totalActions * 100)
-                ),
-                successfulActions: completionCounts.pushed + completionCounts.pulled + completionCounts.localDeleted + completionCounts.remoteDeleted + completionCounts.restored,
-                rejectedActions,
-                skippedActions
-              }
-            });
+            completedActions += 1, setProgress(item.key, completedActions, totalActions), emitWatchBatchProgress();
           }
         }
       ), await state.setBaseline(baseline);
@@ -22161,7 +22645,7 @@ function createSyncEngine(inputConfig, deps = {}) {
     }), catchUpResult);
   }
   async function runReconcileQueue() {
-    if (await recoverPromoteTransaction(config.syncDir), !bootstrapped && config.bootstrap && mode !== "pull-only") {
+    if (await recoverPromoteTransaction(config.syncDir), !bootstrapped && config.bootstrap) {
       if (fastBootstrapBlocked)
         return emptyReconcileResult2();
       if (fastBootstrapTried && nextFastBootstrapAt !== void 0) {
@@ -22184,39 +22668,47 @@ function createSyncEngine(inputConfig, deps = {}) {
           promote: fastRuntime.promote,
           emitStatus: (fastBootstrap) => setStatus({ fastBootstrap }),
           log: log2,
-          targetState
-        }).catch(
-          (err) => ({
-            kind: "legacy_allowed",
-            reason: describeError(err),
-            legacyAllowed: !0
-          })
-        );
-        if (fast.kind === "legacy_allowed")
+          targetState,
+          shouldCancel: config.shouldCancelBootstrap
+        }).catch((err) => (log2({
+          action: "fast-bootstrap.retry",
+          reason: "bootstrap_transport_error",
+          errorKind: describeError(err)
+        }), {
+          kind: "wait_retry",
+          reason: "bootstrap_transport_error",
+          retryAfterMs: 3e4
+        }));
+        if (fast.kind === "legacy_allowed" || fast.kind === "disabled")
           log2({
             action: "fast-bootstrap.legacy_allowed",
             durationMs: elapsedMs2(fastBootstrapStarted),
-            reason: fast.reason
+            reason: fast.kind === "legacy_allowed" ? fast.reason : "disabled"
           });
-        else {
-          if (fast.kind === "wait_retry")
-            return nextFastBootstrapAt = Date.now() + (fast.retryAfterMs ?? 3e4), setStatus({
-              bootstrapReady: !1,
-              fastBootstrap: {
-                mode: "snapshot",
-                phase: "retry_waiting",
-                usable: !1,
-                isCurrent: !1,
-                baselineRevision: await state.getBaselineRevision(),
-                bootstrapTargetRevision: null,
-                latestKnownRevision: null,
-                revisionLag: null,
-                progress: { kind: "indeterminate" },
-                fallbackReason: fast.reason,
-                fallbackSeverity: "informational",
-                attemptId: null
-              }
-            }), emptyReconcileResult2();
+        else if (fast.kind === "wait_retry") {
+          let retryAfterMs = fast.retryAfterMs ?? 3e4, now = Date.now();
+          return nextFastBootstrapAt = now + retryAfterMs, fastBootstrapRetryCount += 1, firstFastBootstrapRetryAt === void 0 && (firstFastBootstrapRetryAt = now), setStatus({
+            bootstrapReady: !1,
+            fastBootstrap: {
+              mode: "snapshot",
+              phase: "retry_waiting",
+              usable: !1,
+              isCurrent: !1,
+              baselineRevision: await state.getBaselineRevision(),
+              bootstrapTargetRevision: null,
+              latestKnownRevision: null,
+              revisionLag: null,
+              progress: { kind: "indeterminate" },
+              fallbackReason: fast.reason,
+              fallbackSeverity: "informational",
+              attemptId: null,
+              retryAfterMs,
+              retryCount: fastBootstrapRetryCount,
+              retryAgeMs: now - firstFastBootstrapRetryAt,
+              nextRetryAt: new Date(nextFastBootstrapAt).toISOString()
+            }
+          }), emptyReconcileResult2();
+        } else {
           if (fast.kind === "fatal_blocked")
             return fastBootstrapBlocked = !0, setStatus({
               bootstrapReady: !1,
@@ -22236,7 +22728,26 @@ function createSyncEngine(inputConfig, deps = {}) {
                 attemptId: null
               }
             }), emptyReconcileResult2();
+          if (fast.kind === "cancelled")
+            return setStatus({
+              bootstrapReady: !1,
+              fastBootstrap: {
+                mode: "snapshot",
+                phase: "cancelled",
+                usable: !1,
+                isCurrent: !1,
+                baselineRevision: await state.getBaselineRevision(),
+                bootstrapTargetRevision: null,
+                latestKnownRevision: null,
+                revisionLag: null,
+                progress: { kind: "indeterminate" },
+                fallbackReason: "worker_revoked",
+                fallbackSeverity: "warning",
+                attemptId: null
+              }
+            }), emptyReconcileResult2();
           if (fast.kind === "used_snapshot") {
+            fastBootstrapRetryCount = 0, firstFastBootstrapRetryAt = void 0;
             let baselineRevision = await state.getBaselineRevision();
             if (baselineRevision !== fast.targetRevision)
               throw new Error("fast bootstrap baseline revision missing");
@@ -22360,18 +22871,20 @@ function createSyncEngine(inputConfig, deps = {}) {
       remoteDeleted: 0,
       restored: 0,
       movesCompleted: 0
-    }, bootstrapFailed = !1, totalActions = actions.length, completedActions = 0, batchId = `reconcile-${Date.now()}-${totalActions}`, batchOperation = operationForBatch(actions), successfulActions = 0, rejectedActions = 0, skippedActions = 0;
+    }, bootstrapFailed = !1, totalActions = actions.length, completedActions = 0, batchId = `reconcile-${Date.now()}-${totalActions}`, batchOperation = operationForBatch(actions), successfulActions = 0, rejectedActions = 0, skippedActions = 0, bundleUploadPhase, bundleThrottled = !1;
     function setBatchProgress() {
-      !batchOperation || totalActions <= 0 || setStatus({
-        batchProgress: batchProgress({
-          batchId,
-          operation: batchOperation,
-          completedActions,
-          totalActions,
-          successfulActions,
-          rejectedActions,
-          skippedActions
-        })
+      if (!batchOperation || totalActions <= 0) return;
+      let base = batchProgress({
+        batchId,
+        operation: batchOperation,
+        completedActions,
+        totalActions,
+        successfulActions,
+        rejectedActions,
+        skippedActions
+      }), withPhase = bundleUploadPhase !== void 0 ? { ...base, uploadPhase: bundleUploadPhase } : base;
+      setStatus({
+        batchProgress: bundleThrottled ? { ...withPhase, throttled: !0 } : withPhase
       });
     }
     setBatchProgress(), log2({
@@ -22429,7 +22942,58 @@ function createSyncEngine(inputConfig, deps = {}) {
       }
     };
     try {
-      await runWithConcurrency(actions, config.syncConcurrency ?? 8, runAction);
+      let dispatchActions = actions;
+      if (config.pushBundle) {
+        let pushKeys = actions.filter((a) => a.kind === "push").map((a) => a.key);
+        if (pushKeys.length > 0 && shouldBundle(
+          pushKeys.map(() => ({ size: 0 })),
+          bundleThresholds
+        )) {
+          let bundlePhaseStartedAt = Date.now(), { acked, failed, skipped, chunkCount, bytesUploaded } = await pushKeysAsBundles({
+            keys: pushKeys,
+            readText: (k) => tree.readText(k),
+            putFileBundle: (body, rid, onThrottle) => http.putFileBundle(body, rid, onThrottle),
+            allowedExtensions: bundleAllowedExtensions,
+            thresholds: bundleThresholds,
+            concurrency: bundleConcurrency,
+            // Count each bundled key toward completed/successful AS it acks, so
+            // the batch-progress cadence matches the per-file path.
+            onAcked: (key, a) => {
+              nextBaseline[key] = { md5: a.md5, updatedAt: a.updatedAt }, result.pushed.push(key), successfulActions += 1, completionCounts.pushed += 1, completedActions += 1, setProgress(key, completedActions, totalActions), setBatchProgress();
+            },
+            onPhaseChange: (phase) => {
+              bundleUploadPhase = phase, setBatchProgress();
+            },
+            onThrottle: () => {
+              bundleThrottled = !0, setBatchProgress();
+            }
+          });
+          for (let key of skipped)
+            skippedActions += 1, completedActions += 1, setProgress(key, completedActions, totalActions), setBatchProgress();
+          log2({
+            action: "push.bundle.summary",
+            operation: "push",
+            fileCount: Object.keys(acked).length,
+            deferredCount: failed.length,
+            totalActions: pushKeys.length,
+            // Optimization metrics: how many client→backend requests the bundle
+            // path collapsed the push into, the compressed bytes sent, and the
+            // wall-clock for the whole bundle phase.
+            requestCount: chunkCount,
+            bytes: bytesUploaded,
+            durationMs: Date.now() - bundlePhaseStartedAt
+          }), bundleThrottled = !1, setBatchProgress();
+          let failedSet = new Set(failed), skippedSet = new Set(skipped);
+          dispatchActions = actions.filter(
+            (a) => a.kind !== "push" || failedSet.has(a.key) && !skippedSet.has(a.key)
+          );
+        }
+      }
+      await runWithConcurrency(
+        dispatchActions,
+        config.syncConcurrency ?? 8,
+        runAction
+      );
       for (let intent of validatedIntents) {
         let to = intent.to;
         if (nextBaseline[to]) continue;
@@ -22613,7 +23177,7 @@ function createSyncEngine(inputConfig, deps = {}) {
     running && (log2({ action: "ws.reconnect" }), track(catchUp().catch(handleError)));
   }
   async function start() {
-    running || (log2({ action: "engine.start", mode, bootstrapped }), running = !0, authExpiredEmitted = !1, setStatus({ running: !0, state: "syncing", wsState: "degraded" }), await mkdir12(config.syncDir, { recursive: !0 }), await recoverPromoteTransaction(config.syncDir), current.bootstrapReady && await state.getBaselineRevision() === null && (setStatus({ bootstrapReady: !1 }), bootstrapped = !1, fastBootstrapTried = !1, fastBootstrapBlocked = !1, nextFastBootstrapAt = void 0), await mkdir12(config.contextTreeRoot, { recursive: !0 }), await track(reconcileOnce().catch(handleError)), !running) || (ws = (deps.createWsClient ?? ((args2) => new WsClient(args2.baseUrl, args2.token, {
+    running || (log2({ action: "engine.start", mode, bootstrapped }), running = !0, authExpiredEmitted = !1, setStatus({ running: !0, state: "syncing", wsState: "degraded" }), await mkdir12(config.syncDir, { recursive: !0 }), await recoverPromoteTransaction(config.syncDir), current.bootstrapReady && await state.getBaselineRevision() === null && (setStatus({ bootstrapReady: !1 }), bootstrapped = !1, fastBootstrapTried = !1, fastBootstrapBlocked = !1, nextFastBootstrapAt = void 0, fastBootstrapRetryCount = 0, firstFastBootstrapRetryAt = void 0), await mkdir12(config.contextTreeRoot, { recursive: !0 }), await track(reconcileOnce().catch(handleError)), !running) || (ws = (deps.createWsClient ?? ((args2) => new WsClient(args2.baseUrl, args2.token, {
       onEvent: args2.onEvent,
       onFolderDeleted: args2.onFolderDeleted,
       onConnectError: args2.onConnectError,
@@ -22647,7 +23211,7 @@ function createSyncEngine(inputConfig, deps = {}) {
     }), scheduleNextPoll(), log2({ action: "poll.started" }));
   }
   async function stop() {
-    log2({ action: "engine.stop" }), running = !1, stopWatch?.(), stopWatch = void 0, pollTimer !== void 0 && disarmTimer(pollTimer), pollTimer = void 0, pollBucket = void 0, ws?.close(), ws = void 0, await Promise.allSettled([...activeOps]), setStatus({
+    log2({ action: "engine.stop" }), running = !1, stopWatch?.(), stopWatch = void 0, pollTimer !== void 0 && disarmTimer(pollTimer), pollTimer = void 0, pollBucket = void 0, ws?.close(), ws = void 0, fastBootstrapRetryCount = 0, firstFastBootstrapRetryAt = void 0, await Promise.allSettled([...activeOps]), setStatus({
       running: !1,
       wsState: "degraded",
       currentFileName: void 0,
@@ -22662,8 +23226,8 @@ function createSyncEngine(inputConfig, deps = {}) {
 }
 
 // ../../packages/core/src/analytics/identity-promoter.ts
-import { mkdir as mkdir13, open as open3, readFile as readFile13, rm as rm13, stat as stat8 } from "node:fs/promises";
-import { randomUUID as randomUUID7 } from "node:crypto";
+import { mkdir as mkdir13, open as open3, readFile as readFile13, rm as rm14, stat as stat8 } from "node:fs/promises";
+import { randomUUID as randomUUID8 } from "node:crypto";
 import { join as join20 } from "node:path";
 var QUEUE_FILENAME = "analytics-queue.jsonl", PROMOTER_CURSOR_FILENAME = "analytics-promoter-cursor.json";
 function queueFilePath() {
@@ -22841,13 +23405,13 @@ async function loadPromoterCursor() {
 async function savePromoterCursor(cursor) {
   try {
     await mkdir13(getGlobalDataDir(), { recursive: !0 });
-    let path2 = promoterCursorPath(), tmp = `${path2}.${randomUUID7()}.tmp`, fh = await open3(tmp, "w");
+    let path = promoterCursorPath(), tmp = `${path}.${randomUUID8()}.tmp`, fh = await open3(tmp, "w");
     try {
       await fh.writeFile(JSON.stringify(cursor), "utf8");
     } finally {
       await fh.close();
     }
-    await renameWithRetry(tmp, path2);
+    await renameWithRetry(tmp, path);
   } catch {
   }
 }
@@ -22871,10 +23435,10 @@ function lastLineId(lines, fallback) {
 function cursorOf(fileId, offset, lastId) {
   return { fileId, offset, ...lastId !== void 0 ? { lastId } : {} };
 }
-async function readLastLineId(path2, offset) {
+async function readLastLineId(path, offset) {
   let window2 = Math.min(offset, 65536), startAt = offset - window2, buf = Buffer.alloc(window2), fh;
   try {
-    fh = await open3(path2, "r"), await fh.read(buf, 0, window2, startAt);
+    fh = await open3(path, "r"), await fh.read(buf, 0, window2, startAt);
   } catch {
     return;
   } finally {
@@ -22885,22 +23449,22 @@ async function readLastLineId(path2, offset) {
 `);
   return lineId(nl === -1 ? trimmed : trimmed.slice(nl + 1));
 }
-async function readNewLines(path2, cursor) {
+async function readNewLines(path, cursor) {
   let st;
   try {
-    st = await stat8(path2);
+    st = await stat8(path);
   } catch {
     return { lines: [], cursor: cursorOf(null, 0, cursor.lastId) };
   }
   let fileId = `${st.dev}:${st.ino}`;
   if (cursor.fileId !== fileId || st.size < cursor.offset)
-    return readFromAnchor(path2, fileId, cursor.lastId);
+    return readFromAnchor(path, fileId, cursor.lastId);
   let start = cursor.offset;
   if (st.size <= start) {
-    let lastId = cursor.lastId === void 0 && start > 0 ? await readLastLineId(path2, start) : cursor.lastId;
+    let lastId = cursor.lastId === void 0 && start > 0 ? await readLastLineId(path, start) : cursor.lastId;
     return { lines: [], cursor: cursorOf(fileId, st.size, lastId) };
   }
-  let length = st.size - start, buf = Buffer.alloc(length), fh = await open3(path2, "r");
+  let length = st.size - start, buf = Buffer.alloc(length), fh = await open3(path, "r");
   try {
     await fh.read(buf, 0, length, start);
   } finally {
@@ -22921,10 +23485,10 @@ async function readNewLines(path2, cursor) {
     )
   };
 }
-async function readFromAnchor(path2, fileId, lastId) {
+async function readFromAnchor(path, fileId, lastId) {
   let raw;
   try {
-    raw = await readFile13(path2, "utf8");
+    raw = await readFile13(path, "utf8");
   } catch {
     return { lines: [], cursor: cursorOf(fileId, 0, lastId) };
   }
@@ -22962,10 +23526,10 @@ function parseQueueRow(line) {
   let result = QueueRowSchema.safeParse(parsed);
   return result.success ? result.data : null;
 }
-async function readNewRows(path2, cursor) {
+async function readNewRows(path, cursor) {
   let st;
   try {
-    st = await stat9(path2);
+    st = await stat9(path);
   } catch (err) {
     if (isErrnoCode3(err, "ENOENT"))
       return {
@@ -22979,7 +23543,7 @@ async function readNewRows(path2, cursor) {
   let fileId = `${st.dev}:${st.ino}`, start = cursor.offset;
   if ((cursor.fileId !== fileId || st.size < cursor.offset) && (start = 0), st.size <= start)
     return { rows: [], offsets: [], rejected: 0, cursor: { fileId, offset: st.size } };
-  let length = st.size - start, buf = Buffer.alloc(length), fh = await open4(path2, "r");
+  let length = st.size - start, buf = Buffer.alloc(length), fh = await open4(path, "r");
   try {
     await fh.read(buf, 0, length, start);
   } finally {
@@ -23015,7 +23579,7 @@ var CURSOR_FILENAME = "analytics-daemon-cursor.json";
 function daemonCursorPath() {
   return join22(getGlobalDataDir(), CURSOR_FILENAME);
 }
-function isRecord3(value2) {
+function isRecord2(value2) {
   return typeof value2 == "object" && value2 !== null;
 }
 async function loadDaemonCursor() {
@@ -23023,7 +23587,7 @@ async function loadDaemonCursor() {
     let parsed = JSON.parse(
       await readFile14(daemonCursorPath(), "utf8")
     );
-    if (isRecord3(parsed) && typeof parsed.offset == "number")
+    if (isRecord2(parsed) && typeof parsed.offset == "number")
       return {
         fileId: typeof parsed.fileId == "string" ? parsed.fileId : null,
         offset: parsed.offset
@@ -23034,12 +23598,12 @@ async function loadDaemonCursor() {
 }
 async function saveDaemonCursor(cursor) {
   await mkdir14(getGlobalDataDir(), { recursive: !0 });
-  let path2 = daemonCursorPath(), tmp = `${path2}.tmp`;
-  await writeFile9(tmp, JSON.stringify(cursor), "utf8"), await rename6(tmp, path2);
+  let path = daemonCursorPath(), tmp = `${path}.tmp`;
+  await writeFile9(tmp, JSON.stringify(cursor), "utf8"), await rename6(tmp, path);
 }
 
 // ../../packages/sync/src/analytics/held-store.ts
-import { mkdir as mkdir15, readFile as readFile15, rename as rename7, rm as rm14, writeFile as writeFile10 } from "node:fs/promises";
+import { mkdir as mkdir15, readFile as readFile15, rename as rename7, rm as rm15, writeFile as writeFile10 } from "node:fs/promises";
 import { join as join23 } from "node:path";
 var HELD_FILENAME = "analytics-held.jsonl", DEADLETTER_FILENAME = "analytics-deadletter.jsonl", FILE_MODE = 384, DEADLETTER_MAX = 1e3;
 function heldFilePath() {
@@ -23049,13 +23613,13 @@ function deadLetterFilePath() {
   return join23(getGlobalDataDir(), DEADLETTER_FILENAME);
 }
 var deadLetterCount = 0;
-function isRecord4(value2) {
+function isRecord3(value2) {
   return typeof value2 == "object" && value2 !== null;
 }
-async function readJsonl(path2, parse3) {
+async function readJsonl(path, parse3) {
   let text;
   try {
-    text = await readFile15(path2, "utf8");
+    text = await readFile15(path, "utf8");
   } catch {
     return [];
   }
@@ -23074,21 +23638,21 @@ async function readJsonl(path2, parse3) {
   }
   return out;
 }
-async function atomicWrite(path2, content) {
+async function atomicWrite(path, content) {
   await mkdir15(getGlobalDataDir(), { recursive: !0 });
-  let tmp = `${path2}.tmp`;
-  await writeFile10(tmp, content, { encoding: "utf8", mode: FILE_MODE }), await rename7(tmp, path2);
+  let tmp = `${path}.tmp`;
+  await writeFile10(tmp, content, { encoding: "utf8", mode: FILE_MODE }), await rename7(tmp, path);
 }
 function parseHeld(value2) {
-  if (!isRecord4(value2)) return;
+  if (!isRecord3(value2)) return;
   let { row, heldSince, attempts } = value2;
-  if (!(!isRecord4(row) || typeof row.id != "string") && typeof heldSince == "string" && typeof attempts == "number")
+  if (!(!isRecord3(row) || typeof row.id != "string") && typeof heldSince == "string" && typeof attempts == "number")
     return { row, heldSince, attempts };
 }
 function parseDeadLetter(value2) {
-  if (!isRecord4(value2)) return;
+  if (!isRecord3(value2)) return;
   let { row, reason, deadLetteredAt } = value2;
-  if (!(!isRecord4(row) || typeof row.id != "string") && !(reason !== "ttl" && reason !== "max_attempts" && reason !== "malformed" && reason !== "oversized") && typeof deadLetteredAt == "string")
+  if (!(!isRecord3(row) || typeof row.id != "string") && !(reason !== "ttl" && reason !== "max_attempts" && reason !== "malformed" && reason !== "oversized") && typeof deadLetteredAt == "string")
     return { row, reason, deadLetteredAt };
 }
 async function readHeld() {
@@ -23127,7 +23691,7 @@ async function appendDeadLetter(rows, reason, onLog) {
 }
 
 // ../../packages/sync/src/analytics/jwt-subject.ts
-function isRecord5(value2) {
+function isRecord4(value2) {
   return typeof value2 == "object" && value2 !== null;
 }
 function decodeJwtSubject(jwt) {
@@ -23138,7 +23702,7 @@ function decodeJwtSubject(jwt) {
   if (!(payloadSegment === void 0 || payloadSegment.length === 0))
     try {
       let json2 = Buffer.from(payloadSegment, "base64url").toString("utf8"), payload = JSON.parse(json2);
-      if (isRecord5(payload) && typeof payload.sub == "string") {
+      if (isRecord4(payload) && typeof payload.sub == "string") {
         let sub = payload.sub;
         return sub.length > 0 ? sub : void 0;
       }
@@ -23512,7 +24076,7 @@ import {
   readFile as readFile16,
   readdir as readdir6,
   rename as rename8,
-  rm as rm15,
+  rm as rm16,
   stat as stat10,
   writeFile as writeFile11
 } from "node:fs/promises";
@@ -23530,17 +24094,17 @@ function resPath(projectsRoot2, requestId) {
 async function ensureDir(projectsRoot2) {
   await mkdir16(flushDir(projectsRoot2), { recursive: !0, mode: DIR_MODE });
 }
-async function atomicWrite2(path2, content) {
-  let tmp = `${path2}.tmp`;
-  await writeFile11(tmp, content, { encoding: "utf8", mode: FILE_MODE2 }), await rename8(tmp, path2);
+async function atomicWrite2(path, content) {
+  let tmp = `${path}.tmp`;
+  await writeFile11(tmp, content, { encoding: "utf8", mode: FILE_MODE2 }), await rename8(tmp, path);
 }
-function isRecord6(value2) {
+function isRecord5(value2) {
   return typeof value2 == "object" && value2 !== null;
 }
-async function readJsonFile(path2, parse3) {
+async function readJsonFile(path, parse3) {
   let text;
   try {
-    text = await readFile16(path2, "utf8");
+    text = await readFile16(path, "utf8");
   } catch {
     return;
   }
@@ -23553,13 +24117,13 @@ async function readJsonFile(path2, parse3) {
   return parse3(parsed);
 }
 function parseRequest(value2) {
-  if (!isRecord6(value2)) return;
+  if (!isRecord5(value2)) return;
   let { requestId, requestedAt, reason, expectSubject } = value2;
   if (typeof requestId == "string" && typeof requestedAt == "string" && !(reason !== "logout" && reason !== "account_switch") && typeof expectSubject == "string")
     return { requestId, requestedAt, reason, expectSubject };
 }
 function parseResponse(value2) {
-  if (!isRecord6(value2)) return;
+  if (!isRecord5(value2)) return;
   let { requestId, status: status2, shipped, finishedAt } = value2;
   if (typeof requestId != "string" || !isFlushStatus(status2) || typeof shipped != "number" || typeof finishedAt != "string") return;
   let res = { requestId, status: status2, shipped, finishedAt };
@@ -23590,7 +24154,7 @@ async function listFlushRequests(projectsRoot2) {
   return names.filter((n) => n.endsWith(REQ_SUFFIX)).map((n) => n.slice(0, -REQ_SUFFIX.length));
 }
 async function deleteFlushRequest(projectsRoot2, requestId) {
-  await rm15(reqPath(projectsRoot2, requestId), { force: !0 });
+  await rm16(reqPath(projectsRoot2, requestId), { force: !0 });
 }
 async function sweepStaleFlushFiles(projectsRoot2, nowMs = Date.now()) {
   let dir = flushDir(projectsRoot2), names;
@@ -23601,10 +24165,10 @@ async function sweepStaleFlushFiles(projectsRoot2, nowMs = Date.now()) {
   }
   for (let name of names) {
     if (!name.endsWith(REQ_SUFFIX) && !name.endsWith(RES_SUFFIX)) continue;
-    let path2 = join24(dir, name);
+    let path = join24(dir, name);
     try {
-      let st = await stat10(path2);
-      nowMs - st.mtimeMs > STALE_FLUSH_MAX_AGE_MS && await rm15(path2, { force: !0 });
+      let st = await stat10(path);
+      nowMs - st.mtimeMs > STALE_FLUSH_MAX_AGE_MS && await rm16(path, { force: !0 });
     } catch {
     }
   }
@@ -23612,7 +24176,7 @@ async function sweepStaleFlushFiles(projectsRoot2, nowMs = Date.now()) {
 
 // ../../packages/sync/src/daemon-auth-store.ts
 import { createHash as createHash8 } from "node:crypto";
-import { chmod as chmod5, mkdir as mkdir17, readFile as readFile17, rename as rename9, writeFile as writeFile12, rm as rm16 } from "node:fs/promises";
+import { chmod as chmod5, mkdir as mkdir17, readFile as readFile17, rename as rename9, writeFile as writeFile12, rm as rm17 } from "node:fs/promises";
 import { dirname as dirname11, join as join25 } from "node:path";
 function daemonAuthPath(projectsRoot2) {
   return join25(projectsRoot2, ".daemon", "auth.json");
@@ -23623,23 +24187,23 @@ function refreshJournalPath(authPath) {
 function createTokenFingerprint(token) {
   return createHash8("sha256").update(token).digest("hex").slice(0, 16);
 }
-async function readDaemonAuth(path2) {
+async function readDaemonAuth(path) {
   try {
-    let raw = await readFile17(path2, "utf8");
+    let raw = await readFile17(path, "utf8");
     return JSON.parse(raw);
   } catch {
     return null;
   }
 }
-async function writeDaemonAuth(path2, record) {
-  await mkdir17(dirname11(path2), { recursive: !0 });
-  let tmp = `${path2}.tmp-${process.pid}-${Date.now()}`;
+async function writeDaemonAuth(path, record) {
+  await mkdir17(dirname11(path), { recursive: !0 });
+  let tmp = `${path}.tmp-${process.pid}-${Date.now()}`;
   await writeFile12(tmp, JSON.stringify(record, null, 2) + `
-`, { mode: 384 }), await chmod5(tmp, 384), await rename9(tmp, path2);
+`, { mode: 384 }), await chmod5(tmp, 384), await rename9(tmp, path);
 }
-async function clearDaemonAuthIfFingerprint(path2, fingerprint2) {
-  let current = await readDaemonAuth(path2);
-  return !current || current.tokenFingerprint !== fingerprint2 ? !1 : (await rm16(path2, { force: !0 }), !0);
+async function clearDaemonAuthIfFingerprint(path, fingerprint2) {
+  let current = await readDaemonAuth(path);
+  return !current || current.tokenFingerprint !== fingerprint2 ? !1 : (await rm17(path, { force: !0 }), !0);
 }
 async function writeRefreshJournal(authPath, journal) {
   let jp = refreshJournalPath(authPath);
@@ -23655,10 +24219,11 @@ async function readRefreshJournal(authPath) {
   }
 }
 async function clearRefreshJournal(authPath) {
-  await rm16(refreshJournalPath(authPath), { force: !0 });
+  await rm17(refreshJournalPath(authPath), { force: !0 });
 }
 
 // ../../packages/sync/src/daemon-status.ts
+var import_realtime_contracts6 = __toESM(require_realtime_contracts());
 import { join as join26 } from "node:path";
 
 // ../../packages/sync/src/daemon-auth-identity.ts
@@ -23744,17 +24309,24 @@ function sanitizeDisplayBasename(value2) {
   if (!(candidate.length === 0 || candidate.length > 80) && !/\s/.test(candidate) && !isTokenLike(candidate))
     return candidate;
 }
-var FAST_SYNC_FALLBACK_REASON_SET = new Set(
-  FAST_SYNC_FALLBACK_REASONS
+var FAST_BOOTSTRAP_MODE_SET = new Set(
+  import_realtime_contracts6.FAST_BOOTSTRAP_MODES
+), FAST_BOOTSTRAP_PHASE_SET = new Set(
+  import_realtime_contracts6.FAST_BOOTSTRAP_PHASES
+), FAST_BOOTSTRAP_SEVERITY_SET = new Set(
+  import_realtime_contracts6.FAST_BOOTSTRAP_SEVERITIES
+), FAST_BOOTSTRAP_STATUS_REASON_SET = new Set(
+  import_realtime_contracts6.FAST_BOOTSTRAP_STATUS_REASONS
 );
-async function writeDaemonStatus(path2, status2) {
-  await writeFileAtomic(path2, JSON.stringify(status2, null, 2) + `
+async function writeDaemonStatus(path, status2) {
+  await writeFileAtomic(path, JSON.stringify(status2, null, 2) + `
 `, {
     mode: 384
   });
 }
 
 // ../../packages/sync/src/capability-ws-client.ts
+var import_realtime_contracts7 = __toESM(require_realtime_contracts());
 var CapabilityWsClient = class {
   constructor(baseUrl, getToken, handlers) {
     this.baseUrl = baseUrl;
@@ -23772,8 +24344,8 @@ var CapabilityWsClient = class {
         transports: ["websocket"],
         reconnection: !0
       });
-      this.socket = socket, socket.on(CAPABILITY_CHANGED_EVENT, (event) => {
-        isCapabilityChangedEvent(event) && this.handlers.onCapabilityChanged(event);
+      this.socket = socket, socket.on(import_realtime_contracts7.CAPABILITY_CHANGED_EVENT, (event) => {
+        (0, import_realtime_contracts7.isCapabilityChangedEvent)(event) && this.handlers.onCapabilityChanged(event);
       }), socket.on("connect", () => {
         let shouldNotify = shouldNotifyReconnect;
         if (hasConnected = !0, connectErrorNotified = !1, shouldNotifyReconnect = !1, this.handlers.onState?.("connected"), !connectSettled) {
@@ -23800,7 +24372,7 @@ function parseDefaultSpaceField(value2) {
   if (!Object.prototype.hasOwnProperty.call(value2, "defaultSpaceId"))
     return { kind: "omitted" };
   if (value2.defaultSpaceId === null) return { kind: "clear" };
-  if (typeof value2.defaultSpaceId == "string" && isUuidV4(value2.defaultSpaceId))
+  if (typeof value2.defaultSpaceId == "string" && isUuid(value2.defaultSpaceId))
     return { kind: "set", spaceId: value2.defaultSpaceId };
   throw new Error("invalid defaultSpaceId");
 }
@@ -24079,9 +24651,9 @@ async function createDaemonAuthProvider(input) {
 // src/sync/daemon-auth-identity-reader.ts
 import { readFile as readFile18 } from "node:fs/promises";
 async function readCurrentDaemonAuthIdentity(projectsRoot2) {
-  let path2 = daemonAuthPath(projectsRoot2), raw;
+  let path = daemonAuthPath(projectsRoot2), raw;
   try {
-    raw = JSON.parse(await readFile18(path2, "utf8"));
+    raw = JSON.parse(await readFile18(path, "utf8"));
   } catch (err) {
     if (err.code === "ENOENT")
       raw = null;
@@ -24092,7 +24664,7 @@ async function readCurrentDaemonAuthIdentity(projectsRoot2) {
 }
 
 // src/sync/multi-space-daemon.ts
-import { mkdir as mkdir23, readFile as readFile25, readdir as readdir8, rm as rm19 } from "node:fs/promises";
+import { mkdir as mkdir23, readFile as readFile25, readdir as readdir8, rm as rm20 } from "node:fs/promises";
 import { dirname as dirname13, join as join33 } from "node:path";
 
 // src/space-identity.ts
@@ -24204,14 +24776,14 @@ var FileEncryptedKeyStore = class {
   pathFor(id) {
     if (!/^[A-Za-z0-9._-]+$/.test(id) || id === "." || id === "..")
       throw new KeyStoreError(`invalid key id: ${JSON.stringify(id)}`);
-    let root = resolve6(this.root), path2 = resolve6(join27(root, `${id}.json`));
-    if (path2 !== join27(root, `${id}.json`) || !path2.startsWith(root + sep6))
+    let root = resolve6(this.root), path = resolve6(join27(root, `${id}.json`));
+    if (path !== join27(root, `${id}.json`) || !path.startsWith(root + sep6))
       throw new KeyStoreError(`key id escapes the store root: ${id}`);
     if (isAbsolute2(id)) throw new KeyStoreError(`invalid key id: ${id}`);
-    return path2;
+    return path;
   }
   async save(id, privateKeyPem, passphrase) {
-    let path2 = this.pathFor(id), salt = randomBytes2(SALT_BYTES), iv = randomBytes2(IV_BYTES), meta = {
+    let path = this.pathFor(id), salt = randomBytes2(SALT_BYTES), iv = randomBytes2(IV_BYTES), meta = {
       v: RECORD_VERSION,
       alg: ALG,
       kdf: KDF,
@@ -24232,16 +24804,16 @@ var FileEncryptedKeyStore = class {
         tag: cipher.getAuthTag().toString("base64url")
       };
       await mkdir18(this.root, { recursive: !0, mode: 448 });
-      let tmp = `${path2}.tmp-${randomBytes2(6).toString("hex")}`;
-      await writeFile13(tmp, JSON.stringify(record), { mode: 384 }), await rename10(tmp, path2);
+      let tmp = `${path}.tmp-${randomBytes2(6).toString("hex")}`;
+      await writeFile13(tmp, JSON.stringify(record), { mode: 384 }), await rename10(tmp, path);
     } finally {
       key.fill(0);
     }
   }
   async load(id, passphrase) {
-    let path2 = this.pathFor(id), raw;
+    let path = this.pathFor(id), raw;
     try {
-      raw = await readFile19(path2, "utf8");
+      raw = await readFile19(path, "utf8");
     } catch (e) {
       if (e.code === "ENOENT") return null;
       throw new KeyStoreError(`cannot read key ${id}: ${e.message}`);
@@ -24377,28 +24949,47 @@ async function pushTopicIndex(opts) {
   }
 }
 
+// src/util/bounded-map.ts
+async function boundedMap(items, limit, fn) {
+  if (limit < 1)
+    throw new RangeError(`boundedMap: limit must be >= 1, got ${limit}`);
+  let entries = Array.from(items.entries()), results = new Array(items.length), cursor = 0;
+  async function worker() {
+    for (; cursor < entries.length; ) {
+      let entry = entries[cursor];
+      if (cursor += 1, entry === void 0) continue;
+      let [index, item] = entry;
+      try {
+        results[index] = { status: "fulfilled", value: await fn(item, index) };
+      } catch (reason) {
+        results[index] = { status: "rejected", reason };
+      }
+    }
+  }
+  let workerCount = Math.min(limit, entries.length);
+  return await Promise.all(Array.from({ length: workerCount }, () => worker())), results;
+}
+
 // src/sync/cloud-metadata.ts
 import { mkdir as mkdir20, readFile as readFile21, rename as rename11, writeFile as writeFile15 } from "node:fs/promises";
 import { join as join30 } from "node:path";
-import { randomUUID as randomUUID8 } from "node:crypto";
+import { randomUUID as randomUUID9 } from "node:crypto";
 
 // src/sync/cloud-projects.ts
 import { join as join29 } from "node:path";
-function isUuid(value2) {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-    value2
-  );
+function isUuid2(value2) {
+  return isUuid(value2);
 }
 function cloudSpaceDir(projectsRoot2, spaceId) {
-  if (!isUuid(spaceId)) throw new Error(`invalid space_id: ${spaceId}`);
+  if (!isUuid2(spaceId)) throw new Error(`invalid space_id: ${spaceId}`);
   return join29(projectsRoot2, spaceId);
 }
 
 // src/sync/cloud-metadata.ts
 async function readCloudMetadata(spaceDir) {
-  let path2 = join30(spaceDir, "metadata.json"), raw;
+  let path = join30(spaceDir, "metadata.json"), raw;
   try {
-    raw = await readFile21(path2, "utf8");
+    raw = await readFile21(path, "utf8");
   } catch (error) {
     if (error.code === "ENOENT")
       return { kind: "missing" };
@@ -24418,12 +25009,12 @@ async function readCloudMetadata(spaceDir) {
   let record = parsed;
   if (typeof record.created_at != "string" || Number.isNaN(Date.parse(record.created_at)))
     return { kind: "invalid", reason: "invalid created_at" };
-  if (typeof record.space_id != "string" || !isUuid(record.space_id))
+  if (typeof record.space_id != "string" || !isUuid2(record.space_id))
     return { kind: "invalid", reason: "invalid space_id" };
   if (typeof record.space_name != "string" || record.space_name.trim() === "")
     return { kind: "invalid", reason: "invalid space_name" };
   let teamId = record.team_id === void 0 || record.team_id === "" || record.team_id === null ? null : record.team_id;
-  return teamId !== null && (typeof teamId != "string" || !isUuid(teamId)) ? { kind: "invalid", reason: "invalid team_id" } : {
+  return teamId !== null && (typeof teamId != "string" || !isUuid2(teamId)) ? { kind: "invalid", reason: "invalid team_id" } : {
     kind: "ok",
     metadata: {
       created_at: record.created_at,
@@ -24435,9 +25026,9 @@ async function readCloudMetadata(spaceDir) {
 }
 async function writeCloudMetadata(spaceDir, metadata) {
   await mkdir20(spaceDir, { recursive: !0 });
-  let path2 = join30(spaceDir, "metadata.json"), tmp = join30(spaceDir, `.metadata.json.${randomUUID8()}.tmp`);
+  let path = join30(spaceDir, "metadata.json"), tmp = join30(spaceDir, `.metadata.json.${randomUUID9()}.tmp`);
   await writeFile15(tmp, `${JSON.stringify(metadata, null, 2)}
-`), await rename11(tmp, path2);
+`), await rename11(tmp, path);
 }
 async function upsertCloudMetadata(spaceDir, input) {
   let existing = await readCloudMetadata(spaceDir), metadata = { created_at: existing.kind === "ok" && existing.metadata.space_id === input.space_id ? existing.metadata.created_at : (/* @__PURE__ */ new Date()).toISOString(), ...input };
@@ -24456,7 +25047,7 @@ function readTopicIdentity(html) {
 // src/sync/capability.ts
 import { mkdir as mkdir21, readFile as readFile22, rename as rename12, writeFile as writeFile16 } from "node:fs/promises";
 import { basename as basename2, join as join31 } from "node:path";
-import { randomUUID as randomUUID9 } from "node:crypto";
+import { randomUUID as randomUUID10 } from "node:crypto";
 function decodeJwtPayload(token) {
   let parts2 = token.split(".");
   if (parts2.length !== 3 || !parts2[1]) throw new Error("invalid JWT format");
@@ -24480,9 +25071,9 @@ function parseJwtPayload(token) {
     if (typeof raw != "object" || raw === null)
       throw new Error("invalid JWT membership");
     let m = raw;
-    if (typeof m.teamId != "string" || !isUuidV4(m.teamId))
+    if (typeof m.teamId != "string" || !isUuid(m.teamId))
       throw new Error("invalid JWT teamId");
-    if (typeof m.spaceId != "string" || !isUuidV4(m.spaceId))
+    if (typeof m.spaceId != "string" || !isUuid(m.spaceId))
       throw new Error("invalid JWT spaceId");
     if (typeof m.role != "string" || m.role.trim().length === 0)
       throw new Error("invalid JWT role");
@@ -24559,16 +25150,16 @@ function buildCapabilitiesFromMint(mint, refreshedAt) {
 async function writeCapability(spaceDir, capability) {
   let syncDir = syncStateDirForSpaceDir(spaceDir);
   await mkdir21(syncDir, { recursive: !0 });
-  let path2 = join31(syncDir, "capability.json"), tmp = join31(syncDir, `.capability.json.${randomUUID9()}.tmp`);
+  let path = join31(syncDir, "capability.json"), tmp = join31(syncDir, `.capability.json.${randomUUID10()}.tmp`);
   await writeFile16(tmp, `${JSON.stringify(capability, null, 2)}
 `, {
     mode: 384
-  }), await rename12(tmp, path2);
+  }), await rename12(tmp, path);
 }
 async function readCapability(spaceDir) {
-  let path2 = join31(syncStateDirForSpaceDir(spaceDir), "capability.json"), raw;
+  let path = join31(syncStateDirForSpaceDir(spaceDir), "capability.json"), raw;
   try {
-    raw = await readFile22(path2, "utf8");
+    raw = await readFile22(path, "utf8");
   } catch (err) {
     if (err.code === "ENOENT")
       return { kind: "missing" };
@@ -24578,13 +25169,13 @@ async function readCapability(spaceDir) {
     let record = JSON.parse(raw);
     if (record.capability_source !== "jwt")
       return { kind: "invalid", reason: "invalid capability_source" };
-    if (typeof record.space_id != "string" || !isUuidV4(record.space_id))
+    if (typeof record.space_id != "string" || !isUuid(record.space_id))
       return { kind: "invalid", reason: "invalid space_id" };
     if (basename2(spaceDir) !== record.space_id)
       return { kind: "invalid", reason: "space_id mismatch" };
     if (typeof record.space_name != "string" || record.space_name.trim() === "")
       return { kind: "invalid", reason: "invalid space_name" };
-    if (typeof record.team_id != "string" || !isUuidV4(record.team_id))
+    if (typeof record.team_id != "string" || !isUuid(record.team_id))
       return { kind: "invalid", reason: "invalid team_id" };
     if (record.sync_state !== "active" && record.sync_state !== "paused")
       return { kind: "invalid", reason: "invalid sync_state" };
@@ -24622,28 +25213,28 @@ async function readCapability(spaceDir) {
 }
 
 // src/sync/readiness.ts
-import { chmod as chmod7, mkdir as mkdir22, open as open5, readFile as readFile23, rm as rm17, writeFile as writeFile17 } from "node:fs/promises";
+import { chmod as chmod7, mkdir as mkdir22, open as open5, readFile as readFile23, rm as rm18, writeFile as writeFile17 } from "node:fs/promises";
 import { dirname as dirname12 } from "node:path";
 var MAX_DAEMON_READY_JSON_BYTES = 64 * 1024;
-async function writeReadyFile(path2, value2, deps = {}) {
+async function writeReadyFile(path, value2, deps = {}) {
   let write = deps.writeFile ?? writeFile17;
-  await mkdir22(dirname12(path2), { recursive: !0 });
-  let tmp = `${path2}.tmp-${process.pid}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  await mkdir22(dirname12(path), { recursive: !0 });
+  let tmp = `${path}.tmp-${process.pid}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
   try {
     await write(tmp, JSON.stringify(value2, null, 2) + `
-`, { mode: 384 }), await chmod7(tmp, 384), await renameWithRetry(tmp, path2);
+`, { mode: 384 }), await chmod7(tmp, 384), await renameWithRetry(tmp, path);
   } catch (err) {
-    throw await rm17(tmp, { force: !0 }), err;
+    throw await rm18(tmp, { force: !0 }), err;
   }
 }
 
 // src/sync/safe-delete.ts
 import { createHash as createHash10 } from "node:crypto";
-import { readFile as readFile24, readdir as readdir7, realpath, rm as rm18 } from "node:fs/promises";
+import { readFile as readFile24, readdir as readdir7, realpath, rm as rm19 } from "node:fs/promises";
 import { join as join32, sep as sep7, basename as basename3 } from "node:path";
-async function readJson(path2) {
+async function readJson(path) {
   try {
-    return JSON.parse(await readFile24(path2, "utf8"));
+    return JSON.parse(await readFile24(path, "utf8"));
   } catch {
     return null;
   }
@@ -24697,7 +25288,7 @@ async function contextTreeMatchesBaseline(contextTreeDir, baseline) {
   return !0;
 }
 async function isCloudSpaceCleanForDelete(spaceDir) {
-  if (!isUuidV4(basename3(spaceDir))) return !1;
+  if (!isUuid2(basename3(spaceDir))) return !1;
   let metadata = await readCloudMetadata(spaceDir);
   if (metadata.kind !== "ok" || metadata.metadata.team_id === null)
     return !1;
@@ -24723,15 +25314,14 @@ async function safeDeleteCloudSpace(input) {
   if (!dir.startsWith(root + sep7))
     throw new Error("refusing to delete outside projectsRoot");
   let folder = basename3(dir);
-  if (!isUuid(folder)) throw new Error("not a cloud UUID folder");
+  if (!isUuid2(folder)) throw new Error("not a cloud UUID folder");
   let metadataResult = await readCloudMetadata(dir);
   if (metadataResult.kind !== "ok") throw new Error("invalid metadata");
   if (metadataResult.metadata.space_id !== folder)
     throw new Error("metadata.space_id mismatch");
-  if (!isUuidV4(folder)) return "preserved_dirty";
   let daemonSpaceStateDir = daemonSpaceStateDirForSpace(root, folder);
   if (!(input.isClean ? await input.isClean() : await isCloudSpaceCleanForDelete(dir))) return "preserved_dirty";
-  let remove = input.remove ?? rm18;
+  let remove = input.remove ?? rm19;
   await remove(dir, { recursive: !0, force: !0 });
   try {
     await remove(daemonSpaceStateDir, {
@@ -24753,10 +25343,44 @@ function redactSecrets(value2) {
   return value2.replace(/brv_[A-Za-z0-9._-]+/g, "brv_[redacted]").replace(/Bearer\s+[A-Za-z0-9._-]+/g, "Bearer [redacted]").replace(
     /eyJ[A-Za-z0-9._-]+\.[A-Za-z0-9._-]+\.[A-Za-z0-9._-]+/g,
     "[jwt redacted]"
+  ).replace(
+    // Absolute filesystem paths (POSIX home-ish roots + Windows) that can
+    // embed the OS username. Stop at whitespace/quote so surrounding text
+    // survives.
+    /(?:\/(?:home|Users|root|tmp|var|private)\/[^\s"']*)|(?:[A-Za-z]:\\[^\s"']*)/g,
+    "[path redacted]"
   );
 }
 function redactNullable(value2) {
   return value2 === null ? null : redactSecrets(value2);
+}
+
+// src/sync/runtime-env.ts
+var DEFAULT_ENV = process.env;
+function positiveIntEnv(env, name) {
+  let raw = env[name];
+  if (raw === void 0) return;
+  let value2 = Number(raw);
+  return Number.isFinite(value2) && value2 > 0 ? value2 : void 0;
+}
+function readSyncScheduleOverrides(env = DEFAULT_ENV) {
+  return {
+    safetyNetIntervalMs: positiveIntEnv(env, "BRV_SYNC_SAFETY_NET_MS"),
+    focusedNetIntervalMs: positiveIntEnv(env, "BRV_SYNC_FOCUSED_NET_MS")
+  };
+}
+var COLD_SYNC_CONCURRENCY_DEFAULT = 4, COLD_SYNC_CONCURRENCY_MIN = 1, COLD_SYNC_CONCURRENCY_MAX = 16;
+function readColdSyncConcurrency(env = DEFAULT_ENV) {
+  let raw = env.BRV_COLD_SYNC_CONCURRENCY;
+  if (raw === void 0) return COLD_SYNC_CONCURRENCY_DEFAULT;
+  let parsed = Number.parseInt(raw, 10);
+  return !Number.isFinite(parsed) || parsed <= 0 ? COLD_SYNC_CONCURRENCY_DEFAULT : Math.min(
+    COLD_SYNC_CONCURRENCY_MAX,
+    Math.max(COLD_SYNC_CONCURRENCY_MIN, parsed)
+  );
+}
+function readFastBootstrapPullOnly(env = DEFAULT_ENV) {
+  return env.BRV_FAST_BOOTSTRAP_PULL_ONLY === "1";
 }
 
 // src/sync/multi-space-daemon.ts
@@ -24972,7 +25596,7 @@ function createMultiSpaceDaemon(deps) {
     }
     let now = deps.now().toISOString();
     for (let entry of entries) {
-      if (!isUuidV4(entry)) continue;
+      if (!isUuid(entry)) continue;
       let dir = cloudSpaceDir(deps.projectsRoot, entry), existing = await readCapability(dir).catch(() => ({
         kind: "missing"
       }));
@@ -25025,10 +25649,10 @@ function createMultiSpaceDaemon(deps) {
       return;
     }
     for (let entry of entries) {
-      if (!isUuidV4(entry) || currentSpaceIds.has(entry)) continue;
+      if (!isUuid(entry) || currentSpaceIds.has(entry)) continue;
       let dir = cloudSpaceDir(deps.projectsRoot, entry), metadata = await readCloudMetadata(dir);
       if (metadata.kind !== "ok") {
-        await isResidualDaemonStateOnlySpaceDir(dir) && (await rm19(dir, { recursive: !0, force: !0 }), await deps.log({
+        await isResidualDaemonStateOnlySpaceDir(dir) && (await rm20(dir, { recursive: !0, force: !0 }), await deps.log({
           level: "info",
           message: stoppedWorkerIds.has(entry) ? `deleted residual state for removed space ${entry}` : `deleted stale residual state for removed space ${entry}`
         }));
@@ -25090,226 +25714,308 @@ function createMultiSpaceDaemon(deps) {
       });
     }
   }
-  async function startOrUpdateActiveWorkers(mint, capabilities) {
-    if (mint.token)
-      for (let space of mint.spaces) {
-        if (space.sync_state !== "active" || !space.scopes.includes("space:read"))
-          continue;
-        let capability = capabilities.get(space.space_id);
-        if (!capability?.can_read) continue;
-        let mode = capability.can_write ? "bidirectional" : "pull-only", accountSubject = decodeJwtSubject(mint.token);
-        if (!accountSubject) {
-          let existingBad = workers.get(space.space_id);
-          existingBad && (await existingBad.engine.stop().catch(() => {
-          }), workers.delete(space.space_id)), spaceStates.set(space.space_id, {
-            space_id: space.space_id,
-            state: "bootstrap_failed",
-            bootstrapReady: !1,
-            bootstrapError: "missing account subject for sync capability generation"
-          });
-          continue;
-        }
-        let authGeneration = stableCapabilityGeneration({
-          accountSubject,
-          teamId: space.team_id,
-          spaceId: space.space_id,
-          syncState: space.sync_state,
-          canWrite: capability.can_write,
-          scopes: capability.scopes,
-          capabilityVersion: mint.capabilityVersion
-        }), existing = workers.get(space.space_id);
-        if (existing && (existing.teamId !== space.team_id || existing.spaceId !== space.space_id || existing.mode !== mode) && (await existing.engine.stop().catch(() => {
-        }), workers.delete(space.space_id), await clearMoveIntents(
-          syncStateDirForSpace(deps.projectsRoot, space.space_id)
-        ).catch(() => {
-        }), existing = void 0), existing && existing.authGeneration !== authGeneration && (await existing.engine.stop().catch(() => {
-        }), workers.delete(space.space_id), await resetSpaceBaseline(
-          syncStateDirForSpace(deps.projectsRoot, space.space_id)
-        ).catch(async (err) => {
-          await deps.log({
-            level: "warn",
-            message: `failed to reset baseline on layer change for space ${space.space_id}: ${String(err)}`
-          });
-        }), await clearMoveIntents(
-          syncStateDirForSpace(deps.projectsRoot, space.space_id)
-        ).catch(() => {
-        }), await deps.log({
+  async function provisionWritableSpaceMetadata(input) {
+    let spaceIdentity = await readSpaceIdentity(dirname13(input.contextTreeRoot)).catch(() => null);
+    spaceIdentity?.publicKeyPem && spaceIdentity.space_id === input.space.space_id && (await provisionTrustAnchor(
+      {
+        baseUrl: input.deps.baseUrl,
+        teamId: input.space.team_id,
+        spaceId: input.space.space_id,
+        token: input.mintToken
+      },
+      spaceIdentity.publicKeyPem
+    ) === "conflict" && await input.deps.log({
+      level: "warn",
+      message: `trust anchor for space ${input.space.space_id} differs from this space's local identity; its redacted/metadata layer is dark (likely a regenerated key \u2014 recovery needs the original key or a rotation).`
+    }), await pushTopicIndex({
+      contextTreeRoot: input.contextTreeRoot,
+      spaceDir: dirname13(input.contextTreeRoot),
+      spaceId: input.space.space_id,
+      target: {
+        baseUrl: input.deps.baseUrl,
+        teamId: input.space.team_id,
+        spaceId: input.space.space_id,
+        token: input.mintToken
+      },
+      now: (input.deps.now() ?? /* @__PURE__ */ new Date()).toISOString()
+    }));
+  }
+  async function startOne(unit) {
+    let { space, engine, mode, contextTreeRoot, mintToken: mintToken2 } = unit, bootstrapStartedAt = performance.now();
+    try {
+      await engine.start();
+    } catch (err) {
+      workers.delete(space.space_id), spaceStates.set(space.space_id, {
+        space_id: space.space_id,
+        state: "bootstrap_failed",
+        bootstrapReady: !1,
+        bootstrapError: redactSecrets(
+          err instanceof Error ? err.message : String(err)
+        )
+      }), await deps.log({
+        level: "error",
+        message: `engine.start() failed for ${space.space_id}: ${redactSecrets(
+          String(err)
+        )}`
+      });
+      return;
+    }
+    let engineStatusAfterStart = engine.status();
+    if (staleEngineStatus(engineStatusAfterStart)) {
+      workers.delete(space.space_id), await engine.stop().catch(() => {
+      }), spaceStates.set(
+        space.space_id,
+        stoppedWorkerStatus(space.space_id, engineStatusAfterStart)
+      ), await deps.log({
+        level: "warn",
+        message: `engine for space ${space.space_id} did not stay running after start`
+      });
+      return;
+    }
+    let engineStatus = engine.status();
+    spaceStates.set(
+      space.space_id,
+      runningSpaceStatus(space.space_id, engineStatus)
+    ), mode !== "pull-only" && await provisionWritableSpaceMetadata({
+      contextTreeRoot,
+      deps,
+      mintToken: mintToken2,
+      space
+    }), await deps.log({
+      level: "info",
+      message: `started worker for space ${space.space_id} (mode=${mode})`
+    }), await deps.log({
+      level: "info",
+      message: `cold-sync.space-bootstrap space=${space.space_id} mode=${mode} ms=${Math.round(
+        performance.now() - bootstrapStartedAt
+      )}`
+    });
+  }
+  function preSeedSpaceState(spaceId, opts) {
+    if (!opts?.force && spaceStates.has(spaceId)) return;
+    let stub = {
+      mode: "snapshot",
+      phase: "checking_bootstrap",
+      usable: !1,
+      isCurrent: !1,
+      baselineRevision: null,
+      bootstrapTargetRevision: null,
+      latestKnownRevision: null,
+      revisionLag: null,
+      progress: { kind: "indeterminate" },
+      fallbackReason: null,
+      fallbackSeverity: null,
+      attemptId: null
+    };
+    spaceStates.set(spaceId, {
+      space_id: spaceId,
+      state: "running",
+      bootstrapReady: !1,
+      bootstrapError: null,
+      fastBootstrap: stub
+    });
+  }
+  async function runBoundedStarts(units, limit) {
+    if (units.length === 0) return;
+    let [only] = units;
+    if (only && units.length === 1) {
+      await startOne(only);
+      return;
+    }
+    await boundedMap(units, limit, (unit) => startOne(unit));
+  }
+  async function decideAndPreSeed(mint, capabilities) {
+    let toStart = [];
+    if (!mint.token) return toStart;
+    let mintToken2 = mint.token;
+    for (let space of mint.spaces) {
+      if (space.sync_state !== "active" || !space.scopes.includes("space:read"))
+        continue;
+      let capability = capabilities.get(space.space_id);
+      if (!capability?.can_read) continue;
+      let mode = deps.fastBootstrapPullOnly || !capability.can_write ? "pull-only" : "bidirectional", accountSubject = decodeJwtSubject(mintToken2);
+      if (!accountSubject) {
+        let existingBad = workers.get(space.space_id);
+        existingBad && (await existingBad.engine.stop().catch(() => {
+        }), workers.delete(space.space_id)), spaceStates.set(space.space_id, {
+          space_id: space.space_id,
+          state: "bootstrap_failed",
+          bootstrapReady: !1,
+          bootstrapError: "missing account subject for sync capability generation"
+        });
+        continue;
+      }
+      let authGeneration = stableCapabilityGeneration({
+        accountSubject,
+        teamId: space.team_id,
+        spaceId: space.space_id,
+        syncState: space.sync_state,
+        canWrite: capability.can_write,
+        scopes: capability.scopes,
+        capabilityVersion: mint.capabilityVersion
+      }), existing = workers.get(space.space_id);
+      if (existing && (existing.teamId !== space.team_id || existing.spaceId !== space.space_id || existing.mode !== mode) && (preSeedSpaceState(space.space_id, { force: !0 }), await existing.engine.stop().catch(() => {
+      }), workers.delete(space.space_id), await clearMoveIntents(
+        syncStateDirForSpace(deps.projectsRoot, space.space_id)
+      ).catch(() => {
+      }), existing = void 0), existing && existing.authGeneration !== authGeneration && (preSeedSpaceState(space.space_id, { force: !0 }), await existing.engine.stop().catch(() => {
+      }), workers.delete(space.space_id), await resetSpaceBaseline(
+        syncStateDirForSpace(deps.projectsRoot, space.space_id)
+      ).catch(async (err) => {
+        await deps.log({
           level: "warn",
-          message: `disclosure layer/capabilities changed for space ${space.space_id}; reset baseline and forcing fresh bootstrap`
-        }), existing = void 0), existing) {
-          let engineStatus2 = existing.engine.status();
-          staleEngineStatus(engineStatus2) && (await existing.engine.stop().catch(() => {
-          }), workers.delete(space.space_id), spaceStates.set(
-            space.space_id,
-            stoppedWorkerStatus(space.space_id, engineStatus2)
-          ), await deps.log({
-            level: "warn",
-            message: `worker for space ${space.space_id} was stopped; recreating`
-          }), existing = void 0);
-        }
-        if (existing) {
-          existing.engine.setToken(mint.token);
-          let engineStatus2 = existing.engine.status();
-          spaceStates.set(
-            space.space_id,
-            runningSpaceStatus(space.space_id, engineStatus2)
-          );
-          continue;
-        }
-        let dir = cloudSpaceDir(deps.projectsRoot, space.space_id), contextTreeRoot = join33(dir, "context-tree"), syncDir = syncStateDirForSpace(deps.projectsRoot, space.space_id), engine;
-        try {
-          engine = deps.createSyncEngine(
-            {
-              baseUrl: deps.baseUrl,
-              teamId: space.team_id,
-              spaceId: space.space_id,
-              token: mint.token,
-              contextTreeRoot,
-              syncDir,
-              mode,
-              // C5: let the adaptive poll nets govern the cadence (do NOT set
-              // pollIntervalMs). Env overrides are optional; when unset the engine
-              // applies its poll-schedule defaults.
-              safetyNetIntervalMs: deps.syncScheduleOverrides?.safetyNetIntervalMs,
-              focusedNetIntervalMs: deps.syncScheduleOverrides?.focusedNetIntervalMs,
-              bootstrap: !0,
-              afterPull: async (_keys) => {
-                try {
-                  await rebuildManifest(contextTreeRoot), await rebuildIndex(contextTreeRoot);
-                } catch (err) {
-                  await deps.log({
-                    level: "warn",
-                    message: `afterPull rebuild failed for ${space.space_id}: ${String(err)}`
-                  });
-                }
-              },
-              localDeletePolicy: "restore-from-remote",
-              authGeneration,
-              log: logSyncEngine,
-              readLocalIdentity: async (key) => {
-                let html = await readFile25(
-                  join33(contextTreeRoot, key),
-                  "utf8"
-                ).catch(() => {
-                });
-                return html === void 0 ? void 0 : readTopicIdentity(html);
-              },
-              readTextIdentity: (text) => readTopicIdentity(text)
-            },
-            {
-              // The daemon is headless — report "idle" so the relaxed safety net
-              // (5-min) governs, NOT the tighter focused net.
-              getActivity: () => "idle"
-            }
-          );
-        } catch (err) {
-          spaceStates.set(space.space_id, {
-            space_id: space.space_id,
-            state: "bootstrap_failed",
-            bootstrapReady: !1,
-            bootstrapError: err instanceof Error ? err.message : String(err)
-          }), await deps.log({
-            level: "error",
-            message: `failed to create engine for ${space.space_id}: ${String(err)}`
-          });
-          continue;
-        }
-        engine.on("auth-expired", () => {
-          requestAuthRefresh(), deps.log({
-            level: "warn",
-            message: `auth-expired from space ${space.space_id}; refreshing`
-          }).catch(() => {
-          });
-        }), engine.on("pulled", (keys) => {
-          deps.log({
-            level: "info",
-            message: `pulled ${keys.length} file(s) in ${space.space_id}`
-          });
-        }), engine.on("conflict", (c) => {
-          deps.log({
-            level: "warn",
-            message: `conflict in ${space.space_id} (winner=${c.winner}, reason=${c.reason})`
-          });
+          message: `failed to reset baseline on layer change for space ${space.space_id}: ${String(err)}`
         });
-        let generation = ++workerGeneration;
-        engine.on("status", (engineStatus2) => {
-          let currentWorker = workers.get(space.space_id);
-          currentWorker && (currentWorker.engine !== engine || currentWorker.generation !== generation) || (spaceStates.set(
-            space.space_id,
-            runningSpaceStatus(space.space_id, engineStatus2)
-          ), scheduleDaemonStatusWrite());
-        }), engine.on("completion", (completion) => {
-          let currentWorker = workers.get(space.space_id);
-          !currentWorker || currentWorker.engine !== engine || currentWorker.generation !== generation || completion.changedCount <= 0 || (recentCompletion = {
-            changedCount: completion.changedCount,
-            completedAt: completion.completedAt,
-            batchId: completion.batchId
-          }, scheduleDaemonStatusWrite());
-        });
-        try {
-          await engine.start();
-        } catch (err) {
-          spaceStates.set(space.space_id, {
-            space_id: space.space_id,
-            state: "bootstrap_failed",
-            bootstrapReady: !1,
-            bootstrapError: err instanceof Error ? err.message : String(err)
-          }), await deps.log({
-            level: "error",
-            message: `engine.start() failed for ${space.space_id}: ${String(err)}`
-          });
-          continue;
-        }
-        let engineStatusAfterStart = engine.status();
-        if (staleEngineStatus(engineStatusAfterStart)) {
-          await engine.stop().catch(() => {
-          }), spaceStates.set(
-            space.space_id,
-            stoppedWorkerStatus(space.space_id, engineStatusAfterStart)
-          ), await deps.log({
-            level: "warn",
-            message: `engine for space ${space.space_id} did not stay running after start`
-          });
-          continue;
-        }
-        workers.set(space.space_id, {
-          engine,
-          spaceId: space.space_id,
-          teamId: space.team_id,
-          contextTreeRoot,
-          syncDir,
-          mode,
-          authGeneration,
-          generation
-        });
-        let engineStatus = engine.status();
+      }), await clearMoveIntents(
+        syncStateDirForSpace(deps.projectsRoot, space.space_id)
+      ).catch(() => {
+      }), await deps.log({
+        level: "warn",
+        message: `disclosure layer/capabilities changed for space ${space.space_id}; reset baseline and forcing fresh bootstrap`
+      }), existing = void 0), existing) {
+        let engineStatus = existing.engine.status();
+        staleEngineStatus(engineStatus) && (await existing.engine.stop().catch(() => {
+        }), workers.delete(space.space_id), spaceStates.set(
+          space.space_id,
+          stoppedWorkerStatus(space.space_id, engineStatus)
+        ), await deps.log({
+          level: "warn",
+          message: `worker for space ${space.space_id} was stopped; recreating`
+        }), existing = void 0);
+      }
+      if (existing) {
+        existing.engine.setToken(mintToken2);
+        let engineStatus = existing.engine.status();
         spaceStates.set(
           space.space_id,
           runningSpaceStatus(space.space_id, engineStatus)
         );
-        let spaceIdentity = await readSpaceIdentity(dirname13(contextTreeRoot)).catch(() => null);
-        spaceIdentity?.publicKeyPem && spaceIdentity.space_id === space.space_id && (await provisionTrustAnchor(
-          { baseUrl: deps.baseUrl, teamId: space.team_id, spaceId: space.space_id, token: mint.token },
-          spaceIdentity.publicKeyPem
-        ) === "conflict" && await deps.log({
-          level: "warn",
-          message: `trust anchor for space ${space.space_id} differs from this space's local identity; its redacted/metadata layer is dark (likely a regenerated key \u2014 recovery needs the original key or a rotation).`
-        }), await pushTopicIndex({
-          contextTreeRoot,
-          spaceDir: dirname13(contextTreeRoot),
-          spaceId: space.space_id,
-          target: {
+        continue;
+      }
+      let dir = cloudSpaceDir(deps.projectsRoot, space.space_id), contextTreeRoot = join33(dir, "context-tree"), syncDir = syncStateDirForSpace(deps.projectsRoot, space.space_id), generation = ++workerGeneration, engine;
+      try {
+        engine = deps.createSyncEngine(
+          {
             baseUrl: deps.baseUrl,
             teamId: space.team_id,
             spaceId: space.space_id,
-            token: mint.token
+            token: mintToken2,
+            contextTreeRoot,
+            syncDir,
+            mode,
+            // C5: let the adaptive poll nets govern the cadence (do NOT set
+            // pollIntervalMs). Env overrides are optional; when unset the engine
+            // applies its poll-schedule defaults.
+            safetyNetIntervalMs: deps.syncScheduleOverrides?.safetyNetIntervalMs,
+            focusedNetIntervalMs: deps.syncScheduleOverrides?.focusedNetIntervalMs,
+            bootstrap: !0,
+            afterPull: async (_keys) => {
+              try {
+                await rebuildManifest(contextTreeRoot), await rebuildIndex(contextTreeRoot);
+              } catch (err) {
+                await deps.log({
+                  level: "warn",
+                  message: `afterPull rebuild failed for ${space.space_id}: ${String(err)}`
+                });
+              }
+            },
+            localDeletePolicy: "restore-from-remote",
+            authGeneration,
+            log: logSyncEngine,
+            readLocalIdentity: async (key) => {
+              let html = await readFile25(
+                join33(contextTreeRoot, key),
+                "utf8"
+              ).catch(() => {
+              });
+              return html === void 0 ? void 0 : readTopicIdentity(html);
+            },
+            readTextIdentity: (text) => readTopicIdentity(text),
+            shouldCancelBootstrap: () => {
+              let current = workers.get(space.space_id);
+              return !current || current.generation !== generation;
+            }
           },
-          now: (deps.now() ?? /* @__PURE__ */ new Date()).toISOString()
-        })), await deps.log({
-          level: "info",
-          message: `started worker for space ${space.space_id} (mode=${mode})`
+          {
+            // The daemon is headless — report "idle" so the relaxed safety net
+            // (5-min) governs, NOT the tighter focused net.
+            getActivity: () => "idle"
+          }
+        );
+      } catch (err) {
+        spaceStates.set(space.space_id, {
+          space_id: space.space_id,
+          state: "bootstrap_failed",
+          bootstrapReady: !1,
+          bootstrapError: redactSecrets(
+            err instanceof Error ? err.message : String(err)
+          )
+        }), await deps.log({
+          level: "error",
+          message: `failed to create engine for ${space.space_id}: ${redactSecrets(String(err))}`
         });
+        continue;
       }
+      engine.on("auth-expired", () => {
+        requestAuthRefresh(), deps.log({
+          level: "warn",
+          message: `auth-expired from space ${space.space_id}; refreshing`
+        }).catch(() => {
+        });
+      }), engine.on("pulled", (keys) => {
+        deps.log({
+          level: "info",
+          message: `pulled ${keys.length} file(s) in ${space.space_id}`
+        });
+      }), engine.on("conflict", (c) => {
+        deps.log({
+          level: "warn",
+          message: `conflict in ${space.space_id} (winner=${c.winner}, reason=${c.reason})`
+        });
+      }), engine.on("status", (engineStatus) => {
+        let currentWorker = workers.get(space.space_id);
+        !currentWorker || currentWorker.engine !== engine || currentWorker.generation !== generation || (spaceStates.set(
+          space.space_id,
+          runningSpaceStatus(space.space_id, engineStatus)
+        ), scheduleDaemonStatusWrite());
+      }), engine.on("completion", (completion) => {
+        let currentWorker = workers.get(space.space_id);
+        !currentWorker || currentWorker.engine !== engine || currentWorker.generation !== generation || completion.changedCount <= 0 || (recentCompletion = {
+          changedCount: completion.changedCount,
+          completedAt: completion.completedAt,
+          batchId: completion.batchId
+        }, scheduleDaemonStatusWrite());
+      }), workers.set(space.space_id, {
+        engine,
+        spaceId: space.space_id,
+        teamId: space.team_id,
+        contextTreeRoot,
+        syncDir,
+        mode,
+        generation,
+        authGeneration
+      }), preSeedSpaceState(space.space_id), toStart.push({
+        space,
+        engine,
+        generation,
+        mode,
+        contextTreeRoot,
+        syncDir,
+        mintToken: mintToken2
+      });
+    }
+    return toStart;
+  }
+  async function startOrUpdateActiveWorkers(mint, capabilities) {
+    let units = await decideAndPreSeed(mint, capabilities);
+    await writeDaemonStatusQueued();
+    let concurrency = deps.coldSyncConcurrency ?? readColdSyncConcurrency(), fanoutStartedAt = performance.now();
+    await runBoundedStarts(units, concurrency), units.length > 0 && await deps.log({
+      level: "info",
+      message: `cold-sync.fanout spaceCount=${units.length} concurrency=${concurrency} wallClockMs=${Math.round(
+        performance.now() - fanoutStartedAt
+      )}`
+    });
   }
   function healthStateFor(s) {
     return s.bootstrapError === "auth_expired" ? "auth_expired" : s.state === "paused" ? "paused" : s.state === "bootstrap_failed" ? "bootstrap_failed" : s.state === "orphaned_cloud_space" ? "orphaned_cloud_space" : s.pendingError ? "pending_error" : "running";
@@ -25466,6 +26172,9 @@ function createMultiSpaceDaemon(deps) {
   function currentDaemonSocketToken() {
     return lastDaemonSocketToken;
   }
+  function currentCapabilityVersion() {
+    return lastCapabilityVersion;
+  }
   return {
     tick,
     stop,
@@ -25473,7 +26182,8 @@ function createMultiSpaceDaemon(deps) {
     reconcileRemovedSpaces,
     reconcileAll,
     currentToken,
-    currentDaemonSocketToken
+    currentDaemonSocketToken,
+    currentCapabilityVersion
   };
 }
 
@@ -25709,14 +26419,14 @@ function startFlushWatcher(cfg) {
 }
 
 // src/sync/pidfile.ts
-import { createHash as createHash11, randomUUID as randomUUID10 } from "node:crypto";
+import { createHash as createHash11, randomUUID as randomUUID11 } from "node:crypto";
 import fs from "node:fs";
-import { chmod as chmod8, mkdir as mkdir24, open as open6, readFile as readFile26, rm as rm20 } from "node:fs/promises";
+import { chmod as chmod8, mkdir as mkdir24, open as open6, readFile as readFile26, rm as rm21 } from "node:fs/promises";
 import { join as join34 } from "node:path";
 var FILE = "daemon.pid";
-async function hashBundle(path2) {
+async function hashBundle(path) {
   try {
-    return createHash11("sha256").update(await readFile26(path2)).digest("hex");
+    return createHash11("sha256").update(await readFile26(path)).digest("hex");
   } catch {
     return "";
   }
@@ -25727,7 +26437,7 @@ function newPidRecord(projectsRoot2, version, codeHash) {
     script: "sync-daemon",
     projectsRoot: projectsRoot2,
     startedAt: (/* @__PURE__ */ new Date()).toISOString(),
-    nonce: randomUUID10(),
+    nonce: randomUUID11(),
     version,
     codeHash
   };
@@ -25753,7 +26463,7 @@ async function readPid(daemonDir2) {
   }
 }
 async function removePid(daemonDir2) {
-  await rm20(join34(daemonDir2, FILE), { force: !0 });
+  await rm21(join34(daemonDir2, FILE), { force: !0 });
 }
 function isAlive(pid) {
   try {
@@ -25771,10 +26481,10 @@ async function acquirePid(daemonDir2, record) {
     await chmod8(daemonDir2, 448);
   } catch {
   }
-  let path2 = join34(daemonDir2, FILE), O_NOFOLLOW = fs.constants.O_NOFOLLOW ?? 0, exclFlags = fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_EXCL | O_NOFOLLOW;
+  let path = join34(daemonDir2, FILE), O_NOFOLLOW = fs.constants.O_NOFOLLOW ?? 0, exclFlags = fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_EXCL | O_NOFOLLOW;
   for (let attempt = 0; attempt < 2; attempt++)
     try {
-      let fh = await open6(path2, exclFlags, 384);
+      let fh = await open6(path, exclFlags, 384);
       try {
         await fh.chmod(384), await fh.write(JSON.stringify(record, null, 2) + `
 `), await fh.datasync();
@@ -25790,7 +26500,7 @@ async function acquirePid(daemonDir2, record) {
       let recheck = await readPid(daemonDir2);
       if (recheck && (recheck.pid !== owner?.pid || recheck.nonce !== owner?.nonce) || recheck === null && owner !== null)
         continue;
-      await rm20(path2, { force: !0 });
+      await rm21(path, { force: !0 });
     }
   return !1;
 }
@@ -25822,8 +26532,8 @@ function createUrgentRefreshCoordinator(deps) {
     }
     inFlight = !0, dirty = !1;
     try {
-      let lifetime = await deps.onTick();
-      lastTickTime = _now(), pendingVersion !== void 0 && (lastRefreshedVersion = pendingVersion, pendingVersion = void 0), deps.onLifetime(lifetime);
+      let result = await deps.onTick();
+      lastTickTime = _now(), pendingVersion !== void 0 && (result.capabilityVersion === void 0 || result.capabilityVersion < pendingVersion) ? dirty = !0 : pendingVersion !== void 0 && (lastRefreshedVersion = pendingVersion, pendingVersion = void 0), deps.onLifetime(result.lifetimeSeconds);
     } catch (err) {
       let message = err instanceof Error ? err.message : String(err);
       deps.onError(message);
@@ -25841,20 +26551,6 @@ function createUrgentRefreshCoordinator(deps) {
     stop() {
       stopped = !0, debounceTimer && (_clearTimeout(debounceTimer), debounceTimer = void 0);
     }
-  };
-}
-
-// src/sync/runtime-env.ts
-function positiveIntEnv(env, name) {
-  let raw = env[name];
-  if (raw === void 0) return;
-  let value2 = Number(raw);
-  return Number.isFinite(value2) && value2 > 0 ? value2 : void 0;
-}
-function readSyncScheduleOverrides(env = process.env) {
-  return {
-    safetyNetIntervalMs: positiveIntEnv(env, "BRV_SYNC_SAFETY_NET_MS"),
-    focusedNetIntervalMs: positiveIntEnv(env, "BRV_SYNC_FOCUSED_NET_MS")
   };
 }
 
@@ -26000,13 +26696,13 @@ async function runDaemon(projectsRoot2, deps = {}) {
     current?.nonce === pidRecord.nonce && current.pid === process.pid && await removePid(daemonDir2);
   }, cleanupRuntimeMarkers = async () => {
     let removeIfOwn = async (file) => {
-      let path2 = join35(daemonDir2, file);
+      let path = join35(daemonDir2, file);
       try {
-        if (JSON.parse(await readFile27(path2, "utf8")).daemonInstanceId !== pidRecord.nonce) return;
+        if (JSON.parse(await readFile27(path, "utf8")).daemonInstanceId !== pidRecord.nonce) return;
       } catch {
         return;
       }
-      await rm21(path2, { force: !0 }).catch(() => {
+      await rm22(path, { force: !0 }).catch(() => {
       });
     };
     await removeIfOwn("status.json"), await removeIfOwn("ready.json");
@@ -26108,7 +26804,9 @@ async function runDaemon(projectsRoot2, deps = {}) {
         log: (entry) => daemonLog(projectsRoot2, entry),
         registryProjectionMode: registryProjectionMode2,
         authIdentity: markerAuthIdentity,
-        syncScheduleOverrides: readSyncScheduleOverrides()
+        syncScheduleOverrides: readSyncScheduleOverrides(),
+        fastBootstrapPullOnly: readFastBootstrapPullOnly(),
+        coldSyncConcurrency: readColdSyncConcurrency()
       });
       daemon = syncDaemon, syncNowWatcher = (deps.startSyncNowWatcher ?? startSyncNowWatcher)({
         projectsRoot: projectsRoot2,
@@ -26201,7 +26899,8 @@ async function runDaemon(projectsRoot2, deps = {}) {
       if (scheduleRefresh(), capabilityRefreshEnabled) {
         coordinator = (deps.createUrgentRefreshCoordinator ?? createUrgentRefreshCoordinator)({
           onTick: async () => {
-            if (await shutdownIfIdentityChanged()) return 0;
+            if (await shutdownIfIdentityChanged())
+              return { lifetimeSeconds: 0 };
             await daemonLog(projectsRoot2, {
               level: "info",
               message: formatLogFields({
@@ -26210,7 +26909,7 @@ async function runDaemon(projectsRoot2, deps = {}) {
                 reason: "capability-urgent"
               })
             });
-            let lifetime = await syncDaemon.tick();
+            let lifetimeSeconds = await syncDaemon.tick();
             return latestDaemonSocketToken = syncDaemon.currentDaemonSocketToken(), await daemonLog(projectsRoot2, {
               level: "info",
               message: formatLogFields({
@@ -26218,7 +26917,10 @@ async function runDaemon(projectsRoot2, deps = {}) {
                 action: "tick.success",
                 reason: "capability-urgent"
               })
-            }), kickAnalyticsAfterToken("capability-urgent"), lifetime;
+            }), kickAnalyticsAfterToken("capability-urgent"), {
+              lifetimeSeconds,
+              capabilityVersion: syncDaemon.currentCapabilityVersion()
+            };
           },
           onLifetime: (lifetimeSeconds) => {
             refreshDelay = computeRefreshDelayMs(lifetimeSeconds), scheduleRefresh();

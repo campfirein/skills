@@ -3759,9 +3759,9 @@ import { homedir, platform } from "node:os";
 import { basename, dirname, isAbsolute, join, resolve, sep } from "node:path";
 
 // ../../packages/core/src/identity/uuid-v4.ts
-var UUID_V4_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
-function isUuidV4(value) {
-  return typeof value == "string" && UUID_V4_REGEX.test(value);
+var UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
+function isUuid(value) {
+  return typeof value == "string" && UUID_REGEX.test(value);
 }
 
 // ../../packages/core/src/tree/paths.ts
@@ -5261,23 +5261,23 @@ function emptyRegistryDocument() {
 function isBinding(value) {
   if (typeof value != "object" || value === null) return !1;
   let v = value;
-  return typeof v.folder == "string" && isUuidV4(v.space_id) && typeof v.addedAt == "string" && (v.removedAt === void 0 || typeof v.removedAt == "string");
+  return typeof v.folder == "string" && isUuid(v.space_id) && typeof v.addedAt == "string" && (v.removedAt === void 0 || typeof v.removedAt == "string");
 }
 function isDeletedSpace(value) {
   if (typeof value != "object" || value === null) return !1;
   let v = value;
-  return isUuidV4(v.space_id) && typeof v.deletedAt == "string" && typeof v.hard == "boolean";
+  return isUuid(v.space_id) && typeof v.deletedAt == "string" && typeof v.hard == "boolean";
 }
 function normalizeRegistryDocument(obj) {
   let bindings = Array.isArray(obj.bindings) ? obj.bindings.filter((v) => isBinding(v)) : [], deletedSpaces = Array.isArray(obj.deletedSpaces) ? obj.deletedSpaces.filter((v) => isDeletedSpace(v)) : [], doc = { ...obj, bindings, deletedSpaces };
-  return isUuidV4(obj.defaultSpaceId) ? doc.defaultSpaceId = obj.defaultSpaceId : delete doc.defaultSpaceId, doc;
+  return isUuid(obj.defaultSpaceId) ? doc.defaultSpaceId = obj.defaultSpaceId : delete doc.defaultSpaceId, doc;
 }
 function assertRegistryDocumentForMutation(obj) {
   if (obj.bindings !== void 0 && !Array.isArray(obj.bindings))
     throw new MalformedRegistryError("bindings registry is malformed");
   if (obj.deletedSpaces !== void 0 && !Array.isArray(obj.deletedSpaces))
     throw new MalformedRegistryError("bindings registry is malformed");
-  if (obj.defaultSpaceId !== void 0 && !isUuidV4(obj.defaultSpaceId))
+  if (obj.defaultSpaceId !== void 0 && !isUuid(obj.defaultSpaceId))
     throw new MalformedRegistryError("bindings registry is malformed");
   if (Array.isArray(obj.bindings) && !obj.bindings.every(isBinding))
     throw new MalformedRegistryError("bindings registry is malformed");

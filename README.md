@@ -1,3 +1,5 @@
+![ByteRover shared memory for agents and teams](./assets/brv-banner.png)
+
 # ByteRover skill
 
 Public, auditable install surface for the ByteRover memory skill.

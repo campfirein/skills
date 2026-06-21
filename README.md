@@ -40,8 +40,3 @@ include the reason for recording, the task or subject, supporting narrative or
 raw context, and extracted facts where appropriate. Human-readable prose follows
 the user's language; schema names, enum values, and topic paths stay in English.
 
-## Maintenance
-
-This repo is a release artifact. Update the source templates in
-`byterover-mono` for behavioral changes, then publish a new skill release. Keep
-this README aligned with the generated `skills/byterover` layout.

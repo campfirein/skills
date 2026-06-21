@@ -17560,14 +17560,14 @@ async function classifyCloudSpace(spaceDir) {
     return { kind: "invalid", reason: metadata.reason };
   if (basename3(spaceDir) !== metadata.metadata.space_id)
     return { kind: "invalid", reason: "metadata space_id mismatch" };
-  if (metadata.metadata.team_id === null)
-    return { kind: "local", reason: "team_id_null" };
   let capability = await readCapability(spaceDir);
+  if (metadata.metadata.team_id === null && capability.kind !== "ok")
+    return { kind: "local", reason: "team_id_null" };
   if (capability.kind === "missing")
     return { kind: "not_ready", reason: "missing_capability" };
   if (capability.kind === "invalid")
     return { kind: "invalid", reason: capability.reason };
-  if (capability.capability.team_id !== metadata.metadata.team_id)
+  if (metadata.metadata.team_id !== null && capability.capability.team_id !== metadata.metadata.team_id)
     return { kind: "invalid", reason: "capability team_id mismatch" };
   let daemonBootstrapError = await readDaemonBootstrapError(spaceDir), authExpiredLocalCache = isAuthExpiredLocalCache({
     capabilityReason: capability.capability.sync_disabled_reason,
@@ -17592,7 +17592,7 @@ async function classifyCloudSpace(spaceDir) {
     kind: "ready",
     space_id: metadata.metadata.space_id,
     space_name: capability.capability.space_name,
-    team_id: metadata.metadata.team_id,
+    team_id: capability.capability.team_id,
     can_read: authExpiredLocalCache ? !0 : capability.capability.can_read,
     can_write: authExpiredLocalCache ? !0 : capability.capability.can_write,
     root: join23(spaceDir, "context-tree")
@@ -17982,7 +17982,7 @@ function verifyHtmlTopic(html, publicKeyPem) {
 import { randomUUID as randomUUID5 } from "node:crypto";
 
 // src/config.ts
-var SKILL_VERSION = "4.0.1", AUTH_URL = "https://prod4-app.byterover.dev";
+var SKILL_VERSION = "4.0.2", AUTH_URL = "https://prod4-app.byterover.dev";
 var ANALYTICS_TELEMETRY_URL = "https://prod4-telemetry.byterover.dev", ANALYTICS_ENABLED = ANALYTICS_TELEMETRY_URL.length > 0, rawMaxBytes = 0, EVENT_MAX_BYTES = Number.isInteger(rawMaxBytes) && rawMaxBytes > 0 ? rawMaxBytes : 4096, rawCapabilityRefresh = "", CAPABILITY_REFRESH_ENABLED = !["0", "false", "off"].includes(
   rawCapabilityRefresh.trim().toLowerCase()
 );
@@ -18949,40 +18949,45 @@ async function runCommand(name, argv2) {
         let finalHits = allHits.slice(0, limit);
         for (let hit of finalHits)
           await recordUse(hit.root, hit.path);
-        let aggEnriched = await Promise.all(
-          finalHits.slice(0, 10).map(async (hit) => {
-            let meta = await topicMetadata(hit.root, hit.path);
-            return {
-              keywords: meta.keywords,
-              related_paths: meta.related.map((rel) => ({
-                keywords: [],
-                relative_path: `${CONTEXT_TREE_PREFIX}${knowledgePath(rel)}.html`,
-                tags: []
-              })),
-              relative_path: `${CONTEXT_TREE_PREFIX}${knowledgePath(hit.path)}.html`,
-              tags: meta.tags
-            };
-          })
-        ), aggTop = finalHits[0];
-        await emit2({
-          name: AnalyticsEventNames.QUERY_COMPLETED,
-          properties: {
-            cache_hit: !1,
-            duration_ms: Date.now() - startedAt,
-            matched_doc_count: finalHits.length,
-            outcome: "completed",
-            read_doc_count: 0,
-            read_paths_with_metadata: aggEnriched,
-            read_tool_call_count: 0,
-            search_call_count: 0,
-            task_id: taskId,
-            task_type: TASK_TYPE.QUERY,
-            ...aggTop ? {
-              space_id: aggTop.space_id,
-              ...aggTop.team_id ? { team_id: aggTop.team_id } : {}
-            } : {}
-          }
-        });
+        let completedAt = Date.now(), hitsBySpace = /* @__PURE__ */ new Map();
+        for (let hit of finalHits) {
+          let group = hitsBySpace.get(hit.space_id);
+          group ? group.push(hit) : hitsBySpace.set(hit.space_id, [hit]);
+        }
+        for (let spaceHits of hitsBySpace.values()) {
+          let enriched2 = await Promise.all(
+            spaceHits.slice(0, 10).map(async (hit) => {
+              let meta = await topicMetadata(hit.root, hit.path);
+              return {
+                keywords: meta.keywords,
+                related_paths: meta.related.map((rel) => ({
+                  keywords: [],
+                  relative_path: `${CONTEXT_TREE_PREFIX}${knowledgePath(rel)}.html`,
+                  tags: []
+                })),
+                relative_path: `${CONTEXT_TREE_PREFIX}${knowledgePath(hit.path)}.html`,
+                tags: meta.tags
+              };
+            })
+          ), head = spaceHits[0];
+          await emit2({
+            name: AnalyticsEventNames.QUERY_COMPLETED,
+            properties: {
+              cache_hit: !1,
+              duration_ms: completedAt - startedAt,
+              matched_doc_count: spaceHits.length,
+              outcome: "completed",
+              read_doc_count: 0,
+              read_paths_with_metadata: enriched2,
+              read_tool_call_count: 0,
+              search_call_count: 0,
+              task_id: taskId,
+              task_type: TASK_TYPE.QUERY,
+              space_id: head.space_id,
+              ...head.team_id ? { team_id: head.team_id } : {}
+            }
+          });
+        }
         let topHit = finalHits[0], topSpaceId = topHit ? spaceIdFromRoot(topHit.root) : void 0, sameSpaceHits = topSpaceId === void 0 ? [] : finalHits.filter(
           (h) => spaceIdFromRoot(h.root) === topSpaceId
         ), slimHits = finalHits.map(({ root: _root, ...hit }) => hit), slimSameSpaceHits = sameSpaceHits.map(

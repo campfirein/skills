@@ -1,5 +1,12 @@
 # skill
 
+## 4.0.2
+
+### Patch Changes
+
+- Resolve `team_id` authoritatively; never fall back to "Personal".
+- Batch recall analytics per space.
+
 ## 4.0.1
 
 ### Patch Changes

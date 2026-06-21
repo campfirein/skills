@@ -9886,10 +9886,7 @@ import { homedir, platform } from "node:os";
 import { basename, dirname as dirname2, isAbsolute, join as join2, resolve as resolve2, sep as sep2 } from "node:path";
 
 // ../../packages/core/src/identity/uuid-v4.ts
-var UUID_V4_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/, UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
-function isUuidV4(value) {
-  return typeof value == "string" && UUID_V4_REGEX.test(value);
-}
+var UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 function isUuid(value) {
   return typeof value == "string" && UUID_REGEX.test(value);
 }
@@ -17985,7 +17982,7 @@ function verifyHtmlTopic(html, publicKeyPem) {
 import { randomUUID as randomUUID5 } from "node:crypto";
 
 // src/config.ts
-var SKILL_VERSION = "4.0.0", AUTH_URL = "https://prod4-app.byterover.dev";
+var SKILL_VERSION = "4.0.1", AUTH_URL = "https://prod4-app.byterover.dev";
 var ANALYTICS_TELEMETRY_URL = "https://prod4-telemetry.byterover.dev", ANALYTICS_ENABLED = ANALYTICS_TELEMETRY_URL.length > 0, rawMaxBytes = 0, EVENT_MAX_BYTES = Number.isInteger(rawMaxBytes) && rawMaxBytes > 0 ? rawMaxBytes : 4096, rawCapabilityRefresh = "", CAPABILITY_REFRESH_ENABLED = !["0", "false", "off"].includes(
   rawCapabilityRefresh.trim().toLowerCase()
 );
@@ -18107,7 +18104,7 @@ async function spaceAttributionForRoot(root) {
 function spaceIdFromContextTreeRoot(root) {
   if (basename4(root) !== "context-tree") return null;
   let candidate = basename4(dirname13(root));
-  return isUuidV4(candidate) ? candidate : null;
+  return isUuid(candidate) ? candidate : null;
 }
 function pickMostRecentBindingForSpace(bindings, space_id) {
   let best = null;
@@ -18123,7 +18120,7 @@ async function findSpaceIdByDisplayName(displayName) {
     return null;
   }
   for (let name of entries)
-    if (isUuidV4(name))
+    if (isUuid(name))
       try {
         let meta = await readSpaceMetadata(join26(getProjectsDir(), name));
         if (meta !== null && meta.space_name === displayName)
@@ -19285,7 +19282,7 @@ async function runSpaceList() {
   try {
     let entries = await readdir6(dir, { withFileTypes: !0 });
     for (let e of entries)
-      e.isDirectory() && isUuidV4(e.name) && onDisk.add(e.name);
+      e.isDirectory() && isUuid(e.name) && onDisk.add(e.name);
   } catch {
   }
   let bindings = await readBindings(), activeBindingsBySpace = /* @__PURE__ */ new Map();

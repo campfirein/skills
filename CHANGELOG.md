@@ -1,5 +1,11 @@
 # skill
 
+## 4.0.5
+
+### Patch Changes
+
+- Emit a `read_completed` analytics event on direct `brv read` so usefulness dashboards see direct-read activity. The event mirrors `query_completed.read_paths_with_metadata` shape so downstream rollups can union read + query streams without per-event branching. Recall stays uninstrumented as before (system caller).
+
 ## 4.0.4
 
 ### Patch Changes

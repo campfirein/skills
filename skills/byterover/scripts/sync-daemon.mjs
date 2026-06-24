@@ -16853,15 +16853,18 @@ async function buildTopicIndex(root, now) {
 var AnalyticsEventNames = {
   RECORD_RUN_COMPLETED: "record_run_completed",
   DREAM_COMPLETED: "dream_completed",
-  QUERY_COMPLETED: "query_completed"
+  QUERY_COMPLETED: "query_completed",
+  READ_COMPLETED: "read_completed"
 }, TASK_TYPE = {
   RECORD: "record",
   DREAM: "dream",
-  QUERY: "query"
+  QUERY: "query",
+  READ: "read"
 }, TASK_TYPE_VALUES = [
   TASK_TYPE.RECORD,
   TASK_TYPE.DREAM,
-  TASK_TYPE.QUERY
+  TASK_TYPE.QUERY,
+  TASK_TYPE.READ
 ], DREAM_MODES = ["merge", "link", "prune", "synthesize"];
 
 // ../../packages/core/src/analytics/events/record-run-completed.ts
@@ -16992,11 +16995,66 @@ var RelatedPathWithMetadataSchema = external_exports.object({
   agent_id: external_exports.string().regex(AGENT_SLUG_REGEX).max(64).optional()
 }).strict();
 
+// ../../packages/core/src/analytics/events/read-completed.ts
+var RelatedPathWithMetadataSchema2 = external_exports.object({
+  keywords: external_exports.array(external_exports.string().max(256)).max(50),
+  relative_path: external_exports.string().min(1),
+  tags: external_exports.array(external_exports.string().max(256)).max(50)
+}).strict(), ReadPathWithMetadataSchema2 = external_exports.object({
+  keywords: external_exports.array(external_exports.string().max(256)).max(50),
+  related_paths: external_exports.array(RelatedPathWithMetadataSchema2).max(50),
+  relative_path: external_exports.string().min(1),
+  tags: external_exports.array(external_exports.string().max(256)).max(50)
+}).strict(), ReadCompletedSchema = external_exports.object({
+  duration_ms: external_exports.number().int().nonnegative(),
+  /**
+   * `"completed"` when the topic was read and returned; `"error"` for
+   * any failure path (missing path arg, legacy guard hit, read threw).
+   * No `"cancelled"` value — a direct read has no cancellation point.
+   */
+  outcome: external_exports.enum(["completed", "error"]),
+  project_path_hash: external_exports.string().regex(/^[0-9a-f]{64}$/).optional(),
+  /** `1` on a successful read, `0` on error. Mirrors the query field
+   *  so downstream sums roll up cleanly across both events. */
+  read_doc_count: external_exports.number().int().nonnegative(),
+  /**
+   * Single-entry array describing the topic that was read (its path +
+   * its tags / keywords / related-paths). Omitted on error. Shape is
+   * deliberately identical to `query_completed.read_paths_with_metadata`
+   * so usefulness rollups can union both event streams.
+   */
+  read_paths_with_metadata: external_exports.array(ReadPathWithMetadataSchema2).max(1).optional(),
+  space_id: external_exports.string().min(1).max(64).optional(),
+  task_id: external_exports.string().min(1),
+  task_type: external_exports.enum(TASK_TYPE_VALUES),
+  team_id: external_exports.string().min(1).max(64).optional(),
+  tier: external_exports.union([
+    external_exports.literal(0),
+    external_exports.literal(1),
+    external_exports.literal(2),
+    external_exports.literal(3),
+    external_exports.literal(4)
+  ]).optional(),
+  /**
+   * Attribution slug of the host agent that ran this read (e.g. `claude`,
+   * `codex`, `cursor`, `gemini`), resolved from the CLI env fingerprint
+   * (skill-runtime `resolveAgent`). Omitted when undetected.
+   */
+  agent: external_exports.string().regex(AGENT_SLUG_REGEX).max(64).optional(),
+  /**
+   * Same resolved host-agent slug as `agent`, under the dashboard's
+   * canonical `agent_id` key (activation funnel join). Omitted when
+   * undetected.
+   */
+  agent_id: external_exports.string().regex(AGENT_SLUG_REGEX).max(64).optional()
+}).strict();
+
 // ../../packages/core/src/analytics/events/index.ts
 var ALL_EVENT_SCHEMAS = {
   [AnalyticsEventNames.RECORD_RUN_COMPLETED]: RecordRunCompletedSchema,
   [AnalyticsEventNames.DREAM_COMPLETED]: DreamCompletedSchema,
-  [AnalyticsEventNames.QUERY_COMPLETED]: QueryCompletedSchema
+  [AnalyticsEventNames.QUERY_COMPLETED]: QueryCompletedSchema,
+  [AnalyticsEventNames.READ_COMPLETED]: ReadCompletedSchema
 };
 
 // ../../packages/core/src/analytics/pending-producer.ts
@@ -17625,7 +17683,7 @@ import { appendFile as appendFile2, chmod as chmod9, readFile as readFile27, rm 
 import { join as join35 } from "node:path";
 
 // src/config.ts
-var SKILL_VERSION = "4.0.4", AUTH_URL = "https://v4-app.byterover.dev", BASE_URL = "https://v4-be.byterover.dev", CAPABILITY_WS_URL = "https://v4-be.byterover.dev", ANALYTICS_TELEMETRY_URL = "https://v4-telemetry.byterover.dev", ANALYTICS_ENABLED = ANALYTICS_TELEMETRY_URL.length > 0, rawMaxBytes = 0, EVENT_MAX_BYTES = Number.isInteger(rawMaxBytes) && rawMaxBytes > 0 ? rawMaxBytes : 4096, rawCapabilityRefresh = "", CAPABILITY_REFRESH_ENABLED = !["0", "false", "off"].includes(
+var SKILL_VERSION = "4.0.5", AUTH_URL = "https://v4-app.byterover.dev", BASE_URL = "https://v4-be.byterover.dev", CAPABILITY_WS_URL = "https://v4-be.byterover.dev", ANALYTICS_TELEMETRY_URL = "https://v4-telemetry.byterover.dev", ANALYTICS_ENABLED = ANALYTICS_TELEMETRY_URL.length > 0, rawMaxBytes = 0, EVENT_MAX_BYTES = Number.isInteger(rawMaxBytes) && rawMaxBytes > 0 ? rawMaxBytes : 4096, rawCapabilityRefresh = "", CAPABILITY_REFRESH_ENABLED = !["0", "false", "off"].includes(
   rawCapabilityRefresh.trim().toLowerCase()
 );
 

@@ -74,6 +74,10 @@ var require_realtime_contracts = __commonJS({
       NOTIFICATION_CHANGED_REASONS: () => NOTIFICATION_CHANGED_REASONS,
       NOTIFICATION_PUBLISH_MAX_EVENTS: () => NOTIFICATION_PUBLISH_MAX_EVENTS,
       NOTIFICATION_PUBLISH_PATH: () => NOTIFICATION_PUBLISH_PATH,
+      WS_SUBSCRIBE: () => WS_SUBSCRIBE,
+      WS_SUBSCRIBED: () => WS_SUBSCRIBED,
+      WS_UNSUBSCRIBE: () => WS_UNSUBSCRIBE,
+      WS_UNSUBSCRIBED: () => WS_UNSUBSCRIBED,
       assertSafeTarEntryName: () => assertSafeTarEntryName3,
       buildCapabilityChangedEvent: () => buildCapabilityChangedEvent,
       buildInvitationsChangedEvent: () => buildInvitationsChangedEvent,
@@ -86,6 +90,7 @@ var require_realtime_contracts = __commonJS({
       isCapabilityPublishRequest: () => isCapabilityPublishRequest,
       isChangesResponse: () => isChangesResponse2,
       isFastBootstrapStatusReason: () => isFastBootstrapStatusReason2,
+      isFolderDeletedEvent: () => isFolderDeletedEvent,
       isInvitationPublishEvent: () => isInvitationPublishEvent,
       isInvitationPublishRequest: () => isInvitationPublishRequest,
       isInvitationsChangedEvent: () => isInvitationsChangedEvent,
@@ -97,6 +102,8 @@ var require_realtime_contracts = __commonJS({
       isRevisionRecord: () => isRevisionRecord,
       isSafeSyncKey: () => isSafeSyncKey,
       isSnapshotManifest: () => isSnapshotManifest,
+      isWsSubscribePayload: () => isWsSubscribePayload,
+      isWsSubscribedAck: () => isWsSubscribedAck,
       makeCapabilityPublishEvent: () => makeCapabilityPublishEvent,
       makeInvitationPublishEvent: () => makeInvitationPublishEvent,
       makeNotificationPublishEvent: () => makeNotificationPublishEvent,
@@ -120,6 +127,9 @@ var require_realtime_contracts = __commonJS({
     }
     function isMemoryChangedEvent2(value2) {
       return !(!isRecord(value2) || typeof value2.teamId != "string" || typeof value2.spaceId != "string" || typeof value2.key != "string" || typeof value2.at != "string" || value2.op !== "put" && value2.op !== "delete" || value2.md5 !== void 0 && typeof value2.md5 != "string" || value2.rev !== void 0 && !isRevisionNumber(value2.rev) || value2.prevRev !== void 0 && value2.prevRev !== null && !isRevisionNumber(value2.prevRev));
+    }
+    function isFolderDeletedEvent(value2) {
+      return !(!isRecord(value2) || typeof value2.teamId != "string" || typeof value2.spaceId != "string" || typeof value2.prefix != "string" || typeof value2.at != "string" || value2.rev !== void 0 && !isRevisionNumber(value2.rev) || value2.prevRev !== void 0 && value2.prevRev !== null && !isRevisionNumber(value2.prevRev));
     }
     var CAPABILITY_CHANGED_EVENT = "capabilities.changed", INVITATIONS_CHANGED_EVENT = "invitations.changed", NOTIFICATIONS_CHANGED_EVENT = "notifications.changed", CAPABILITY_PUBLISH_MAX_EVENTS = 500, INVITATION_PUBLISH_MAX_EVENTS = 500, INVITATION_PUBLISH_PATH = "/internal/invitations", NOTIFICATION_PUBLISH_MAX_EVENTS = 100, NOTIFICATION_PUBLISH_PATH = "/internal/notifications", CAPABILITY_PUBLISH_REASONS = [
       "team_created",
@@ -469,6 +479,13 @@ var require_realtime_contracts = __commonJS({
         ...value2.retryAfterMs === void 0 ? [] : ["retryAfterMs"],
         ...allowBootstrapMetadata ? bootstrapMetadataKeys : []
       ]);
+    }
+    var WS_SUBSCRIBE = "subscribe", WS_UNSUBSCRIBE = "unsubscribe", WS_SUBSCRIBED = "subscribed", WS_UNSUBSCRIBED = "unsubscribed";
+    function isWsSubscribePayload(value2) {
+      return isRecord(value2) ? typeof value2.teamId == "string" && typeof value2.spaceId == "string" : !1;
+    }
+    function isWsSubscribedAck(value2) {
+      return !(!isRecord(value2) || typeof value2.teamId != "string" || typeof value2.spaceId != "string" || typeof value2.ok != "boolean" || value2.ok === !1 && value2.reason !== "denied" && value2.reason !== "stale" && value2.reason !== "error");
     }
     function isPushBundleResult2(value2) {
       return !isRecord(value2) || !hasOnlyKeys(value2, ["revision", "files"]) || !isRevisionNumber(value2.revision) || !Array.isArray(value2.files) ? !1 : value2.files.every(
@@ -17365,13 +17382,11 @@ var MemoryHttpClient = class {
   }
   logHttpFailure(input) {
     try {
-      let parsed = new URL(input.url), method = input.init.method ?? "GET", err = input.error, sanitizedUrlPath = `${parsed.pathname}${parsed.search}`.replace(/\/bsh_[A-Za-z0-9_-]+/g, "/[handle]");
+      let parsed = new URL(input.url), method = input.init.method ?? "GET", err = input.error, UUID_RE3 = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, sanitizedUrlPath = `${parsed.pathname}${parsed.search}`.replace(/\/bsh_[A-Za-z0-9_-]+/g, "/[handle]").replace(UUID_RE3, "[id]");
       Promise.resolve(
         this.cfg.log?.({
           component: "sync-engine",
           action: "http.failure",
-          teamId: this.cfg.teamId,
-          spaceId: this.cfg.spaceId,
           method,
           urlPath: sanitizedUrlPath,
           host: parsed.host,
@@ -21286,6 +21301,14 @@ function createFastBootstrapRuntime(input) {
   };
 }
 
+// ../../packages/sync/src/runtime-options.ts
+var DEFAULT_ENV = process.env;
+function readFastBootstrapTransportFallbackOptions(env = DEFAULT_ENV) {
+  return {
+    legacyAfterTransportRetries: env.BRV_FAST_BOOTSTRAP_TRANSPORT_ERROR_LEGACY === "1"
+  };
+}
+
 // ../../packages/sync/src/fast-sync/bundle-plan.ts
 var DEFAULT_BUNDLE_THRESHOLDS = {
   minFiles: 100,
@@ -21440,7 +21463,7 @@ function rejectedAfterSuccessfulReconcile(input) {
   return dedupeRejected(input.previous).filter((entry) => input.successfulKeys.has(entry.key) ? !1 : input.local.has(entry.key) || input.remote.has(entry.key) || input.nextBaseline[entry.key] !== void 0);
 }
 function createSyncEngine(inputConfig, deps = {}) {
-  let config = normalizeConfig(inputConfig), currentToken = config.token, http = new MemoryHttpClient(config, () => currentToken), tree = new TreeFs(config.contextTreeRoot), state = new SyncState(config.syncDir), bundleThresholds = {
+  let config = normalizeConfig(inputConfig), currentToken = config.token, http = new MemoryHttpClient(config, () => currentToken), tree = new TreeFs(config.contextTreeRoot), state = new SyncState(config.syncDir), fastBootstrapTransportFallback = readFastBootstrapTransportFallbackOptions(), bundleThresholds = {
     ...DEFAULT_BUNDLE_THRESHOLDS,
     minFiles: config.bundleMinFiles ?? DEFAULT_BUNDLE_THRESHOLDS.minFiles,
     minBytes: config.bundleMinBytes ?? DEFAULT_BUNDLE_THRESHOLDS.minBytes
@@ -22264,30 +22287,38 @@ function createSyncEngine(inputConfig, deps = {}) {
             durationMs: elapsedMs2(fastBootstrapStarted),
             reason: fast.kind === "legacy_allowed" ? fast.reason : "disabled"
           });
-        else if (fast.kind === "wait_retry") {
-          let retryAfterMs = fast.retryAfterMs ?? 3e4, now = Date.now();
-          return nextFastBootstrapAt = now + retryAfterMs, fastBootstrapRetryCount += 1, firstFastBootstrapRetryAt === void 0 && (firstFastBootstrapRetryAt = now), setStatus({
-            bootstrapReady: !1,
-            fastBootstrap: {
-              mode: "snapshot",
-              phase: "retry_waiting",
-              usable: !1,
-              isCurrent: !1,
-              baselineRevision: await state.getBaselineRevision(),
-              bootstrapTargetRevision: null,
-              latestKnownRevision: null,
-              revisionLag: null,
-              progress: { kind: "indeterminate" },
-              fallbackReason: fast.reason,
-              fallbackSeverity: "informational",
-              attemptId: null,
-              retryAfterMs,
-              retryCount: fastBootstrapRetryCount,
-              retryAgeMs: now - firstFastBootstrapRetryAt,
-              nextRetryAt: new Date(nextFastBootstrapAt).toISOString()
-            }
-          }), emptyReconcileResult2();
-        } else {
+        else if (fast.kind === "wait_retry")
+          if (fast.reason === "bootstrap_transport_error" && fastBootstrapTransportFallback.legacyAfterTransportRetries)
+            log({
+              action: "fast-bootstrap.legacy_allowed",
+              durationMs: elapsedMs2(fastBootstrapStarted),
+              reason: "transport_error_emergency_legacy"
+            });
+          else {
+            let retryAfterMs = fast.retryAfterMs ?? 3e4, now = Date.now();
+            return nextFastBootstrapAt = now + retryAfterMs, fastBootstrapRetryCount += 1, firstFastBootstrapRetryAt === void 0 && (firstFastBootstrapRetryAt = now), setStatus({
+              bootstrapReady: !1,
+              fastBootstrap: {
+                mode: "snapshot",
+                phase: "retry_waiting",
+                usable: !1,
+                isCurrent: !1,
+                baselineRevision: await state.getBaselineRevision(),
+                bootstrapTargetRevision: null,
+                latestKnownRevision: null,
+                revisionLag: null,
+                progress: { kind: "indeterminate" },
+                fallbackReason: fast.reason,
+                fallbackSeverity: "informational",
+                attemptId: null,
+                retryAfterMs,
+                retryCount: fastBootstrapRetryCount,
+                retryAgeMs: now - firstFastBootstrapRetryAt,
+                nextRetryAt: new Date(nextFastBootstrapAt).toISOString()
+              }
+            }), emptyReconcileResult2();
+          }
+        else {
           if (fast.kind === "fatal_blocked")
             return fastBootstrapBlocked = !0, setStatus({
               bootstrapReady: !1,
@@ -22766,6 +22797,8 @@ function createSyncEngine(inputConfig, deps = {}) {
     })))({
       baseUrl: config.baseUrl,
       token: () => currentToken,
+      teamId: config.teamId,
+      spaceId: config.spaceId,
       onEvent: (e) => void track(enqueueMutation(() => onRemoteEvent(e)).catch(() => {
       })),
       onFolderDeleted: (e) => void track(
@@ -23469,8 +23502,8 @@ async function pushTopicIndex(opts) {
 }
 
 // src/config.ts
-var AUTH_URL = "https://prod4-app.byterover.dev";
-var ANALYTICS_TELEMETRY_URL = "https://prod4-telemetry.byterover.dev", ANALYTICS_ENABLED = ANALYTICS_TELEMETRY_URL.length > 0, rawMaxBytes = 0, EVENT_MAX_BYTES = Number.isInteger(rawMaxBytes) && rawMaxBytes > 0 ? rawMaxBytes : 4096, rawCapabilityRefresh = "", CAPABILITY_REFRESH_ENABLED = !["0", "false", "off"].includes(
+var AUTH_URL = "https://v4-app.byterover.dev";
+var ANALYTICS_TELEMETRY_URL = "https://v4-telemetry.byterover.dev", ANALYTICS_ENABLED = ANALYTICS_TELEMETRY_URL.length > 0, rawMaxBytes = 0, EVENT_MAX_BYTES = Number.isInteger(rawMaxBytes) && rawMaxBytes > 0 ? rawMaxBytes : 4096, rawCapabilityRefresh = "", CAPABILITY_REFRESH_ENABLED = !["0", "false", "off"].includes(
   rawCapabilityRefresh.trim().toLowerCase()
 );
 
@@ -23640,6 +23673,10 @@ function parseJwtPayload(token) {
   };
 }
 function syncModeForSpace(mint, teamId, spaceId) {
+  if (Array.isArray(mint.capabilities))
+    return mint.capabilities.find(
+      (c) => c.teamId === teamId && c.spaceId === spaceId
+    )?.canWrite ? "bidirectional" : "pull-only";
   if (mint.spaces.find(
     (s) => s.team_id === teamId && s.space_id === spaceId
   )?.sync_state !== "active" || mint.token === null) return "pull-only";

@@ -74,6 +74,10 @@ var require_realtime_contracts = __commonJS({
       NOTIFICATION_CHANGED_REASONS: () => NOTIFICATION_CHANGED_REASONS,
       NOTIFICATION_PUBLISH_MAX_EVENTS: () => NOTIFICATION_PUBLISH_MAX_EVENTS,
       NOTIFICATION_PUBLISH_PATH: () => NOTIFICATION_PUBLISH_PATH,
+      WS_SUBSCRIBE: () => WS_SUBSCRIBE2,
+      WS_SUBSCRIBED: () => WS_SUBSCRIBED2,
+      WS_UNSUBSCRIBE: () => WS_UNSUBSCRIBE2,
+      WS_UNSUBSCRIBED: () => WS_UNSUBSCRIBED,
       assertSafeTarEntryName: () => assertSafeTarEntryName3,
       buildCapabilityChangedEvent: () => buildCapabilityChangedEvent,
       buildInvitationsChangedEvent: () => buildInvitationsChangedEvent,
@@ -86,10 +90,11 @@ var require_realtime_contracts = __commonJS({
       isCapabilityPublishRequest: () => isCapabilityPublishRequest,
       isChangesResponse: () => isChangesResponse2,
       isFastBootstrapStatusReason: () => isFastBootstrapStatusReason2,
+      isFolderDeletedEvent: () => isFolderDeletedEvent2,
       isInvitationPublishEvent: () => isInvitationPublishEvent,
       isInvitationPublishRequest: () => isInvitationPublishRequest,
       isInvitationsChangedEvent: () => isInvitationsChangedEvent,
-      isMemoryChangedEvent: () => isMemoryChangedEvent2,
+      isMemoryChangedEvent: () => isMemoryChangedEvent3,
       isNotificationPublishEvent: () => isNotificationPublishEvent,
       isNotificationPublishRequest: () => isNotificationPublishRequest,
       isNotificationsChangedEvent: () => isNotificationsChangedEvent,
@@ -97,6 +102,8 @@ var require_realtime_contracts = __commonJS({
       isRevisionRecord: () => isRevisionRecord,
       isSafeSyncKey: () => isSafeSyncKey,
       isSnapshotManifest: () => isSnapshotManifest,
+      isWsSubscribePayload: () => isWsSubscribePayload,
+      isWsSubscribedAck: () => isWsSubscribedAck2,
       makeCapabilityPublishEvent: () => makeCapabilityPublishEvent,
       makeInvitationPublishEvent: () => makeInvitationPublishEvent,
       makeNotificationPublishEvent: () => makeNotificationPublishEvent,
@@ -118,8 +125,11 @@ var require_realtime_contracts = __commonJS({
       if (options.seen?.has(normalized)) throw new Error("duplicate tar entry");
       return normalized;
     }
-    function isMemoryChangedEvent2(value2) {
+    function isMemoryChangedEvent3(value2) {
       return !(!isRecord6(value2) || typeof value2.teamId != "string" || typeof value2.spaceId != "string" || typeof value2.key != "string" || typeof value2.at != "string" || value2.op !== "put" && value2.op !== "delete" || value2.md5 !== void 0 && typeof value2.md5 != "string" || value2.rev !== void 0 && !isRevisionNumber(value2.rev) || value2.prevRev !== void 0 && value2.prevRev !== null && !isRevisionNumber(value2.prevRev));
+    }
+    function isFolderDeletedEvent2(value2) {
+      return !(!isRecord6(value2) || typeof value2.teamId != "string" || typeof value2.spaceId != "string" || typeof value2.prefix != "string" || typeof value2.at != "string" || value2.rev !== void 0 && !isRevisionNumber(value2.rev) || value2.prevRev !== void 0 && value2.prevRev !== null && !isRevisionNumber(value2.prevRev));
     }
     var CAPABILITY_CHANGED_EVENT2 = "capabilities.changed", INVITATIONS_CHANGED_EVENT = "invitations.changed", NOTIFICATIONS_CHANGED_EVENT = "notifications.changed", CAPABILITY_PUBLISH_MAX_EVENTS = 500, INVITATION_PUBLISH_MAX_EVENTS = 500, INVITATION_PUBLISH_PATH = "/internal/invitations", NOTIFICATION_PUBLISH_MAX_EVENTS = 100, NOTIFICATION_PUBLISH_PATH = "/internal/notifications", CAPABILITY_PUBLISH_REASONS = [
       "team_created",
@@ -469,6 +479,13 @@ var require_realtime_contracts = __commonJS({
         ...value2.retryAfterMs === void 0 ? [] : ["retryAfterMs"],
         ...allowBootstrapMetadata ? bootstrapMetadataKeys : []
       ]);
+    }
+    var WS_SUBSCRIBE2 = "subscribe", WS_UNSUBSCRIBE2 = "unsubscribe", WS_SUBSCRIBED2 = "subscribed", WS_UNSUBSCRIBED = "unsubscribed";
+    function isWsSubscribePayload(value2) {
+      return isRecord6(value2) ? typeof value2.teamId == "string" && typeof value2.spaceId == "string" : !1;
+    }
+    function isWsSubscribedAck2(value2) {
+      return !(!isRecord6(value2) || typeof value2.teamId != "string" || typeof value2.spaceId != "string" || typeof value2.ok != "boolean" || value2.ok === !1 && value2.reason !== "denied" && value2.reason !== "stale" && value2.reason !== "error");
     }
     function isPushBundleResult2(value2) {
       return !isRecord6(value2) || !hasOnlyKeys(value2, ["revision", "files"]) || !isRevisionNumber(value2.revision) || !Array.isArray(value2.files) ? !1 : value2.files.every(
@@ -16616,6 +16633,9 @@ var LOCK_STALE_MS = 3e4, LOCK_RETRY_MS = 20, MalformedRegistryError = class exte
 function emptyRegistryDocument() {
   return { bindings: [], deletedSpaces: [] };
 }
+function emptyRegistry() {
+  return { bindings: [], deletedSpaces: [] };
+}
 function isBinding(value2) {
   if (typeof value2 != "object" || value2 === null) return !1;
   let v = value2;
@@ -16720,6 +16740,27 @@ async function mutateRegistry(mutate) {
     await mutate(reg), await writeRegistryAtomic(reg);
   });
 }
+async function readRegistry() {
+  let raw;
+  try {
+    raw = await readFile6(bindingsPath(), "utf8");
+  } catch (err) {
+    return isErrnoCode(err, "ENOENT") || console.warn(
+      `[byterover] Could not read ${bindingsPath()}: ${describeErr(err)}`
+    ), emptyRegistry();
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (err) {
+    return console.warn(
+      `[byterover] Could not parse ${bindingsPath()}: ${err.message}`
+    ), emptyRegistry();
+  }
+  return typeof parsed != "object" || parsed === null || Array.isArray(parsed) ? (console.warn(
+    `[byterover] Expected object root in ${bindingsPath()}, got ${parsed === null ? "null" : Array.isArray(parsed) ? "array" : typeof parsed}`
+  ), emptyRegistry()) : normalizeRegistryDocument(parsed);
+}
 async function projectActiveTeamRegistry(input) {
   for (let space_id of input.spaceIds)
     if (!isUuid(space_id))
@@ -16760,6 +16801,16 @@ async function projectActiveTeamRegistry(input) {
     ));
   });
 }
+async function getDefaultSpaceId() {
+  return (await readRegistry()).defaultSpaceId ?? null;
+}
+async function setDefaultSpaceId(space_id) {
+  if (!isUuid(space_id))
+    throw new Error("setDefaultSpaceId: space_id must be a UUID string");
+  await mutateRegistry((reg) => {
+    reg.defaultSpaceId = space_id;
+  });
+}
 function isAncestorOrEqual(ancestor, cwd) {
   return cwd === ancestor ? !0 : cwd.startsWith(ancestor.endsWith(sep4) ? ancestor : ancestor + sep4);
 }
@@ -16772,6 +16823,9 @@ function isCloudMirrorFolder(folder, projectsRoot2) {
 }
 function isErrnoCode(err, code) {
   return typeof err == "object" && err !== null && "code" in err && err.code === code;
+}
+function describeErr(err) {
+  return err instanceof Error ? err.message : String(err);
 }
 
 // ../../packages/core/src/dream/candidates.ts
@@ -17041,7 +17095,7 @@ async function readConfigId(key) {
   } catch (err) {
     if (isErrnoCode2(err, "ENOENT")) return;
     console.warn(
-      `[byterover] Could not read ${configPath()}: ${describeErr(err)}`
+      `[byterover] Could not read ${configPath()}: ${describeErr2(err)}`
     );
     return;
   }
@@ -17088,7 +17142,7 @@ async function writeConfigId(key, value2) {
 function isErrnoCode2(err, code) {
   return typeof err == "object" && err !== null && "code" in err && err.code === code;
 }
-function describeErr(err) {
+function describeErr2(err) {
   return err instanceof Error ? err.message : String(err);
 }
 
@@ -17492,12 +17546,12 @@ async function captureAnalyticsEvent(input) {
     return PendingRowSchema.parse(row), await boundedAppendLine(pendingFilePath(), JSON.stringify(row), input.bounds), row;
   } catch (err) {
     console.warn(
-      `[analytics] dropped pending ${String(input.name)}: ${describeErr2(err)}`
+      `[analytics] dropped pending ${String(input.name)}: ${describeErr3(err)}`
     );
     return;
   }
 }
-function describeErr2(err) {
+function describeErr3(err) {
   return err instanceof Error ? err.message : String(err);
 }
 
@@ -17555,11 +17609,11 @@ async function appendDaemonAnalyticsRecord(input) {
     });
   } catch (err) {
     console.warn(
-      `[analytics] dropped daemon ${String(input.action)}: ${describeErr3(err)}`
+      `[analytics] dropped daemon ${String(input.action)}: ${describeErr4(err)}`
     );
   }
 }
-function describeErr3(err) {
+function describeErr4(err) {
   return err instanceof Error ? err.message : String(err);
 }
 
@@ -17568,7 +17622,7 @@ import { appendFile as appendFile2, chmod as chmod9, readFile as readFile27, rm 
 import { join as join35 } from "node:path";
 
 // src/config.ts
-var SKILL_VERSION = "4.0.2", AUTH_URL = "https://prod4-app.byterover.dev", BASE_URL = "https://prod4-be.byterover.dev", CAPABILITY_WS_URL = "https://prod4-be.byterover.dev", ANALYTICS_TELEMETRY_URL = "https://prod4-telemetry.byterover.dev", ANALYTICS_ENABLED = ANALYTICS_TELEMETRY_URL.length > 0, rawMaxBytes = 0, EVENT_MAX_BYTES = Number.isInteger(rawMaxBytes) && rawMaxBytes > 0 ? rawMaxBytes : 4096, rawCapabilityRefresh = "", CAPABILITY_REFRESH_ENABLED = !["0", "false", "off"].includes(
+var SKILL_VERSION = "4.0.3", AUTH_URL = "https://v4-app.byterover.dev", BASE_URL = "https://v4-be.byterover.dev", CAPABILITY_WS_URL = "https://v4-be.byterover.dev", ANALYTICS_TELEMETRY_URL = "https://v4-telemetry.byterover.dev", ANALYTICS_ENABLED = ANALYTICS_TELEMETRY_URL.length > 0, rawMaxBytes = 0, EVENT_MAX_BYTES = Number.isInteger(rawMaxBytes) && rawMaxBytes > 0 ? rawMaxBytes : 4096, rawCapabilityRefresh = "", CAPABILITY_REFRESH_ENABLED = !["0", "false", "off"].includes(
   rawCapabilityRefresh.trim().toLowerCase()
 );
 
@@ -17786,13 +17840,11 @@ var MemoryHttpClient = class {
   }
   logHttpFailure(input) {
     try {
-      let parsed = new URL(input.url), method = input.init.method ?? "GET", err = input.error, sanitizedUrlPath = `${parsed.pathname}${parsed.search}`.replace(/\/bsh_[A-Za-z0-9_-]+/g, "/[handle]");
+      let parsed = new URL(input.url), method = input.init.method ?? "GET", err = input.error, UUID_RE2 = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, sanitizedUrlPath = `${parsed.pathname}${parsed.search}`.replace(/\/bsh_[A-Za-z0-9_-]+/g, "/[handle]").replace(UUID_RE2, "[id]");
       Promise.resolve(
         this.cfg.log?.({
           component: "sync-engine",
           action: "http.failure",
-          teamId: this.cfg.teamId,
-          spaceId: this.cfg.spaceId,
           method,
           urlPath: sanitizedUrlPath,
           host: parsed.host,
@@ -21707,6 +21759,14 @@ function createFastBootstrapRuntime(input) {
   };
 }
 
+// ../../packages/sync/src/runtime-options.ts
+var DEFAULT_ENV = process.env;
+function readFastBootstrapTransportFallbackOptions(env = DEFAULT_ENV) {
+  return {
+    legacyAfterTransportRetries: env.BRV_FAST_BOOTSTRAP_TRANSPORT_ERROR_LEGACY === "1"
+  };
+}
+
 // ../../packages/sync/src/fast-sync/bundle-plan.ts
 var DEFAULT_BUNDLE_THRESHOLDS = {
   minFiles: 100,
@@ -21861,7 +21921,7 @@ function rejectedAfterSuccessfulReconcile(input) {
   return dedupeRejected(input.previous).filter((entry) => input.successfulKeys.has(entry.key) ? !1 : input.local.has(entry.key) || input.remote.has(entry.key) || input.nextBaseline[entry.key] !== void 0);
 }
 function createSyncEngine(inputConfig, deps = {}) {
-  let config = normalizeConfig(inputConfig), currentToken = config.token, http = new MemoryHttpClient(config, () => currentToken), tree = new TreeFs(config.contextTreeRoot), state = new SyncState(config.syncDir), bundleThresholds = {
+  let config = normalizeConfig(inputConfig), currentToken = config.token, http = new MemoryHttpClient(config, () => currentToken), tree = new TreeFs(config.contextTreeRoot), state = new SyncState(config.syncDir), fastBootstrapTransportFallback = readFastBootstrapTransportFallbackOptions(), bundleThresholds = {
     ...DEFAULT_BUNDLE_THRESHOLDS,
     minFiles: config.bundleMinFiles ?? DEFAULT_BUNDLE_THRESHOLDS.minFiles,
     minBytes: config.bundleMinBytes ?? DEFAULT_BUNDLE_THRESHOLDS.minBytes
@@ -22685,30 +22745,38 @@ function createSyncEngine(inputConfig, deps = {}) {
             durationMs: elapsedMs2(fastBootstrapStarted),
             reason: fast.kind === "legacy_allowed" ? fast.reason : "disabled"
           });
-        else if (fast.kind === "wait_retry") {
-          let retryAfterMs = fast.retryAfterMs ?? 3e4, now = Date.now();
-          return nextFastBootstrapAt = now + retryAfterMs, fastBootstrapRetryCount += 1, firstFastBootstrapRetryAt === void 0 && (firstFastBootstrapRetryAt = now), setStatus({
-            bootstrapReady: !1,
-            fastBootstrap: {
-              mode: "snapshot",
-              phase: "retry_waiting",
-              usable: !1,
-              isCurrent: !1,
-              baselineRevision: await state.getBaselineRevision(),
-              bootstrapTargetRevision: null,
-              latestKnownRevision: null,
-              revisionLag: null,
-              progress: { kind: "indeterminate" },
-              fallbackReason: fast.reason,
-              fallbackSeverity: "informational",
-              attemptId: null,
-              retryAfterMs,
-              retryCount: fastBootstrapRetryCount,
-              retryAgeMs: now - firstFastBootstrapRetryAt,
-              nextRetryAt: new Date(nextFastBootstrapAt).toISOString()
-            }
-          }), emptyReconcileResult2();
-        } else {
+        else if (fast.kind === "wait_retry")
+          if (fast.reason === "bootstrap_transport_error" && fastBootstrapTransportFallback.legacyAfterTransportRetries)
+            log2({
+              action: "fast-bootstrap.legacy_allowed",
+              durationMs: elapsedMs2(fastBootstrapStarted),
+              reason: "transport_error_emergency_legacy"
+            });
+          else {
+            let retryAfterMs = fast.retryAfterMs ?? 3e4, now = Date.now();
+            return nextFastBootstrapAt = now + retryAfterMs, fastBootstrapRetryCount += 1, firstFastBootstrapRetryAt === void 0 && (firstFastBootstrapRetryAt = now), setStatus({
+              bootstrapReady: !1,
+              fastBootstrap: {
+                mode: "snapshot",
+                phase: "retry_waiting",
+                usable: !1,
+                isCurrent: !1,
+                baselineRevision: await state.getBaselineRevision(),
+                bootstrapTargetRevision: null,
+                latestKnownRevision: null,
+                revisionLag: null,
+                progress: { kind: "indeterminate" },
+                fallbackReason: fast.reason,
+                fallbackSeverity: "informational",
+                attemptId: null,
+                retryAfterMs,
+                retryCount: fastBootstrapRetryCount,
+                retryAgeMs: now - firstFastBootstrapRetryAt,
+                nextRetryAt: new Date(nextFastBootstrapAt).toISOString()
+              }
+            }), emptyReconcileResult2();
+          }
+        else {
           if (fast.kind === "fatal_blocked")
             return fastBootstrapBlocked = !0, setStatus({
               bootstrapReady: !1,
@@ -23187,6 +23255,8 @@ function createSyncEngine(inputConfig, deps = {}) {
     })))({
       baseUrl: config.baseUrl,
       token: () => currentToken,
+      teamId: config.teamId,
+      spaceId: config.spaceId,
       onEvent: (e) => void track(enqueueMutation(() => onRemoteEvent(e)).catch(() => {
       })),
       onFolderDeleted: (e) => void track(
@@ -24367,6 +24437,243 @@ var CapabilityWsClient = class {
   }
 };
 
+// ../../packages/sync/src/ws-hub.ts
+var import_realtime_contracts8 = __toESM(require_realtime_contracts()), DEFAULT_ACK_TIMEOUT_MS = 1e4, WsHub = class {
+  constructor(baseUrl, deps) {
+    this.baseUrl = baseUrl;
+    this.getToken = deps.getToken, this.ackTimeout = deps.ackTimeoutMs ?? DEFAULT_ACK_TIMEOUT_MS, this.setT = deps.setTimeoutFn ?? ((cb, ms) => setTimeout(cb, ms)), this.clearT = deps.clearTimeoutFn ?? ((h) => clearTimeout(h)), this.mkSocket = deps.createSocket ?? ((url2, getToken) => lookup(url2, {
+      auth: (cb) => cb({ token: getToken() }),
+      transports: ["websocket"],
+      reconnection: !0
+    }));
+  }
+  socket;
+  connectPromise;
+  getToken;
+  nextViewId = 1;
+  connected = !1;
+  views = /* @__PURE__ */ new Map();
+  pending = /* @__PURE__ */ new Map();
+  ackTimeout;
+  setT;
+  clearT;
+  mkSocket;
+  setToken(getter) {
+    this.getToken = getter;
+  }
+  /**
+   * Token-rotation recovery. Tear down the shared socket and ACTIVELY re-dial
+   * a fresh one (via ensureConnected → createSocket with the CURRENT getToken,
+   * so the new token is used), then re-subscribe EVERY live view on the new
+   * socket and fire each view's onReconnect. A manual socket.close() is treated
+   * by socket.io as a deliberate client disconnect — it does NOT auto-reconnect
+   * and the io "reconnect" handler never fires — so this method must re-establish
+   * the connection itself; long-lived engine views call connect() only once at
+   * start and would otherwise lose realtime forever after the first token
+   * refresh. Safe to call when no socket is open. Call this from the daemon
+   * after setToken ONLY when the token value actually changed.
+   */
+  reconnect() {
+    this.socket?.close(), this.socket = void 0, this.connectPromise = void 0, this.connected = !1, this.views.size !== 0 && this.ensureConnected().then(
+      () => {
+        this.connected = !0, this.resubscribeAll();
+      },
+      () => {
+        for (let view of this.views.values())
+          view.closed || view.handlers.onState?.("degraded");
+      }
+    );
+  }
+  /**
+   * Dispatch an event to ALL live views matching teamId+spaceId. Each recipient
+   * runs inside its own try/catch so one throwing handler cannot stall the
+   * others; a routing miss (no matching view) is a silent no-op, never a throw.
+   */
+  dispatch(teamId, spaceId, run) {
+    for (let view of this.views.values())
+      if (!(view.closed || view.teamId !== teamId || view.spaceId !== spaceId))
+        try {
+          run(view);
+        } catch {
+        }
+  }
+  /**
+   * Coalesced single-flight connect: N concurrent callers share one socket dial.
+   * Resolves on the socket's "connect"; REJECTS on "connect_error" (clearing the
+   * shared promise so a later view can re-dial). The reject path lets connectView
+   * degrade waiting views instead of hanging when the shared connect fails.
+   * Once all views are closed the promise is cleared so a new dial is made on
+   * the next viewFor().connect().
+   */
+  ensureConnected() {
+    return this.connectPromise ? this.connectPromise : (this.connectPromise = new Promise((resolve7, reject) => {
+      let socket = this.mkSocket(this.baseUrl, this.getToken);
+      this.socket = socket, socket.on("connect", () => resolve7()), socket.on("connect_error", (err) => {
+        this.connectPromise = void 0, reject(err instanceof Error ? err : new Error(String(err)));
+      }), this.wireSocket(socket);
+    }), this.connectPromise);
+  }
+  /**
+   * Idempotently settle the pending ack for a view: mark settled, clear the
+   * timeout, drop it from the registry, run the side effect, then resolve the
+   * connect promise. Safe to call multiple times (and after close).
+   */
+  settleView(viewId, run) {
+    let p = this.pending.get(viewId);
+    !p || p.settled || (p.settled = !0, this.clearT(p.timer), this.pending.delete(viewId), run(), p.resolve());
+  }
+  /**
+   * socket.io ACK callback for a view's SUBSCRIBE emit. The gateway returns its
+   * WsSubscribedAck through this callback (it does NOT emit a WS_SUBSCRIBED
+   * event), so this is the primary settle path. The WS_SUBSCRIBED event
+   * listener in wireSocket() remains a defensive fallback; settleView is
+   * idempotent, so whichever arrives first wins and the other is a no-op.
+   */
+  onSubscribeAck(view) {
+    return (response) => {
+      (0, import_realtime_contracts8.isWsSubscribedAck)(response) && this.settleView(view.id, () => {
+        view.closed || view.handlers.onState?.(response.ok ? "connected" : "degraded");
+      });
+    };
+  }
+  /**
+   * Wire persistent socket event listeners:
+   * - "connect": mark the shared socket connected.
+   * - WS_SUBSCRIBED: settle the matching per-view pending entries.
+   * - "memory.changed" / "folder.deleted": route (guarded) to matching views.
+   * - "disconnect": on a TERMINAL reason, reset so a new view re-dials.
+   * - io "reconnect": re-subscribe ALL live views with fresh per-view pending.
+   */
+  wireSocket(socket) {
+    socket.on("connect", () => {
+      this.connected = !0;
+    }), socket.on(import_realtime_contracts8.WS_SUBSCRIBED, (raw) => {
+      if (!(0, import_realtime_contracts8.isWsSubscribedAck)(raw)) return;
+      let ack = raw;
+      for (let [viewId, p] of this.pending) {
+        if (p.teamId !== ack.teamId || p.spaceId !== ack.spaceId) continue;
+        let view = this.views.get(viewId);
+        this.settleView(viewId, () => {
+          view && !view.closed && view.handlers.onState?.(ack.ok ? "connected" : "degraded");
+        });
+      }
+    }), socket.on("memory.changed", (raw) => {
+      (0, import_realtime_contracts8.isMemoryChangedEvent)(raw) && this.dispatch(raw.teamId, raw.spaceId, (v) => v.handlers.onEvent?.(raw));
+    }), socket.on("folder.deleted", (raw) => {
+      (0, import_realtime_contracts8.isFolderDeletedEvent)(raw) && this.dispatch(
+        raw.teamId,
+        raw.spaceId,
+        (v) => v.handlers.onFolderDeleted?.(raw)
+      );
+    }), socket.on("disconnect", (reason) => {
+      (reason === "io server disconnect" || reason === "io client disconnect") && (this.socket = void 0, this.connectPromise = void 0, this.connected = !1);
+    }), socket.io.on("reconnect", () => {
+      this.connected = !0, this.resubscribeAll();
+    });
+  }
+  /**
+   * Re-subscribe EVERY live view on the current socket, each with a FRESH
+   * per-view pending entry (settling any stale one first so no promise is
+   * orphaned), then fire onReconnect. Shared by the io "reconnect" handler
+   * and by reconnect() after it re-dials a fresh socket on token rotation.
+   */
+  resubscribeAll() {
+    for (let view of this.views.values()) {
+      if (view.closed) continue;
+      this.settleView(view.id, () => {
+      });
+      let timer = this.setT(() => {
+        this.settleView(view.id, () => {
+          view.closed || view.handlers.onState?.("degraded");
+        });
+      }, this.ackTimeout);
+      this.pending.set(view.id, {
+        teamId: view.teamId,
+        spaceId: view.spaceId,
+        resolve: () => {
+        },
+        settled: !1,
+        timer
+      }), this.socket?.emit(
+        import_realtime_contracts8.WS_SUBSCRIBE,
+        { teamId: view.teamId, spaceId: view.spaceId },
+        this.onSubscribeAck(view)
+      ), view.handlers.onReconnect?.();
+    }
+  }
+  /**
+   * Coarse health of the shared socket for the daemon's polling decision.
+   * Returns "connected" ONLY if the shared socket is up AND at least one view
+   * is subscribed-ok (a live view with no in-flight pending ack). Otherwise
+   * "degraded" — the daemon must keep polling.
+   */
+  socketState() {
+    if (!this.connected || !this.socket) return "degraded";
+    for (let view of this.views.values())
+      if (!view.closed && !this.pending.has(view.id)) return "connected";
+    return "degraded";
+  }
+  viewFor(teamId, spaceId, handlers) {
+    let view = {
+      id: this.nextViewId++,
+      teamId,
+      spaceId,
+      handlers,
+      closed: !1
+    };
+    return this.views.set(view.id, view), {
+      connect: () => this.connectView(view),
+      close: () => this.closeView(view)
+    };
+  }
+  /**
+   * Connect a single view's underlying subscription. Resolves once the SUBSCRIBE
+   * ack arrives, the ack times out, or the shared connect fails — NEVER throws.
+   * The pending entry (and its timeout) is registered BEFORE awaiting the shared
+   * connect so an early ack / a close() / a failed connect during the dial is
+   * always handled (no orphan promise).
+   */
+  connectView(view) {
+    return new Promise((resolve7) => {
+      let timer = this.setT(() => {
+        this.settleView(view.id, () => {
+          view.closed || view.handlers.onState?.("degraded");
+        });
+      }, this.ackTimeout);
+      this.pending.set(view.id, {
+        teamId: view.teamId,
+        spaceId: view.spaceId,
+        resolve: resolve7,
+        settled: !1,
+        timer
+      }), this.ensureConnected().then(
+        () => {
+          if (view.closed) {
+            this.settleView(view.id, () => {
+            });
+            return;
+          }
+          this.socket?.emit(
+            import_realtime_contracts8.WS_SUBSCRIBE,
+            { teamId: view.teamId, spaceId: view.spaceId },
+            this.onSubscribeAck(view)
+          );
+        },
+        () => this.settleView(view.id, () => {
+          view.closed || view.handlers.onState?.("degraded");
+        })
+      );
+    });
+  }
+  closeView(view) {
+    view.closed || (view.closed = !0, this.settleView(view.id, () => {
+    }), this.views.delete(view.id), this.socket?.emit(import_realtime_contracts8.WS_UNSUBSCRIBE, {
+      teamId: view.teamId,
+      spaceId: view.spaceId
+    }), this.views.size === 0 && (this.socket?.close(), this.socket = void 0, this.connectPromise = void 0, this.connected = !1));
+  }
+};
+
 // src/sync/default-space.ts
 function parseDefaultSpaceField(value2) {
   if (!Object.prototype.hasOwnProperty.call(value2, "defaultSpaceId"))
@@ -24511,6 +24818,39 @@ function createApiKeyProvider(input) {
 }
 function parseDaemonRefreshResponse(value2) {
   if (!value2 || typeof value2 != "object") return null;
+  let raw = value2;
+  if (raw.responseVersion === 2 && raw.fileSyncToken && typeof raw.fileSyncToken == "object") {
+    let ft = raw.fileSyncToken;
+    if (typeof raw.refreshToken != "string" || typeof raw.refreshExpiresAt != "string" || typeof raw.refreshAbsoluteExpiresAt != "string" || typeof raw.sessionId != "string" || typeof raw.deviceId != "string" || // A daemon with no active syncable spaces gets a null file-sync token
+    // (nothing to mint a scope for) — mirror the V1/flat parser, which allows
+    // token/tokenType null, so such a daemon can still complete its refresh.
+    !(typeof ft.token == "string" || ft.token === null) || !(ft.tokenType === "Bearer" || ft.tokenType === null) || typeof ft.expiresIn != "number" || raw.complete !== !0 || typeof raw.totalSpaces != "number" || !Array.isArray(raw.spaces) || typeof raw.capabilityVersion != "number" || typeof raw.daemonSocketToken != "string" || raw.daemonSocketTokenType !== "Bearer")
+      return null;
+    let defaultSpace2;
+    try {
+      defaultSpace2 = parseDefaultSpaceField(raw);
+    } catch {
+      return null;
+    }
+    return {
+      refreshToken: raw.refreshToken,
+      refreshExpiresAt: raw.refreshExpiresAt,
+      refreshAbsoluteExpiresAt: raw.refreshAbsoluteExpiresAt,
+      sessionId: raw.sessionId,
+      deviceId: raw.deviceId,
+      token: ft.token,
+      tokenType: ft.tokenType,
+      expiresIn: ft.expiresIn,
+      complete: !0,
+      totalSpaces: raw.totalSpaces,
+      spaces: raw.spaces,
+      capabilityVersion: raw.capabilityVersion,
+      daemonSocketToken: raw.daemonSocketToken,
+      daemonSocketTokenType: "Bearer",
+      defaultSpace: defaultSpace2,
+      capabilities: Array.isArray(raw.capabilities) ? raw.capabilities : void 0
+    };
+  }
   let data = value2;
   if (typeof data.refreshToken != "string" || typeof data.refreshExpiresAt != "string" || typeof data.refreshAbsoluteExpiresAt != "string" || typeof data.sessionId != "string" || typeof data.deviceId != "string" || !(typeof data.token == "string" || data.token === null) || !(data.tokenType === "Bearer" || data.tokenType === null) || typeof data.expiresIn != "number" || data.complete !== !0 || typeof data.totalSpaces != "number" || !Array.isArray(data.spaces) || typeof data.capabilityVersion != "number" || typeof data.daemonSocketToken != "string" || data.daemonSocketTokenType !== "Bearer")
     return null;
@@ -24553,7 +24893,11 @@ function createDaemonDeviceSessionProvider(input) {
           "content-type": "application/json"
         },
         body: JSON.stringify({
-          refreshToken: auth.refreshToken
+          refreshToken: auth.refreshToken,
+          clientCapabilities: {
+            daemonProtocolVersion: 2,
+            supportsThinFileSyncToken: !0
+          }
         })
       });
     } catch {
@@ -24561,7 +24905,27 @@ function createDaemonDeviceSessionProvider(input) {
       }), new TokenMintError(0, !0);
     }
     if (res.status === 200) {
-      let data = parseDaemonRefreshResponse(await res.json());
+      let raw = await res.json();
+      if (raw.complete === !1 && raw.error === "legacy_filesync_token_too_large" && typeof raw.refreshToken == "string" && typeof raw.refreshExpiresAt == "string" && typeof raw.refreshAbsoluteExpiresAt == "string" && typeof raw.sessionId == "string" && typeof raw.deviceId == "string") {
+        let newFp2 = createTokenFingerprint(raw.refreshToken);
+        try {
+          await writeDaemonAuth(authPath, {
+            schemaVersion: 1,
+            provider: "daemon-device-session",
+            refreshToken: raw.refreshToken,
+            refreshExpiresAt: raw.refreshExpiresAt,
+            refreshAbsoluteExpiresAt: raw.refreshAbsoluteExpiresAt,
+            deviceId: raw.deviceId,
+            sessionId: raw.sessionId,
+            tokenFingerprint: newFp2
+          });
+        } catch {
+          throw cachedAuth = null, new TokenMintError(200, !1, "credential_persistence_error");
+        }
+        throw await clearRefreshJournal(authPath).catch(() => {
+        }), cachedAuth = null, new TokenMintError(200, !1, "legacy_filesync_token_too_large");
+      }
+      let data = parseDaemonRefreshResponse(raw);
       if (!data)
         throw await clearRefreshJournal(authPath).catch(() => {
         }), new TokenMintError(
@@ -24595,7 +24959,8 @@ function createDaemonDeviceSessionProvider(input) {
         defaultSpace: data.defaultSpace,
         capabilityVersion: data.capabilityVersion,
         daemonSocketToken: data.daemonSocketToken,
-        daemonSocketTokenType: data.daemonSocketTokenType
+        daemonSocketTokenType: data.daemonSocketTokenType,
+        ...data.capabilities !== void 0 ? { capabilities: data.capabilities } : {}
       };
     }
     if (res.status === 401 || res.status === 403) {
@@ -25048,6 +25413,47 @@ function readTopicIdentity(html) {
 import { mkdir as mkdir21, readFile as readFile22, rename as rename12, writeFile as writeFile16 } from "node:fs/promises";
 import { basename as basename2, join as join31 } from "node:path";
 import { randomUUID as randomUUID10 } from "node:crypto";
+function parseMintCapabilityProjections(raw) {
+  if (!Array.isArray(raw))
+    throw new Error("capabilities must be an array");
+  let seen = /* @__PURE__ */ new Set(), result = [];
+  for (let item of raw) {
+    if (typeof item != "object" || item === null)
+      throw new Error("invalid capability projection");
+    let p = item;
+    if (typeof p.teamId != "string") throw new Error("invalid projection teamId");
+    if (typeof p.spaceId != "string") throw new Error("invalid projection spaceId");
+    if (typeof p.spaceName != "string") throw new Error("invalid projection spaceName");
+    if (p.syncState !== "active" && p.syncState !== "paused")
+      throw new Error("invalid projection syncState");
+    if (!Array.isArray(p.scopes)) throw new Error("invalid projection scopes");
+    if (!p.scopes.every((s) => s === "space:read" || s === "space:write"))
+      throw new Error("invalid projection scope value");
+    if (typeof p.canRead != "boolean") throw new Error("invalid projection canRead");
+    if (typeof p.canWrite != "boolean") throw new Error("invalid projection canWrite");
+    if (typeof p.tokenExpiresAt != "string") throw new Error("invalid projection tokenExpiresAt");
+    if (typeof p.lastCapabilityRefreshAt != "string")
+      throw new Error("invalid projection lastCapabilityRefreshAt");
+    if (typeof p.capabilityVersion != "number")
+      throw new Error("invalid projection capabilityVersion");
+    let key = `${p.teamId}:${p.spaceId}`;
+    if (seen.has(key)) throw new Error("duplicate capability projection");
+    seen.add(key), result.push({
+      teamId: p.teamId,
+      spaceId: p.spaceId,
+      spaceName: p.spaceName,
+      syncState: p.syncState,
+      scopes: p.scopes,
+      canRead: p.canRead,
+      canWrite: p.canWrite,
+      syncDisabledReason: typeof p.syncDisabledReason == "string" ? p.syncDisabledReason : void 0,
+      tokenExpiresAt: p.tokenExpiresAt,
+      lastCapabilityRefreshAt: p.lastCapabilityRefreshAt,
+      capabilityVersion: p.capabilityVersion
+    });
+  }
+  return result;
+}
 function decodeJwtPayload(token) {
   let parts2 = token.split(".");
   if (parts2.length !== 3 || !parts2[1]) throw new Error("invalid JWT format");
@@ -25106,6 +25512,50 @@ function activeReadableKey(space) {
   return space.sync_state !== "active" || !space.scopes.includes("space:read") ? null : `${space.team_id}:${space.space_id}`;
 }
 function buildCapabilitiesFromMint(mint, refreshedAt) {
+  if (Array.isArray(mint.capabilities)) {
+    let projections = parseMintCapabilityProjections(
+      mint.capabilities
+    ), byKey = new Map(
+      projections.map((p) => [`${p.teamId}:${p.spaceId}`, p])
+    );
+    return mint.spaces.map((space) => {
+      let key = `${space.team_id}:${space.space_id}`;
+      if (space.sync_state === "active" && space.scopes.includes("space:read")) {
+        let projection = byKey.get(key);
+        if (!projection)
+          throw new Error("missing capability projection");
+        return {
+          space_id: projection.spaceId,
+          space_name: projection.spaceName,
+          team_id: projection.teamId,
+          sync_state: projection.syncState,
+          sync_disabled_reason: projection.syncDisabledReason ?? null,
+          can_read: projection.canRead,
+          can_write: projection.canWrite,
+          scopes: projection.scopes,
+          capability_source: "projection",
+          token_expires_at: projection.tokenExpiresAt,
+          last_capability_refresh_at: projection.lastCapabilityRefreshAt,
+          capability_version: projection.capabilityVersion
+        };
+      }
+      return {
+        space_id: space.space_id,
+        space_name: space.space_name,
+        team_id: space.team_id,
+        sync_state: space.sync_state,
+        sync_disabled_reason: space.sync_disabled_reason,
+        can_read: !1,
+        can_write: !1,
+        scopes: [],
+        capability_source: "projection",
+        token_expires_at: new Date(
+          refreshedAt.getTime() + mint.expiresIn * 1e3
+        ).toISOString(),
+        last_capability_refresh_at: refreshedAt.toISOString()
+      };
+    });
+  }
   let activeReadable = new Set(
     mint.spaces.map(activeReadableKey).filter((key) => key !== null)
   ), jwtMemberships = /* @__PURE__ */ new Map(), tokenExpiresAt = new Date(
@@ -25156,6 +25606,41 @@ async function writeCapability(spaceDir, capability) {
     mode: 384
   }), await rename12(tmp, path);
 }
+function validateCapabilityRecord(record) {
+  if (record.capability_source !== "jwt" && record.capability_source !== "projection")
+    return { kind: "invalid", reason: "invalid capability_source" };
+  if (typeof record.space_id != "string" || !isUuid(record.space_id))
+    return { kind: "invalid", reason: "invalid space_id" };
+  if (typeof record.space_name != "string" || record.space_name.trim() === "")
+    return { kind: "invalid", reason: "invalid space_name" };
+  if (typeof record.team_id != "string" || !isUuid(record.team_id))
+    return { kind: "invalid", reason: "invalid team_id" };
+  if (record.sync_state !== "active" && record.sync_state !== "paused")
+    return { kind: "invalid", reason: "invalid sync_state" };
+  if (record.sync_disabled_reason !== null && typeof record.sync_disabled_reason != "string")
+    return { kind: "invalid", reason: "invalid sync_disabled_reason" };
+  if (typeof record.can_read != "boolean" || typeof record.can_write != "boolean")
+    return { kind: "invalid", reason: "invalid capability booleans" };
+  if (!Array.isArray(record.scopes))
+    return { kind: "invalid", reason: "invalid scopes" };
+  if (!record.scopes.every(
+    (s) => s === "space:read" || s === "space:write"
+  ))
+    return { kind: "invalid", reason: "invalid scope value" };
+  let scopes = record.scopes, expectedCanRead = record.sync_state === "active" && scopes.includes("space:read"), expectedCanWrite = record.sync_state === "active" && scopes.includes("space:write");
+  return record.can_read !== expectedCanRead || record.can_write !== expectedCanWrite ? {
+    kind: "invalid",
+    reason: "derived capability mismatch"
+  } : record.can_write && !record.can_read ? {
+    kind: "invalid",
+    reason: "space:write requires space:read"
+  } : Number.isNaN(Date.parse(String(record.token_expires_at))) ? { kind: "invalid", reason: "invalid token_expires_at" } : Number.isNaN(
+    Date.parse(String(record.last_capability_refresh_at))
+  ) ? { kind: "invalid", reason: "invalid last_capability_refresh_at" } : {
+    kind: "ok",
+    capability: record
+  };
+}
 async function readCapability(spaceDir) {
   let path = join31(syncStateDirForSpaceDir(spaceDir), "capability.json"), raw;
   try {
@@ -25166,42 +25651,8 @@ async function readCapability(spaceDir) {
     throw err;
   }
   try {
-    let record = JSON.parse(raw);
-    if (record.capability_source !== "jwt")
-      return { kind: "invalid", reason: "invalid capability_source" };
-    if (typeof record.space_id != "string" || !isUuid(record.space_id))
-      return { kind: "invalid", reason: "invalid space_id" };
-    if (basename2(spaceDir) !== record.space_id)
-      return { kind: "invalid", reason: "space_id mismatch" };
-    if (typeof record.space_name != "string" || record.space_name.trim() === "")
-      return { kind: "invalid", reason: "invalid space_name" };
-    if (typeof record.team_id != "string" || !isUuid(record.team_id))
-      return { kind: "invalid", reason: "invalid team_id" };
-    if (record.sync_state !== "active" && record.sync_state !== "paused")
-      return { kind: "invalid", reason: "invalid sync_state" };
-    if (record.sync_disabled_reason !== null && typeof record.sync_disabled_reason != "string")
-      return { kind: "invalid", reason: "invalid sync_disabled_reason" };
-    if (typeof record.can_read != "boolean" || typeof record.can_write != "boolean")
-      return { kind: "invalid", reason: "invalid capability booleans" };
-    if (!Array.isArray(record.scopes))
-      return { kind: "invalid", reason: "invalid scopes" };
-    if (!record.scopes.every(
-      (s) => s === "space:read" || s === "space:write"
-    ))
-      return { kind: "invalid", reason: "invalid scope value" };
-    let scopes = record.scopes, expectedCanRead = record.sync_state === "active" && scopes.includes("space:read"), expectedCanWrite = record.sync_state === "active" && scopes.includes("space:write");
-    return record.can_read !== expectedCanRead || record.can_write !== expectedCanWrite ? {
-      kind: "invalid",
-      reason: "derived capability mismatch"
-    } : record.can_write && !record.can_read ? {
-      kind: "invalid",
-      reason: "space:write requires space:read"
-    } : Number.isNaN(Date.parse(String(record.token_expires_at))) ? { kind: "invalid", reason: "invalid token_expires_at" } : Number.isNaN(
-      Date.parse(String(record.last_capability_refresh_at))
-    ) ? { kind: "invalid", reason: "invalid last_capability_refresh_at" } : {
-      kind: "ok",
-      capability: record
-    };
+    let record = JSON.parse(raw), baseResult = validateCapabilityRecord(record);
+    return baseResult.kind !== "ok" ? baseResult : basename2(spaceDir) !== record.space_id ? { kind: "invalid", reason: "space_id mismatch" } : baseResult;
   } catch (err) {
     if (err instanceof SyntaxError)
       return {
@@ -25356,21 +25807,21 @@ function redactNullable(value2) {
 }
 
 // src/sync/runtime-env.ts
-var DEFAULT_ENV = process.env;
+var DEFAULT_ENV2 = process.env;
 function positiveIntEnv(env, name) {
   let raw = env[name];
   if (raw === void 0) return;
   let value2 = Number(raw);
   return Number.isFinite(value2) && value2 > 0 ? value2 : void 0;
 }
-function readSyncScheduleOverrides(env = DEFAULT_ENV) {
+function readSyncScheduleOverrides(env = DEFAULT_ENV2) {
   return {
     safetyNetIntervalMs: positiveIntEnv(env, "BRV_SYNC_SAFETY_NET_MS"),
     focusedNetIntervalMs: positiveIntEnv(env, "BRV_SYNC_FOCUSED_NET_MS")
   };
 }
 var COLD_SYNC_CONCURRENCY_DEFAULT = 4, COLD_SYNC_CONCURRENCY_MIN = 1, COLD_SYNC_CONCURRENCY_MAX = 16;
-function readColdSyncConcurrency(env = DEFAULT_ENV) {
+function readColdSyncConcurrency(env = DEFAULT_ENV2) {
   let raw = env.BRV_COLD_SYNC_CONCURRENCY;
   if (raw === void 0) return COLD_SYNC_CONCURRENCY_DEFAULT;
   let parsed = Number.parseInt(raw, 10);
@@ -25379,14 +25830,14 @@ function readColdSyncConcurrency(env = DEFAULT_ENV) {
     Math.max(COLD_SYNC_CONCURRENCY_MIN, parsed)
   );
 }
-function readFastBootstrapPullOnly(env = DEFAULT_ENV) {
+function readFastBootstrapPullOnly(env = DEFAULT_ENV2) {
   return env.BRV_FAST_BOOTSTRAP_PULL_ONLY === "1";
 }
 
 // src/sync/multi-space-daemon.ts
 var AUTH_EXPIRED_RETRY_MIN_SEC = 120, AUTH_EXPIRED_RETRY_MAX_SEC = 900;
 function createMultiSpaceDaemon(deps) {
-  let workers = /* @__PURE__ */ new Map(), spaceStates = /* @__PURE__ */ new Map(), spaceMetadata = /* @__PURE__ */ new Map(), recentCompletion, workerGeneration = 0, refreshPromise = null, tickInFlight = null, authExpiredRetrySec = AUTH_EXPIRED_RETRY_MIN_SEC, followUpTickRequested = !1, authFollowUpInFlight = !1, shuttingDown = !1, firstExchangeAt = null, lastExchangeAt = null, lastError = null, daemonState = "starting", lastToken, lastDaemonSocketToken, lastCapabilityRefreshAt, lastCapabilityRefreshResult, lastCapabilityRefreshErrorCode, lastCapabilityVersion, capabilitySocketState, defaultRegistryWarning = null, defaultRegistryRetryTimer, defaultRegistryGeneration = 0;
+  let workers = /* @__PURE__ */ new Map(), spaceStates = /* @__PURE__ */ new Map(), spaceMetadata = /* @__PURE__ */ new Map(), recentCompletion, workerGeneration = 0, refreshPromise = null, tickInFlight = null, authExpiredRetrySec = AUTH_EXPIRED_RETRY_MIN_SEC, followUpTickRequested = !1, authFollowUpInFlight = !1, shuttingDown = !1, firstExchangeAt = null, lastExchangeAt = null, lastError = null, daemonState = "starting", lastToken, wsHub = new WsHub(deps.baseUrl, { getToken: () => lastToken ?? "" }), createWsClient = (args2) => wsHub.viewFor(args2.teamId, args2.spaceId, args2), lastDaemonSocketToken, lastCapabilityRefreshAt, lastCapabilityRefreshResult, lastCapabilityRefreshErrorCode, lastCapabilityVersion, capabilitySocketState, defaultRegistryWarning = null, defaultRegistryRetryTimer, defaultRegistryGeneration = 0;
   async function resetSpaceBaseline(syncDir) {
     let state = new SyncState(syncDir);
     await state.setBaseline({}), await state.setBaselineRevision(null);
@@ -25401,13 +25852,14 @@ function createMultiSpaceDaemon(deps) {
     });
   }
   async function projectRegistryState(args2) {
-    let defaultSpaceId = args2.defaultSpace.kind === "omitted" ? void 0 : args2.defaultSpace.kind === "set" ? args2.defaultSpace.spaceId : null;
-    await projectActiveTeamRegistry({
+    args2.defaultSpace, await projectActiveTeamRegistry({
       projectsRoot: deps.projectsRoot,
       spaceIds: args2.spaceIds,
-      defaultSpaceId,
       restoreSpaceIds: args2.spaceIds
     });
+  }
+  async function applyDefaultSpaceLifecycle(defaultSpace) {
+    defaultSpace.kind === "set" && await getDefaultSpaceId() === null && await setDefaultSpaceId(defaultSpace.spaceId);
   }
   function mintFailureReason(err) {
     return err.code ?? `mint_${err.status}`;
@@ -25852,7 +26304,7 @@ function createMultiSpaceDaemon(deps) {
         syncState: space.sync_state,
         canWrite: capability.can_write,
         scopes: capability.scopes,
-        capabilityVersion: mint.capabilityVersion
+        capabilityVersion: capability.capability_version ?? mint.capabilityVersion
       }), existing = workers.get(space.space_id);
       if (existing && (existing.teamId !== space.team_id || existing.spaceId !== space.space_id || existing.mode !== mode) && (preSeedSpaceState(space.space_id, { force: !0 }), await existing.engine.stop().catch(() => {
       }), workers.delete(space.space_id), await clearMoveIntents(
@@ -25939,7 +26391,9 @@ function createMultiSpaceDaemon(deps) {
           {
             // The daemon is headless — report "idle" so the relaxed safety net
             // (5-min) governs, NOT the tighter focused net.
-            getActivity: () => "idle"
+            getActivity: () => "idle",
+            // All engines share one WsHub socket — inject the view factory.
+            createWsClient
           }
         );
       } catch (err) {
@@ -26097,6 +26551,15 @@ function createMultiSpaceDaemon(deps) {
     } catch (err) {
       if (err instanceof TokenMintError && !err.retryable) {
         if (err.code === "shutting_down") return 900;
+        if (err.code === "legacy_filesync_token_too_large") {
+          lastError = "legacy_filesync_token_too_large", daemonState = "running";
+          for (let [spaceId, spaceStatus] of spaceStates)
+            spaceStates.set(spaceId, {
+              ...spaceStatus,
+              bootstrapError: "legacy_filesync_token_too_large"
+            });
+          return await writeDaemonStatusQueued(), 900;
+        }
         let authExpired = isAuthMintFailure(err), reason = authExpired ? "auth_expired" : mintFailureReason(err);
         if (await markKnownCapabilitiesUnavailable(reason), await writeDaemonStatusQueued(), authExpired) {
           let next = authExpiredRetrySec;
@@ -26109,12 +26572,14 @@ function createMultiSpaceDaemon(deps) {
       }
       throw err;
     }
-    authExpiredRetrySec = AUTH_EXPIRED_RETRY_MIN_SEC, firstExchangeAt || (firstExchangeAt = (/* @__PURE__ */ new Date()).toISOString()), lastExchangeAt = (/* @__PURE__ */ new Date()).toISOString(), lastToken = mint.token ?? void 0, lastDaemonSocketToken = mint.daemonSocketToken ?? void 0, mint.capabilityVersion !== void 0 && (lastCapabilityRefreshAt = (/* @__PURE__ */ new Date()).toISOString(), lastCapabilityRefreshResult = "success", lastCapabilityRefreshErrorCode = void 0, lastCapabilityVersion = mint.capabilityVersion, capabilitySocketState = "connected"), await upsertAllReturnedMetadata(mint.spaces);
+    authExpiredRetrySec = AUTH_EXPIRED_RETRY_MIN_SEC, firstExchangeAt || (firstExchangeAt = (/* @__PURE__ */ new Date()).toISOString()), lastExchangeAt = (/* @__PURE__ */ new Date()).toISOString();
+    let prevToken = lastToken;
+    lastToken = mint.token ?? void 0, lastDaemonSocketToken = mint.daemonSocketToken ?? void 0, wsHub.setToken(() => lastToken ?? ""), lastToken !== prevToken && wsHub.reconnect(), mint.capabilityVersion !== void 0 && (lastCapabilityRefreshAt = (/* @__PURE__ */ new Date()).toISOString(), lastCapabilityRefreshResult = "success", lastCapabilityRefreshErrorCode = void 0, lastCapabilityVersion = mint.capabilityVersion, capabilitySocketState = wsHub.socketState()), await upsertAllReturnedMetadata(mint.spaces);
     let capabilities = await writeAllCapabilities(mint), defaultSpace = validateDefaultSpaceCapability(mint.defaultSpace, [
       ...capabilities.values()
     ]), currentSpaceIds = mint.spaces.map((s) => s.space_id);
-    return await applyRegistryStateWithRetry({
-      defaultSpace,
+    return await applyDefaultSpaceLifecycle(defaultSpace), await applyRegistryStateWithRetry({
+      defaultSpace: { kind: "omitted" },
       spaceIds: currentSpaceIds
     }), await reconcileRemovedSpaces(new Set(currentSpaceIds)), await stopWorkersForPausedSpaces(mint.spaces), await startOrUpdateActiveWorkers(mint, capabilities), await writeDaemonStatusQueued(), mint.expiresIn;
   }

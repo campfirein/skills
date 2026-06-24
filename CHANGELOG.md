@@ -1,5 +1,11 @@
 # skill
 
+## 4.0.3
+
+### Patch Changes
+
+- Point the shipped skill's default service URLs at v4-\*.byterover.dev.
+
 ## 4.0.2
 
 ### Patch Changes

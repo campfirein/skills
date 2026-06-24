@@ -74,6 +74,10 @@ var require_realtime_contracts = __commonJS({
       NOTIFICATION_CHANGED_REASONS: () => NOTIFICATION_CHANGED_REASONS,
       NOTIFICATION_PUBLISH_MAX_EVENTS: () => NOTIFICATION_PUBLISH_MAX_EVENTS,
       NOTIFICATION_PUBLISH_PATH: () => NOTIFICATION_PUBLISH_PATH,
+      WS_SUBSCRIBE: () => WS_SUBSCRIBE,
+      WS_SUBSCRIBED: () => WS_SUBSCRIBED,
+      WS_UNSUBSCRIBE: () => WS_UNSUBSCRIBE,
+      WS_UNSUBSCRIBED: () => WS_UNSUBSCRIBED,
       assertSafeTarEntryName: () => assertSafeTarEntryName,
       buildCapabilityChangedEvent: () => buildCapabilityChangedEvent,
       buildInvitationsChangedEvent: () => buildInvitationsChangedEvent,
@@ -86,6 +90,7 @@ var require_realtime_contracts = __commonJS({
       isCapabilityPublishRequest: () => isCapabilityPublishRequest,
       isChangesResponse: () => isChangesResponse2,
       isFastBootstrapStatusReason: () => isFastBootstrapStatusReason,
+      isFolderDeletedEvent: () => isFolderDeletedEvent,
       isInvitationPublishEvent: () => isInvitationPublishEvent,
       isInvitationPublishRequest: () => isInvitationPublishRequest,
       isInvitationsChangedEvent: () => isInvitationsChangedEvent,
@@ -97,6 +102,8 @@ var require_realtime_contracts = __commonJS({
       isRevisionRecord: () => isRevisionRecord,
       isSafeSyncKey: () => isSafeSyncKey,
       isSnapshotManifest: () => isSnapshotManifest,
+      isWsSubscribePayload: () => isWsSubscribePayload,
+      isWsSubscribedAck: () => isWsSubscribedAck,
       makeCapabilityPublishEvent: () => makeCapabilityPublishEvent,
       makeInvitationPublishEvent: () => makeInvitationPublishEvent,
       makeNotificationPublishEvent: () => makeNotificationPublishEvent,
@@ -120,6 +127,9 @@ var require_realtime_contracts = __commonJS({
     }
     function isMemoryChangedEvent(value) {
       return !(!isRecord2(value) || typeof value.teamId != "string" || typeof value.spaceId != "string" || typeof value.key != "string" || typeof value.at != "string" || value.op !== "put" && value.op !== "delete" || value.md5 !== void 0 && typeof value.md5 != "string" || value.rev !== void 0 && !isRevisionNumber(value.rev) || value.prevRev !== void 0 && value.prevRev !== null && !isRevisionNumber(value.prevRev));
+    }
+    function isFolderDeletedEvent(value) {
+      return !(!isRecord2(value) || typeof value.teamId != "string" || typeof value.spaceId != "string" || typeof value.prefix != "string" || typeof value.at != "string" || value.rev !== void 0 && !isRevisionNumber(value.rev) || value.prevRev !== void 0 && value.prevRev !== null && !isRevisionNumber(value.prevRev));
     }
     var CAPABILITY_CHANGED_EVENT = "capabilities.changed", INVITATIONS_CHANGED_EVENT = "invitations.changed", NOTIFICATIONS_CHANGED_EVENT = "notifications.changed", CAPABILITY_PUBLISH_MAX_EVENTS = 500, INVITATION_PUBLISH_MAX_EVENTS = 500, INVITATION_PUBLISH_PATH = "/internal/invitations", NOTIFICATION_PUBLISH_MAX_EVENTS = 100, NOTIFICATION_PUBLISH_PATH = "/internal/notifications", CAPABILITY_PUBLISH_REASONS = [
       "team_created",
@@ -469,6 +479,13 @@ var require_realtime_contracts = __commonJS({
         ...value.retryAfterMs === void 0 ? [] : ["retryAfterMs"],
         ...allowBootstrapMetadata ? bootstrapMetadataKeys : []
       ]);
+    }
+    var WS_SUBSCRIBE = "subscribe", WS_UNSUBSCRIBE = "unsubscribe", WS_SUBSCRIBED = "subscribed", WS_UNSUBSCRIBED = "unsubscribed";
+    function isWsSubscribePayload(value) {
+      return isRecord2(value) ? typeof value.teamId == "string" && typeof value.spaceId == "string" : !1;
+    }
+    function isWsSubscribedAck(value) {
+      return !(!isRecord2(value) || typeof value.teamId != "string" || typeof value.spaceId != "string" || typeof value.ok != "boolean" || value.ok === !1 && value.reason !== "denied" && value.reason !== "stale" && value.reason !== "error");
     }
     function isPushBundleResult2(value) {
       return !isRecord2(value) || !hasOnlyKeys(value, ["revision", "files"]) || !isRevisionNumber(value.revision) || !Array.isArray(value.files) ? !1 : value.files.every(
@@ -16991,13 +17008,11 @@ var MemoryHttpClient = class {
   }
   logHttpFailure(input) {
     try {
-      let parsed = new URL(input.url), method = input.init.method ?? "GET", err = input.error, sanitizedUrlPath = `${parsed.pathname}${parsed.search}`.replace(/\/bsh_[A-Za-z0-9_-]+/g, "/[handle]");
+      let parsed = new URL(input.url), method = input.init.method ?? "GET", err = input.error, UUID_RE2 = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, sanitizedUrlPath = `${parsed.pathname}${parsed.search}`.replace(/\/bsh_[A-Za-z0-9_-]+/g, "/[handle]").replace(UUID_RE2, "[id]");
       Promise.resolve(
         this.cfg.log?.({
           component: "sync-engine",
           action: "http.failure",
-          teamId: this.cfg.teamId,
-          spaceId: this.cfg.spaceId,
           method,
           urlPath: sanitizedUrlPath,
           host: parsed.host,
@@ -17393,6 +17408,41 @@ import { basename as basename3, dirname as dirname11, join as join23 } from "nod
 // src/sync/capability.ts
 import { mkdir as mkdir14, readFile as readFile19, rename as rename9, writeFile as writeFile13 } from "node:fs/promises";
 import { basename as basename2, join as join21 } from "node:path";
+function validateCapabilityRecord(record) {
+  if (record.capability_source !== "jwt" && record.capability_source !== "projection")
+    return { kind: "invalid", reason: "invalid capability_source" };
+  if (typeof record.space_id != "string" || !isUuid(record.space_id))
+    return { kind: "invalid", reason: "invalid space_id" };
+  if (typeof record.space_name != "string" || record.space_name.trim() === "")
+    return { kind: "invalid", reason: "invalid space_name" };
+  if (typeof record.team_id != "string" || !isUuid(record.team_id))
+    return { kind: "invalid", reason: "invalid team_id" };
+  if (record.sync_state !== "active" && record.sync_state !== "paused")
+    return { kind: "invalid", reason: "invalid sync_state" };
+  if (record.sync_disabled_reason !== null && typeof record.sync_disabled_reason != "string")
+    return { kind: "invalid", reason: "invalid sync_disabled_reason" };
+  if (typeof record.can_read != "boolean" || typeof record.can_write != "boolean")
+    return { kind: "invalid", reason: "invalid capability booleans" };
+  if (!Array.isArray(record.scopes))
+    return { kind: "invalid", reason: "invalid scopes" };
+  if (!record.scopes.every(
+    (s) => s === "space:read" || s === "space:write"
+  ))
+    return { kind: "invalid", reason: "invalid scope value" };
+  let scopes = record.scopes, expectedCanRead = record.sync_state === "active" && scopes.includes("space:read"), expectedCanWrite = record.sync_state === "active" && scopes.includes("space:write");
+  return record.can_read !== expectedCanRead || record.can_write !== expectedCanWrite ? {
+    kind: "invalid",
+    reason: "derived capability mismatch"
+  } : record.can_write && !record.can_read ? {
+    kind: "invalid",
+    reason: "space:write requires space:read"
+  } : Number.isNaN(Date.parse(String(record.token_expires_at))) ? { kind: "invalid", reason: "invalid token_expires_at" } : Number.isNaN(
+    Date.parse(String(record.last_capability_refresh_at))
+  ) ? { kind: "invalid", reason: "invalid last_capability_refresh_at" } : {
+    kind: "ok",
+    capability: record
+  };
+}
 async function readCapability(spaceDir) {
   let path2 = join21(syncStateDirForSpaceDir(spaceDir), "capability.json"), raw;
   try {
@@ -17403,42 +17453,8 @@ async function readCapability(spaceDir) {
     throw err;
   }
   try {
-    let record = JSON.parse(raw);
-    if (record.capability_source !== "jwt")
-      return { kind: "invalid", reason: "invalid capability_source" };
-    if (typeof record.space_id != "string" || !isUuid(record.space_id))
-      return { kind: "invalid", reason: "invalid space_id" };
-    if (basename2(spaceDir) !== record.space_id)
-      return { kind: "invalid", reason: "space_id mismatch" };
-    if (typeof record.space_name != "string" || record.space_name.trim() === "")
-      return { kind: "invalid", reason: "invalid space_name" };
-    if (typeof record.team_id != "string" || !isUuid(record.team_id))
-      return { kind: "invalid", reason: "invalid team_id" };
-    if (record.sync_state !== "active" && record.sync_state !== "paused")
-      return { kind: "invalid", reason: "invalid sync_state" };
-    if (record.sync_disabled_reason !== null && typeof record.sync_disabled_reason != "string")
-      return { kind: "invalid", reason: "invalid sync_disabled_reason" };
-    if (typeof record.can_read != "boolean" || typeof record.can_write != "boolean")
-      return { kind: "invalid", reason: "invalid capability booleans" };
-    if (!Array.isArray(record.scopes))
-      return { kind: "invalid", reason: "invalid scopes" };
-    if (!record.scopes.every(
-      (s) => s === "space:read" || s === "space:write"
-    ))
-      return { kind: "invalid", reason: "invalid scope value" };
-    let scopes = record.scopes, expectedCanRead = record.sync_state === "active" && scopes.includes("space:read"), expectedCanWrite = record.sync_state === "active" && scopes.includes("space:write");
-    return record.can_read !== expectedCanRead || record.can_write !== expectedCanWrite ? {
-      kind: "invalid",
-      reason: "derived capability mismatch"
-    } : record.can_write && !record.can_read ? {
-      kind: "invalid",
-      reason: "space:write requires space:read"
-    } : Number.isNaN(Date.parse(String(record.token_expires_at))) ? { kind: "invalid", reason: "invalid token_expires_at" } : Number.isNaN(
-      Date.parse(String(record.last_capability_refresh_at))
-    ) ? { kind: "invalid", reason: "invalid last_capability_refresh_at" } : {
-      kind: "ok",
-      capability: record
-    };
+    let record = JSON.parse(raw), baseResult = validateCapabilityRecord(record);
+    return baseResult.kind !== "ok" ? baseResult : basename2(spaceDir) !== record.space_id ? { kind: "invalid", reason: "space_id mismatch" } : baseResult;
   } catch (err) {
     if (err instanceof SyntaxError)
       return {
@@ -17982,8 +17998,8 @@ function verifyHtmlTopic(html, publicKeyPem) {
 import { randomUUID as randomUUID5 } from "node:crypto";
 
 // src/config.ts
-var SKILL_VERSION = "4.0.2", AUTH_URL = "https://prod4-app.byterover.dev";
-var ANALYTICS_TELEMETRY_URL = "https://prod4-telemetry.byterover.dev", ANALYTICS_ENABLED = ANALYTICS_TELEMETRY_URL.length > 0, rawMaxBytes = 0, EVENT_MAX_BYTES = Number.isInteger(rawMaxBytes) && rawMaxBytes > 0 ? rawMaxBytes : 4096, rawCapabilityRefresh = "", CAPABILITY_REFRESH_ENABLED = !["0", "false", "off"].includes(
+var SKILL_VERSION = "4.0.3", AUTH_URL = "https://v4-app.byterover.dev";
+var ANALYTICS_TELEMETRY_URL = "https://v4-telemetry.byterover.dev", ANALYTICS_ENABLED = ANALYTICS_TELEMETRY_URL.length > 0, rawMaxBytes = 0, EVENT_MAX_BYTES = Number.isInteger(rawMaxBytes) && rawMaxBytes > 0 ? rawMaxBytes : 4096, rawCapabilityRefresh = "", CAPABILITY_REFRESH_ENABLED = !["0", "false", "off"].includes(
   rawCapabilityRefresh.trim().toLowerCase()
 );
 

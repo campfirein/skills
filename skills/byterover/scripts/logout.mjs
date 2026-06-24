@@ -5379,6 +5379,9 @@ var STALE_DAYS = {
   validated: 120
 };
 
+// ../../packages/core/src/citation/format.ts
+var MS_PER_DAY = 1440 * 60 * 1e3;
+
 // ../../packages/core/src/analytics/event-names.ts
 var AnalyticsEventNames = {
   RECORD_RUN_COMPLETED: "record_run_completed",

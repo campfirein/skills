@@ -16862,6 +16862,9 @@ var STALE_DAYS = {
   validated: 120
 };
 
+// ../../packages/core/src/citation/format.ts
+var MS_PER_DAY = 1440 * 60 * 1e3;
+
 // ../../packages/core/src/tree/topic-index.ts
 async function buildTopicIndex(root, now) {
   let paths = await listTopics(root), entries = [];

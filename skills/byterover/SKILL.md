@@ -2,7 +2,7 @@
 name: byterover
 description: "Persistent, portable memory for Al builders and agent teams. Use BEFORE any non-trivial work to retrieve prior decisions, patterns, and gotchas; use AFTER finishing to record what was learned. ALSO use to authenticate with ByteRover — when the user says to authenticate / auth / log in / sign in / connect / link ByteRover (or log out / sign out / disconnect), run the auth flow. Iron Law: query before you think, curate after you implement."
 metadata:
-  version: 4.0.3
+  version: 4.0.4
 ---
 
 # ByteRover — durable project memory
@@ -92,19 +92,21 @@ When the query envelope has `should_cite: true` AND your answer
 genuinely used the retrieved memory:
 
 1. Add ONE blank line after your answer.
-2. Emit the `citation_block` string verbatim. It contains the header
-   and a two-line entry per hit (title on its own line, then the
-   bare URL indented on the next), capped to the right number of hits.
-   The URL scheme is `http://127.0.0.1:<port>/...` when the desktop
-   bridge is running (the common case) and `https://<web>/...` as a
-   fallback — terminals auto-linkify either form.
+2. Emit the `citation_block` string **verbatim — character for
+   character** — including the `[…](…)` Markdown link wrapping each
+   title, the indented `"snippet"` line when present, and the
+   `Updated by <agent> · <relative>` trailer when present. Every host
+   the engine targets (Codex CLI, Claude Code CLI, Claude Code
+   Desktop) renders the wrapped title as a clickable inline link.
 3. Don't reformat, paraphrase, or add agent-generated relevance scores
    to the citations. The user judges relevance from the title.
-4. Don't wrap the links in `[]`, `()`, backticks, or any other
-   punctuation. The URL must appear naked on its own line so the agent
-   chat / terminal auto-linkifies it; any wrapping character breaks the
-   click-through. (The link opens a web page that hands off to the
-   desktop app.)
+4. **Do NOT unwrap the Markdown link.** The engine deliberately emits
+   `- [Title  ·  Recalled N×](http://…)` — rewriting it as a plain
+   title with the URL on a separate row undoes the format that hides
+   the long URL behind clickable text. Same rule for the snippet and
+   updated-by lines: keep them indented exactly as the engine emitted
+   them, never merged into the title row or stripped of their leading
+   spaces.
 
 When `should_cite` is `false`, OR when you didn't actually use the
 returned hits to answer, OR when the user asked for no sources —
@@ -119,10 +121,10 @@ emit it verbatim):
 ATM: Er Rak Error is a 2012 Thai romantic comedy by Mez Tharatorn …
 
 📚 From ByteRover:
-- ATM: Er Rak Error (2012 Thai film) (fact)
-  http://127.0.0.1:<port>/i/topic/<space-id>/context-tree/movies/atm_er_rak_error.html#bve-a1b2c3d4
-- Pee Mak Phra Khanong (2013) (highlights)
-  http://127.0.0.1:<port>/i/topic/<space-id>/context-tree/movies/pee_mak_phra_khanong.html#bve-e5f6g7h8,k1m2n3p4
+- [ATM: Er Rak Error (2012 Thai film) (fact)  ·  Recalled 14×](http://127.0.0.1:<port>/i/topic/<space-id>/context-tree/movies/atm_er_rak_error.html#bve-a1b2c3d4)
+    "matched-context preview that explains why this hit ranked here"
+    Updated by claude · 3d ago
+- [Pee Mak Phra Khanong (2013) (highlights)](http://127.0.0.1:<port>/i/topic/<space-id>/context-tree/movies/pee_mak_phra_khanong.html#bve-e5f6g7h8,k1m2n3p4)
 ```
 
 ## Authenticate with ByteRover

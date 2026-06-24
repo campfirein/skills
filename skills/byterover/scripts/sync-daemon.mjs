@@ -16836,6 +16836,9 @@ var STALE_DAYS = {
   validated: 120
 };
 
+// ../../packages/core/src/citation/format.ts
+var MS_PER_DAY = 1440 * 60 * 1e3;
+
 // ../../packages/core/src/tree/topic-index.ts
 async function buildTopicIndex(root, now) {
   let paths = await listTopics(root), entries = [];
@@ -17622,7 +17625,7 @@ import { appendFile as appendFile2, chmod as chmod9, readFile as readFile27, rm 
 import { join as join35 } from "node:path";
 
 // src/config.ts
-var SKILL_VERSION = "4.0.3", AUTH_URL = "https://v4-app.byterover.dev", BASE_URL = "https://v4-be.byterover.dev", CAPABILITY_WS_URL = "https://v4-be.byterover.dev", ANALYTICS_TELEMETRY_URL = "https://v4-telemetry.byterover.dev", ANALYTICS_ENABLED = ANALYTICS_TELEMETRY_URL.length > 0, rawMaxBytes = 0, EVENT_MAX_BYTES = Number.isInteger(rawMaxBytes) && rawMaxBytes > 0 ? rawMaxBytes : 4096, rawCapabilityRefresh = "", CAPABILITY_REFRESH_ENABLED = !["0", "false", "off"].includes(
+var SKILL_VERSION = "4.0.4", AUTH_URL = "https://v4-app.byterover.dev", BASE_URL = "https://v4-be.byterover.dev", CAPABILITY_WS_URL = "https://v4-be.byterover.dev", ANALYTICS_TELEMETRY_URL = "https://v4-telemetry.byterover.dev", ANALYTICS_ENABLED = ANALYTICS_TELEMETRY_URL.length > 0, rawMaxBytes = 0, EVENT_MAX_BYTES = Number.isInteger(rawMaxBytes) && rawMaxBytes > 0 ? rawMaxBytes : 4096, rawCapabilityRefresh = "", CAPABILITY_REFRESH_ENABLED = !["0", "false", "off"].includes(
   rawCapabilityRefresh.trim().toLowerCase()
 );
 

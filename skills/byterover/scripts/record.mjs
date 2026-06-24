@@ -15693,7 +15693,7 @@ async function search(root, query, limit = 10, options = {}) {
 }
 
 // ../../packages/core/src/citation/format.ts
-var MAX_HITS = 3, HEADER = "\u{1F4DA} From ByteRover:", MAX_ELEMENT_IDS_PER_URL = 5;
+var MAX_HITS = 3, HEADER = "\u{1F4DA} From ByteRover:", RECALL_COUNT_THRESHOLD = 2, SNIPPET_MAX_CHARS = 80, SHORT_PARTIAL_PREFIX_MAX = 4, RECENTLY_UPDATED_DAYS = 30, MS_PER_DAY = 1440 * 60 * 1e3, MAX_ELEMENT_IDS_PER_URL = 5;
 function encodeTopicPath(topicPath) {
   return `context-tree/${topicPath.split("/").map((seg) => encodeURIComponent(seg)).join("/")}`;
 }
@@ -15725,19 +15725,50 @@ function formatCitationBlock(hits, options) {
   return [HEADER, ...lines].join(`
 `);
 }
-function formatLines(hit, options) {
-  let baseTitle = hit.title.trim().length > 0 ? hit.title : hit.path, title = hit.topElementType !== void 0 ? `${baseTitle} (${elementKind(hit.topElementType)})` : baseTitle;
-  if (options.webBaseUrl === null)
-    return [`- ${title}`];
-  let elementIds = [];
-  hit.topElementId !== void 0 && elementIds.push(hit.topElementId), hit.additionalElementIds !== void 0 && elementIds.push(...hit.additionalElementIds);
-  let url = topicInspectUrl(
-    options.webBaseUrl,
-    options.spaceId,
-    hit.path,
-    elementIds
+function formatSnippet(snippet2) {
+  let collapsed = snippet2.replace(/\s+/g, " ").trim();
+  if (collapsed.length === 0) return "";
+  let body = collapsed, prefix = "", partial = body.match(
+    new RegExp(`^([a-z]{1,${SHORT_PARTIAL_PREFIX_MAX}}[^A-Za-z]?)\\s+`)
   );
-  return [`- ${title}`, `  ${url}`];
+  if (partial ? (body = body.slice(partial[0].length), prefix = "\u2026") : /^[a-z]/.test(body) && (prefix = "\u2026"), body.length === 0) return prefix;
+  let budget = SNIPPET_MAX_CHARS - prefix.length;
+  return body.length <= budget ? prefix + body : `${prefix}${body.slice(0, budget - 1).trimEnd()}\u2026`;
+}
+function relativeDays(ageMs) {
+  let days = Math.floor(ageMs / MS_PER_DAY);
+  return days >= RECENTLY_UPDATED_DAYS ? null : days <= 0 ? "today" : days === 1 ? "yesterday" : `${days}d ago`;
+}
+function formatLines(hit, options) {
+  let baseTitle = hit.title.trim().length > 0 ? hit.title : hit.path, titleWithKind = hit.topElementType !== void 0 ? `${baseTitle} (${elementKind(hit.topElementType)})` : baseTitle, titleContent = hit.accessCount !== void 0 && hit.accessCount >= RECALL_COUNT_THRESHOLD ? `${titleWithKind}  \xB7  Recalled ${hit.accessCount}\xD7` : titleWithKind, titleLine;
+  if (options.webBaseUrl !== null) {
+    let elementIds = [];
+    hit.topElementId !== void 0 && elementIds.push(hit.topElementId), hit.additionalElementIds !== void 0 && elementIds.push(...hit.additionalElementIds);
+    let url = topicInspectUrl(
+      options.webBaseUrl,
+      options.spaceId,
+      hit.path,
+      elementIds
+    );
+    titleLine = `- [${escapeMarkdownLinkText(titleContent)}](${url})`;
+  } else
+    titleLine = `- ${titleContent}`;
+  let out = [titleLine];
+  if (hit.snippet !== void 0) {
+    let snippet2 = formatSnippet(hit.snippet);
+    snippet2.length > 0 && out.push(`    "${snippet2}"`);
+  }
+  if (hit.updatedAt !== void 0 && hit.updatedBy !== void 0) {
+    let updatedMs = Date.parse(hit.updatedAt);
+    if (!Number.isNaN(updatedMs)) {
+      let nowMs2 = options.nowMs ?? Date.now(), relative3 = relativeDays(nowMs2 - updatedMs);
+      relative3 !== null && out.push(`    Updated by ${hit.updatedBy} \xB7 ${relative3}`);
+    }
+  }
+  return out;
+}
+function escapeMarkdownLinkText(s) {
+  return s.replace(/\\/g, "\\\\").replace(/\[/g, "\\[").replace(/\]/g, "\\]");
 }
 
 // ../../packages/core/src/tree/history.ts
@@ -17998,7 +18029,7 @@ function verifyHtmlTopic(html, publicKeyPem) {
 import { randomUUID as randomUUID5 } from "node:crypto";
 
 // src/config.ts
-var SKILL_VERSION = "4.0.3", AUTH_URL = "https://v4-app.byterover.dev";
+var SKILL_VERSION = "4.0.4", AUTH_URL = "https://v4-app.byterover.dev";
 var ANALYTICS_TELEMETRY_URL = "https://v4-telemetry.byterover.dev", ANALYTICS_ENABLED = ANALYTICS_TELEMETRY_URL.length > 0, rawMaxBytes = 0, EVENT_MAX_BYTES = Number.isInteger(rawMaxBytes) && rawMaxBytes > 0 ? rawMaxBytes : 4096, rawCapabilityRefresh = "", CAPABILITY_REFRESH_ENABLED = !["0", "false", "off"].includes(
   rawCapabilityRefresh.trim().toLowerCase()
 );
@@ -18188,6 +18219,29 @@ async function topicMetadata(root, relPath) {
   } catch {
     return { tags: [], keywords: [], related: [] };
   }
+}
+async function citationEvidence(root, relPath) {
+  let [signal, topic] = await Promise.allSettled([
+    getSignal(root, relPath),
+    readTopic(root, relPath)
+  ]), evidence = {};
+  if (signal.status === "fulfilled" && signal.value !== void 0 && (evidence.accessCount = signal.value.accessCount), topic.status === "fulfilled") {
+    let { updatedat, updatedby } = topic.value.attributes;
+    typeof updatedat == "string" && updatedat.length > 0 && (evidence.updatedAt = updatedat), typeof updatedby == "string" && updatedby.length > 0 && (evidence.updatedBy = updatedby);
+  }
+  return evidence;
+}
+var CITATION_EVIDENCE_CAP = 10;
+async function citationHits(hits, fallbackRoot) {
+  let head = hits.slice(0, CITATION_EVIDENCE_CAP);
+  return [...await Promise.all(
+    head.map(async (hit) => {
+      let root = hit.root ?? fallbackRoot;
+      if (root === null) return hit;
+      let evidence = await citationEvidence(root, hit.path);
+      return { ...hit, ...evidence };
+    })
+  ), ...hits.slice(CITATION_EVIDENCE_CAP)];
 }
 var CONTEXT_TREE_PREFIX = ".brv/context-tree/";
 function knowledgePath(relOrPath) {
@@ -19008,7 +19062,7 @@ async function runCommand(name, argv) {
           (h) => spaceIdFromRoot(h.root) === topSpaceId
         ), slimHits = finalHits.map(({ root: _root, ...hit }) => hit), slimSameSpaceHits = sameSpaceHits.map(
           ({ root: _root, ...hit }) => hit
-        ), citation_block2 = topSpaceId ? formatCitationBlock(slimSameSpaceHits, {
+        ), citationHitsList2 = topSpaceId ? await citationHits(sameSpaceHits, null) : [], citation_block2 = topSpaceId ? formatCitationBlock(citationHitsList2, {
           spaceId: topSpaceId,
           webBaseUrl: resolveWebBaseUrl()
         }) : "", should_cite2 = shouldCite(slimSameSpaceHits) && topSpaceId !== void 0;
@@ -19062,7 +19116,7 @@ async function runCommand(name, argv) {
           task_type: TASK_TYPE.QUERY
         }
       });
-      let spaceId = spaceIdFromRoot(root), citation_block = spaceId ? formatCitationBlock(hits, {
+      let spaceId = spaceIdFromRoot(root), citationHitsList = spaceId ? await citationHits(hits, root) : [], citation_block = spaceId ? formatCitationBlock(citationHitsList, {
         spaceId,
         webBaseUrl: resolveWebBaseUrl()
       }) : "", should_cite = shouldCite(hits) && spaceId !== void 0;

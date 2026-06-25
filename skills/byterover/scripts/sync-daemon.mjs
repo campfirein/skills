@@ -113,13 +113,13 @@ var require_realtime_contracts = __commonJS({
       zeroPadRevision: () => zeroPadRevision
     });
     module.exports = __toCommonJS(index_exports);
-    var import_node_path44 = __toESM2(__require("node:path"), 1);
+    var import_node_path43 = __toESM2(__require("node:path"), 1);
     function assertSafeTarEntryName3(name, options = {}) {
       if (options.type && options.type !== "file")
         throw new Error("unsafe tar entry");
-      if (name.includes("\\") || name.includes("\0") || import_node_path44.default.posix.isAbsolute(name))
+      if (name.includes("\\") || name.includes("\0") || import_node_path43.default.posix.isAbsolute(name))
         throw new Error("unsafe tar entry");
-      let normalized = import_node_path44.default.posix.normalize(name);
+      let normalized = import_node_path43.default.posix.normalize(name);
       if (normalized === "." || normalized === ".." || normalized.startsWith("../"))
         throw new Error("unsafe tar entry");
       if (options.seen?.has(normalized)) throw new Error("duplicate tar entry");
@@ -16854,17 +16854,20 @@ var AnalyticsEventNames = {
   RECORD_RUN_COMPLETED: "record_run_completed",
   DREAM_COMPLETED: "dream_completed",
   QUERY_COMPLETED: "query_completed",
-  READ_COMPLETED: "read_completed"
+  READ_COMPLETED: "read_completed",
+  MIGRATION_RUN_COMPLETED: "migration_run_completed"
 }, TASK_TYPE = {
   RECORD: "record",
   DREAM: "dream",
   QUERY: "query",
-  READ: "read"
+  READ: "read",
+  MIGRATE: "migrate"
 }, TASK_TYPE_VALUES = [
   TASK_TYPE.RECORD,
   TASK_TYPE.DREAM,
   TASK_TYPE.QUERY,
-  TASK_TYPE.READ
+  TASK_TYPE.READ,
+  TASK_TYPE.MIGRATE
 ], DREAM_MODES = ["merge", "link", "prune", "synthesize"];
 
 // ../../packages/core/src/analytics/events/record-run-completed.ts
@@ -16982,6 +16985,15 @@ var RelatedPathWithMetadataSchema = external_exports.object({
     external_exports.literal(4)
   ]).optional(),
   /**
+   * The raw query text the user (or agent) asked. Optional because rows
+   * predate this field, and because a `search` invocation with no
+   * positionals yields an empty string we'd rather omit. Capped at 512
+   * chars at emit time; queries longer than that get a trailing `…`. The
+   * Usefulness panel uses this to label the "Used for these tasks" row
+   * with the actual query instead of an opaque `task_id`.
+   */
+  query: external_exports.string().max(512).optional(),
+  /**
    * Attribution slug of the host agent that ran this query (e.g. `claude`,
    * `codex`, `cursor`, `gemini`), resolved from the CLI env fingerprint
    * (skill-runtime `resolveAgent`). Omitted when undetected.
@@ -17049,12 +17061,38 @@ var RelatedPathWithMetadataSchema2 = external_exports.object({
   agent_id: external_exports.string().regex(AGENT_SLUG_REGEX).max(64).optional()
 }).strict();
 
+// ../../packages/core/src/analytics/events/migration-run-completed.ts
+var MigrationRunCompletedSchema = external_exports.object({
+  duration_ms: external_exports.number().int().nonnegative(),
+  /** `completed` = every project migrated; `partial` = some failed; `error` = none. */
+  outcome: external_exports.enum(["completed", "partial", "error"]),
+  /** v3 projects discovered for this run (a folder with `.brv/context-tree/*.md`). */
+  projects_total: external_exports.number().int().nonnegative(),
+  /** Projects whose v4 space was created AND materialized. */
+  spaces_migrated: external_exports.number().int().nonnegative(),
+  /** Projects that failed (createSpace / materialize error). */
+  projects_failed: external_exports.number().int().nonnegative(),
+  /** Markdown topics converted to `<bv-topic>` HTML across all migrated spaces. */
+  topics_converted: external_exports.number().int().nonnegative(),
+  /** Topics that failed to convert. */
+  topics_failed: external_exports.number().int().nonnegative(),
+  task_id: external_exports.string().min(1),
+  task_type: external_exports.enum(TASK_TYPE_VALUES),
+  /** Team the spaces were created under. */
+  team_id: external_exports.string().min(1).max(64).optional(),
+  /** Host agent slug that ran the migration (e.g. `openclaw`); omitted when undetected. */
+  agent: external_exports.string().regex(AGENT_SLUG_REGEX).max(64).optional(),
+  /** Same slug under the dashboard's canonical `agent_id` key (activation-funnel join). */
+  agent_id: external_exports.string().regex(AGENT_SLUG_REGEX).max(64).optional()
+}).strict();
+
 // ../../packages/core/src/analytics/events/index.ts
 var ALL_EVENT_SCHEMAS = {
   [AnalyticsEventNames.RECORD_RUN_COMPLETED]: RecordRunCompletedSchema,
   [AnalyticsEventNames.DREAM_COMPLETED]: DreamCompletedSchema,
   [AnalyticsEventNames.QUERY_COMPLETED]: QueryCompletedSchema,
-  [AnalyticsEventNames.READ_COMPLETED]: ReadCompletedSchema
+  [AnalyticsEventNames.READ_COMPLETED]: ReadCompletedSchema,
+  [AnalyticsEventNames.MIGRATION_RUN_COMPLETED]: MigrationRunCompletedSchema
 };
 
 // ../../packages/core/src/analytics/pending-producer.ts
@@ -17679,11 +17717,19 @@ function describeErr4(err) {
 }
 
 // src/sync/daemon.ts
-import { appendFile as appendFile2, chmod as chmod9, readFile as readFile27, rm as rm22 } from "node:fs/promises";
-import { join as join35 } from "node:path";
+import {
+  appendFile as appendFile2,
+  chmod as chmod8,
+  lstat as lstat3,
+  readFile as readFile26,
+  readdir as readdir9,
+  realpath as realpath3,
+  rm as rm21
+} from "node:fs/promises";
+import { join as join35, sep as sep9 } from "node:path";
 
 // src/config.ts
-var SKILL_VERSION = "4.0.5", AUTH_URL = "https://v4-app.byterover.dev", BASE_URL = "https://v4-be.byterover.dev", CAPABILITY_WS_URL = "https://v4-be.byterover.dev", ANALYTICS_TELEMETRY_URL = "https://v4-telemetry.byterover.dev", ANALYTICS_ENABLED = ANALYTICS_TELEMETRY_URL.length > 0, rawMaxBytes = 0, EVENT_MAX_BYTES = Number.isInteger(rawMaxBytes) && rawMaxBytes > 0 ? rawMaxBytes : 4096, rawCapabilityRefresh = "", CAPABILITY_REFRESH_ENABLED = !["0", "false", "off"].includes(
+var SKILL_VERSION = "4.0.7", AUTH_URL = "https://v4-app.byterover.dev", BASE_URL = "https://v4-be.byterover.dev", CAPABILITY_WS_URL = "https://v4-be.byterover.dev", ANALYTICS_TELEMETRY_URL = "https://v4-telemetry.byterover.dev", ANALYTICS_ENABLED = ANALYTICS_TELEMETRY_URL.length > 0, rawMaxBytes = 0, EVENT_MAX_BYTES = Number.isInteger(rawMaxBytes) && rawMaxBytes > 0 ? rawMaxBytes : 4096, rawCapabilityRefresh = "", CAPABILITY_REFRESH_ENABLED = !["0", "false", "off"].includes(
   rawCapabilityRefresh.trim().toLowerCase()
 );
 
@@ -21681,7 +21727,9 @@ async function extractSnapshotBundle(input) {
   await mkdir10(input.stagingPath, { recursive: !0 });
   let expected = new Map(
     input.manifest.manifestEntries.map((entry) => [entry.key, entry])
-  ), seen = /* @__PURE__ */ new Set(), extract = import_tar_stream.default.extract(), bundleHash = createHash6("sha256"), bundleBytes = 0, source = Readable.fromWeb(input.body).on("data", (chunk2) => {
+  ), seen = /* @__PURE__ */ new Set(), extract = import_tar_stream.default.extract(), bundleHash = createHash6("sha256"), bundleBytes = 0, source = Readable.fromWeb(
+    input.body
+  ).on("data", (chunk2) => {
     bundleBytes += chunk2.byteLength, bundleHash.update(chunk2);
   }), gunzip = createGunzip(), settled = !1, finished = new Promise((resolve7, reject) => {
     let onError = (err) => {
@@ -24423,8 +24471,29 @@ function authIdentitiesEqual(expected, running) {
 }
 
 // ../../packages/sync/src/daemon-status.ts
+var DAEMON_PID_MAX_BYTES = 16 * 1024, DAEMON_STATUS_V2_MAX_BYTES = 64 * 1024, DAEMON_READY_V2_MAX_BYTES = 16 * 1024, DAEMON_SPACES_INDEX_V2_MAX_BYTES = 512 * 1024, DAEMON_SPACE_STATUS_V2_MAX_BYTES = 256 * 1024, DAEMON_SPACE_READY_V2_MAX_BYTES = 16 * 1024, DAEMON_STATUS_V1_FALLBACK_MAX_BYTES = 2 * 1024 * 1024, DAEMON_READY_V1_FALLBACK_MAX_BYTES = 1 * 1024 * 1024;
+var DAEMON_RECENT_CONFLICTS_PER_SPACE_CAP = 200, DAEMON_REJECTED_PER_SPACE_CAP = 50;
 function daemonStatusPath(projectsRoot2) {
   return join26(projectsRoot2, ".daemon", "status.json");
+}
+function assertSafeDaemonSpaceId(spaceId) {
+  if (!normalizeUuidLike(spaceId))
+    throw new Error(`invalid daemon space id: ${spaceId}`);
+}
+function daemonReadyPath(projectsRoot2) {
+  return join26(projectsRoot2, ".daemon", "ready.json");
+}
+function daemonSpacesIndexPath(projectsRoot2) {
+  return join26(projectsRoot2, ".daemon", "spaces-index.json");
+}
+function daemonSpacesDir(projectsRoot2) {
+  return join26(projectsRoot2, ".daemon", "spaces");
+}
+function daemonSpaceStatusPath(projectsRoot2, spaceId) {
+  return assertSafeDaemonSpaceId(spaceId), join26(daemonSpacesDir(projectsRoot2), spaceId, "status.json");
+}
+function daemonSpaceReadyPath(projectsRoot2, spaceId) {
+  return assertSafeDaemonSpaceId(spaceId), join26(daemonSpacesDir(projectsRoot2), spaceId, "ready.json");
 }
 function syncNowSentinelPath(projectsRoot2) {
   return join26(projectsRoot2, ".daemon", "sync-now");
@@ -24440,6 +24509,12 @@ function sanitizeDisplayBasename(value2) {
   if (!(candidate.length === 0 || candidate.length > 80) && !/\s/.test(candidate) && !isTokenLike(candidate))
     return candidate;
 }
+function normalizeUuidLike(value2) {
+  if (typeof value2 == "string")
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      value2
+    ) ? value2 : void 0;
+}
 var FAST_BOOTSTRAP_MODE_SET = new Set(
   import_realtime_contracts6.FAST_BOOTSTRAP_MODES
 ), FAST_BOOTSTRAP_PHASE_SET = new Set(
@@ -24449,11 +24524,54 @@ var FAST_BOOTSTRAP_MODE_SET = new Set(
 ), FAST_BOOTSTRAP_STATUS_REASON_SET = new Set(
   import_realtime_contracts6.FAST_BOOTSTRAP_STATUS_REASONS
 );
-async function writeDaemonStatus(path, status2) {
-  await writeFileAtomic(path, JSON.stringify(status2, null, 2) + `
+async function writeJsonAtomic(path, value2) {
+  await writeFileAtomic(path, JSON.stringify(value2, null, 2) + `
 `, {
     mode: 384
   });
+}
+function projectDaemonStatusV2(status2) {
+  return {
+    schemaVersion: 2,
+    providerKind: status2.providerKind,
+    ...status2.authIdentity !== void 0 ? { authIdentity: status2.authIdentity } : {},
+    authState: status2.authState,
+    daemonInstanceId: status2.daemonInstanceId,
+    heartbeatAt: status2.heartbeatAt,
+    lastExchangeAt: status2.lastExchangeAt,
+    nextRetryAt: status2.nextRetryAt,
+    error: status2.error,
+    ...status2.lastCapabilityRefreshAt !== void 0 ? { lastCapabilityRefreshAt: status2.lastCapabilityRefreshAt } : {},
+    ...status2.lastCapabilityRefreshResult !== void 0 ? { lastCapabilityRefreshResult: status2.lastCapabilityRefreshResult } : {},
+    ...status2.lastCapabilityRefreshErrorCode !== void 0 ? {
+      lastCapabilityRefreshErrorCode: status2.lastCapabilityRefreshErrorCode
+    } : {},
+    ...status2.lastCapabilityVersion !== void 0 ? { lastCapabilityVersion: status2.lastCapabilityVersion } : {},
+    ...status2.capabilitySocketState !== void 0 ? { capabilitySocketState: status2.capabilitySocketState } : {},
+    registryProjectionMode: status2.registryProjectionMode,
+    ...status2.warnings !== void 0 ? { warnings: status2.warnings } : {},
+    ...status2.recentCompletion !== void 0 ? { recentCompletion: status2.recentCompletion } : {},
+    spacesIndexRevision: status2.spacesIndexRevision,
+    spacesIndexUpdatedAt: status2.spacesIndexUpdatedAt,
+    spacesTotal: status2.spacesTotal,
+    spacesWithAttention: status2.spacesWithAttention,
+    spacesSyncing: status2.spacesSyncing
+  };
+}
+async function writeDaemonStatusV2(path, status2) {
+  await writeJsonAtomic(path, projectDaemonStatusV2(status2));
+}
+async function writeDaemonSpacesIndexV2(path, index) {
+  await writeJsonAtomic(path, index);
+}
+async function writeDaemonSpaceStatusV2(path, status2) {
+  await writeJsonAtomic(path, status2);
+}
+async function writeDaemonReadyV2(path, ready) {
+  await writeJsonAtomic(path, ready);
+}
+async function writeDaemonSpaceReadyV2(path, ready) {
+  await writeJsonAtomic(path, ready);
 }
 
 // ../../packages/sync/src/capability-ws-client.ts
@@ -25090,8 +25208,15 @@ async function readCurrentDaemonAuthIdentity(projectsRoot2) {
 }
 
 // src/sync/multi-space-daemon.ts
-import { mkdir as mkdir23, readFile as readFile25, readdir as readdir8, rm as rm20 } from "node:fs/promises";
-import { dirname as dirname13, join as join33 } from "node:path";
+import {
+  lstat as lstat2,
+  mkdir as mkdir22,
+  readFile as readFile24,
+  readdir as readdir8,
+  realpath as realpath2,
+  rm as rm19
+} from "node:fs/promises";
+import { dirname as dirname12, join as join33, sep as sep8 } from "node:path";
 
 // src/space-identity.ts
 import { chmod as chmod6, mkdir as mkdir19, readFile as readFile20, unlink as unlink2, writeFile as writeFile14 } from "node:fs/promises";
@@ -25440,13 +25565,16 @@ async function readCloudMetadata(spaceDir) {
   if (typeof record.space_name != "string" || record.space_name.trim() === "")
     return { kind: "invalid", reason: "invalid space_name" };
   let teamId = record.team_id === void 0 || record.team_id === "" || record.team_id === null ? null : record.team_id;
-  return teamId !== null && (typeof teamId != "string" || !isUuid2(teamId)) ? { kind: "invalid", reason: "invalid team_id" } : {
+  return teamId !== null && (typeof teamId != "string" || !isUuid2(teamId)) ? { kind: "invalid", reason: "invalid team_id" } : record.team_name !== void 0 && record.team_name !== null && typeof record.team_name != "string" ? { kind: "invalid", reason: "invalid team_name" } : {
     kind: "ok",
     metadata: {
       created_at: record.created_at,
       space_id: record.space_id,
       space_name: record.space_name,
-      team_id: teamId
+      team_id: teamId,
+      // Surface only when present — never inject a null key, so older metadata
+      // (and personal spaces) round-trip unchanged.
+      ...typeof record.team_name == "string" ? { team_name: record.team_name } : {}
     }
   };
 }
@@ -25724,29 +25852,13 @@ async function readCapability(spaceDir) {
   }
 }
 
-// src/sync/readiness.ts
-import { chmod as chmod7, mkdir as mkdir22, open as open5, readFile as readFile23, rm as rm18, writeFile as writeFile17 } from "node:fs/promises";
-import { dirname as dirname12 } from "node:path";
-var MAX_DAEMON_READY_JSON_BYTES = 64 * 1024;
-async function writeReadyFile(path, value2, deps = {}) {
-  let write = deps.writeFile ?? writeFile17;
-  await mkdir22(dirname12(path), { recursive: !0 });
-  let tmp = `${path}.tmp-${process.pid}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-  try {
-    await write(tmp, JSON.stringify(value2, null, 2) + `
-`, { mode: 384 }), await chmod7(tmp, 384), await renameWithRetry(tmp, path);
-  } catch (err) {
-    throw await rm18(tmp, { force: !0 }), err;
-  }
-}
-
 // src/sync/safe-delete.ts
 import { createHash as createHash10 } from "node:crypto";
-import { readFile as readFile24, readdir as readdir7, realpath, rm as rm19 } from "node:fs/promises";
+import { readFile as readFile23, readdir as readdir7, realpath, rm as rm18 } from "node:fs/promises";
 import { join as join32, sep as sep7, basename as basename3 } from "node:path";
 async function readJson(path) {
   try {
-    return JSON.parse(await readFile24(path, "utf8"));
+    return JSON.parse(await readFile23(path, "utf8"));
   } catch {
     return null;
   }
@@ -25791,7 +25903,7 @@ async function contextTreeMatchesBaseline(contextTreeDir, baseline) {
     if (!fileEntry) return !1;
     let content;
     try {
-      content = await readFile24(fileEntry.absolute);
+      content = await readFile23(fileEntry.absolute);
     } catch {
       return !1;
     }
@@ -25833,7 +25945,7 @@ async function safeDeleteCloudSpace(input) {
     throw new Error("metadata.space_id mismatch");
   let daemonSpaceStateDir = daemonSpaceStateDirForSpace(root, folder);
   if (!(input.isClean ? await input.isClean() : await isCloudSpaceCleanForDelete(dir))) return "preserved_dirty";
-  let remove = input.remove ?? rm19;
+  let remove = input.remove ?? rm18;
   await remove(dir, { recursive: !0, force: !0 });
   try {
     await remove(daemonSpaceStateDir, {
@@ -25894,11 +26006,14 @@ function readColdSyncConcurrency(env = DEFAULT_ENV2) {
 function readFastBootstrapPullOnly(env = DEFAULT_ENV2) {
   return env.BRV_FAST_BOOTSTRAP_PULL_ONLY === "1";
 }
+function readIsTestEnv(env = DEFAULT_ENV2) {
+  return env.NODE_ENV === "test";
+}
 
 // src/sync/multi-space-daemon.ts
-var AUTH_EXPIRED_RETRY_MIN_SEC = 120, AUTH_EXPIRED_RETRY_MAX_SEC = 900;
+var AUTH_EXPIRED_RETRY_MIN_SEC = 120, AUTH_EXPIRED_RETRY_MAX_SEC = 900, CONFLICT_RING_CAP_PER_SPACE = 50, _testStatusWriter, _testEmitConflict, _testResetRing;
 function createMultiSpaceDaemon(deps) {
-  let workers = /* @__PURE__ */ new Map(), spaceStates = /* @__PURE__ */ new Map(), spaceMetadata = /* @__PURE__ */ new Map(), recentCompletion, workerGeneration = 0, refreshPromise = null, tickInFlight = null, authExpiredRetrySec = AUTH_EXPIRED_RETRY_MIN_SEC, followUpTickRequested = !1, authFollowUpInFlight = !1, shuttingDown = !1, firstExchangeAt = null, lastExchangeAt = null, lastError = null, daemonState = "starting", lastToken, wsHub = new WsHub(deps.baseUrl, { getToken: () => lastToken ?? "" }), createWsClient = (args2) => wsHub.viewFor(args2.teamId, args2.spaceId, args2), lastDaemonSocketToken, lastCapabilityRefreshAt, lastCapabilityRefreshResult, lastCapabilityRefreshErrorCode, lastCapabilityVersion, capabilitySocketState, defaultRegistryWarning = null, defaultRegistryRetryTimer, defaultRegistryGeneration = 0;
+  let workers = /* @__PURE__ */ new Map(), spaceStates = /* @__PURE__ */ new Map(), spaceMetadata = /* @__PURE__ */ new Map(), recentConflictsBySpace = /* @__PURE__ */ new Map(), recentCompletion, workerGeneration = 0, refreshPromise = null, tickInFlight = null, authExpiredRetrySec = AUTH_EXPIRED_RETRY_MIN_SEC, followUpTickRequested = !1, authFollowUpInFlight = !1, shuttingDown = !1, firstExchangeAt = null, lastExchangeAt = null, lastError = null, daemonState = "starting", lastToken, wsHub = new WsHub(deps.baseUrl, { getToken: () => lastToken ?? "" }), createWsClient = (args2) => wsHub.viewFor(args2.teamId, args2.spaceId, args2), lastDaemonSocketToken, lastCapabilityRefreshAt, lastCapabilityRefreshResult, lastCapabilityRefreshErrorCode, lastCapabilityVersion, capabilitySocketState, defaultRegistryWarning = null, defaultRegistryRetryTimer, defaultRegistryGeneration = 0;
   async function resetSpaceBaseline(syncDir) {
     let state = new SyncState(syncDir);
     await state.setBaseline({}), await state.setBaselineRevision(null);
@@ -25931,6 +26046,11 @@ function createMultiSpaceDaemon(deps) {
   function uniqueRejectedCount(rejected) {
     return new Set(rejected.map((entry) => entry.key)).size;
   }
+  function dedupeRejectedList(rejected) {
+    let byKey = /* @__PURE__ */ new Map();
+    for (let entry of rejected) byKey.set(entry.key, entry);
+    return Array.from(byKey.values()).slice(0, 50).map((e) => ({ key: e.key, reason: e.reason }));
+  }
   function syncWorkStateForStatus(status3) {
     return status3.state === "syncing" ? "syncing" : uniqueRejectedCount(status3.rejected) > 0 ? "attention" : "idle";
   }
@@ -25951,10 +26071,14 @@ function createMultiSpaceDaemon(deps) {
       ...engineStatus.pendingError ? { pendingError: engineStatus.pendingError } : {},
       ...engineStatus.fastBootstrap ? { fastBootstrap: engineStatus.fastBootstrap } : {},
       ...engineStatus.batchProgress ? { progress: engineStatus.batchProgress } : {},
-      ...uniqueRejectedCount(engineStatus.rejected) > 0 ? {
-        rejectedCount: uniqueRejectedCount(engineStatus.rejected),
-        attentionReason: "rejected"
-      } : {}
+      ...uniqueRejectedCount(engineStatus.rejected) > 0 ? (() => {
+        let rej = dedupeRejectedList(engineStatus.rejected);
+        return {
+          rejectedCount: rej.length,
+          attentionReason: "rejected",
+          rejected: rej
+        };
+      })() : {}
     };
   }
   function staleEngineStatus(status3) {
@@ -25969,11 +26093,153 @@ function createMultiSpaceDaemon(deps) {
       bootstrapError: status3.state === "auth-expired" ? "auth_expired" : "engine_stopped"
     };
   }
-  let statusWriteChain = Promise.resolve(), registryWriteChain = Promise.resolve();
+  let publicationWriteChain = Promise.resolve(), globalStatusWriteChain = Promise.resolve(), globalReadyWriteChain = Promise.resolve(), spacesIndexWriteChain = Promise.resolve(), registryWriteChain = Promise.resolve(), perSpaceStatusWriteChains = /* @__PURE__ */ new Map(), perSpaceReadyWriteChains = /* @__PURE__ */ new Map(), detailRevisions = /* @__PURE__ */ new Map(), attentionRevisions = /* @__PURE__ */ new Map(), readyRevisions = /* @__PURE__ */ new Map(), dirtyStatusSpaces = /* @__PURE__ */ new Set(), dirtyReadySpaces = /* @__PURE__ */ new Set(), statusDirtyGenerations = /* @__PURE__ */ new Map(), readyDirtyGenerations = /* @__PURE__ */ new Map(), publishedSpaceSummaries = /* @__PURE__ */ new Map(), spacesIndexRevision = 0, spacesIndexUpdatedAt = null, indexDirty = !0, indexDirtyGeneration = 0, spacesTotal = 0, spacesWithAttention = 0, spacesSyncing = 0;
   function enqueueRegistryWrite(run) {
     let next = registryWriteChain.then(run, run);
     return registryWriteChain = next.catch(() => {
     }), next;
+  }
+  function candidateRevision(revisions, spaceId) {
+    return (revisions.get(spaceId) ?? 0) + 1;
+  }
+  function commitRevision(revisions, spaceId, revision) {
+    revisions.set(spaceId, revision);
+  }
+  function readyForSpace(s) {
+    return !!(s.baselineEstablishedAt && s.watchEnabledAt && !s.bootstrapError);
+  }
+  function attentionReasonsFor(spaceId, s) {
+    let reasons = [];
+    return ((s.rejectedCount ?? 0) > 0 || s.attentionReason === "rejected") && reasons.push("rejected"), (recentConflictsBySpace.get(spaceId)?.length ?? 0) > 0 && reasons.push("conflict"), reasons;
+  }
+  function refreshSpaceCounters() {
+    spacesTotal = spaceStates.size, spacesWithAttention = 0, spacesSyncing = 0;
+    for (let [spaceId, s] of spaceStates)
+      s.syncWorkState === "syncing" && spacesSyncing++, attentionReasonsFor(spaceId, s).length > 0 && spacesWithAttention++;
+  }
+  function markSpaceStatusDirty(spaceId) {
+    statusDirtyGenerations.set(
+      spaceId,
+      (statusDirtyGenerations.get(spaceId) ?? 0) + 1
+    ), dirtyStatusSpaces.add(spaceId), indexDirty = !0, indexDirtyGeneration++;
+  }
+  function markSpaceReadyDirty(spaceId) {
+    readyDirtyGenerations.set(
+      spaceId,
+      (readyDirtyGenerations.get(spaceId) ?? 0) + 1
+    ), dirtyReadySpaces.add(spaceId);
+  }
+  function setSpaceStatus(spaceId, status3) {
+    spaceStates.set(spaceId, status3), refreshSpaceCounters(), markSpaceStatusDirty(spaceId), markSpaceReadyDirty(spaceId);
+  }
+  function deleteSpaceStatus(spaceId) {
+    spaceStates.delete(spaceId), refreshSpaceCounters(), dirtyStatusSpaces.delete(spaceId), dirtyReadySpaces.delete(spaceId), statusDirtyGenerations.delete(spaceId), readyDirtyGenerations.delete(spaceId), detailRevisions.delete(spaceId), attentionRevisions.delete(spaceId), readyRevisions.delete(spaceId), perSpaceStatusWriteChains.delete(spaceId), perSpaceReadyWriteChains.delete(spaceId), publishedSpaceSummaries.delete(spaceId), indexDirty = !0, indexDirtyGeneration++;
+  }
+  function isContainedPath2(parentReal, childReal) {
+    let parent = parentReal.endsWith(sep8) ? parentReal : `${parentReal}${sep8}`;
+    return childReal === parentReal || childReal.startsWith(parent);
+  }
+  function daemonSpaceDirPathForSpace(spaceId) {
+    try {
+      return assertSafeDaemonSpaceId(spaceId), dirname12(daemonSpaceStatusPath(deps.projectsRoot, spaceId));
+    } catch {
+      return;
+    }
+  }
+  async function safeDaemonSpaceDirForSpace(spaceId) {
+    let spaceDir = daemonSpaceDirPathForSpace(spaceId);
+    if (!spaceDir) return;
+    let spacesDir = daemonSpacesDir(deps.projectsRoot);
+    try {
+      let spacesDirStat = await lstat2(spacesDir);
+      if (!spacesDirStat.isDirectory() || spacesDirStat.isSymbolicLink())
+        return;
+      let spaceDirStat = await lstat2(spaceDir);
+      if (!spaceDirStat.isDirectory() || spaceDirStat.isSymbolicLink())
+        return;
+      let spacesDirReal = await realpath2(spacesDir), spaceDirReal = await realpath2(spaceDir);
+      return isContainedPath2(spacesDirReal, spaceDirReal) ? spaceDir : void 0;
+    } catch {
+      return;
+    }
+  }
+  async function safeDaemonMarkerPathsForSpace(spaceId) {
+    if (await safeDaemonSpaceDirForSpace(spaceId))
+      return {
+        readyPath: daemonSpaceReadyPath(deps.projectsRoot, spaceId),
+        statusPath: daemonSpaceStatusPath(deps.projectsRoot, spaceId)
+      };
+  }
+  async function readMarkerDaemonInstanceId2(path) {
+    try {
+      return JSON.parse(await readFile24(path, "utf8")).daemonInstanceId;
+    } catch {
+      return;
+    }
+  }
+  async function removeOwnedMarkerFile2(path) {
+    if (await readMarkerDaemonInstanceId2(path) === deps.daemonInstanceId) {
+      try {
+        await deps.beforeRemoveOwnedMarkerFileForTest?.(path);
+      } catch (err) {
+        await deps.log({
+          level: "warn",
+          message: `failed before removing owned daemon marker ${path}: ${String(err)}`
+        }).catch(() => {
+        });
+        return;
+      }
+      if (await readMarkerDaemonInstanceId2(path) === deps.daemonInstanceId)
+        try {
+          await rm19(path, { force: !0 });
+        } catch (err) {
+          await deps.log({
+            level: "warn",
+            message: `failed to remove owned daemon marker ${path}: ${String(err)}`
+          }).catch(() => {
+          });
+        }
+    }
+  }
+  async function removeOwnedSpaceDaemonMarkers(spaceId) {
+    let paths = await safeDaemonMarkerPathsForSpace(spaceId);
+    paths && (await removeOwnedMarkerFile2(paths.statusPath), await removeOwnedMarkerFile2(paths.readyPath));
+  }
+  async function hasSuccessorOwnedSpaceDaemonMarker(spaceId) {
+    let paths = await safeDaemonMarkerPathsForSpace(spaceId);
+    if (!paths) return !1;
+    for (let path of [paths.statusPath, paths.readyPath])
+      try {
+        let raw = JSON.parse(await readFile24(path, "utf8"));
+        if (typeof raw.daemonInstanceId == "string" && raw.daemonInstanceId !== deps.daemonInstanceId)
+          return !0;
+      } catch {
+      }
+    return !1;
+  }
+  async function removePathForRemovedSpace(spaceId, path, options) {
+    let spaceDir = daemonSpaceDirPathForSpace(spaceId);
+    if (spaceDir && (path === spaceDir || path.startsWith(`${spaceDir}${sep8}`)) && !await safeDaemonSpaceDirForSpace(spaceId))
+      return;
+    let paths = await safeDaemonMarkerPathsForSpace(spaceId);
+    paths && path === dirname12(paths.statusPath) && (await removeOwnedSpaceDaemonMarkers(spaceId), await hasSuccessorOwnedSpaceDaemonMarker(spaceId)) || await rm19(path, options);
+  }
+  async function removeSpacePublicationState(spaceId) {
+    await Promise.allSettled([
+      perSpaceStatusWriteChains.get(spaceId),
+      perSpaceReadyWriteChains.get(spaceId)
+    ]), deleteSpaceStatus(spaceId), await removeOwnedSpaceDaemonMarkers(spaceId);
+  }
+  function markSpaceMetadataDirty(spaceId) {
+    spaceStates.has(spaceId) && markSpaceStatusDirty(spaceId);
+  }
+  function queuePerSpaceWrite(chains, spaceId, run) {
+    let write = (chains.get(spaceId) ?? Promise.resolve()).then(run, run);
+    return chains.set(
+      spaceId,
+      write.catch(() => {
+      })
+    ), write;
   }
   function scheduleRegistryRetry(args2, generation) {
     shuttingDown || (defaultRegistryRetryTimer && clearTimeout(defaultRegistryRetryTimer), defaultRegistryRetryTimer = setTimeout(() => {
@@ -26003,7 +26269,7 @@ function createMultiSpaceDaemon(deps) {
   let heartbeatIntervalMs = deps.heartbeatIntervalMs ?? 5e3, heartbeatTimer;
   function startHeartbeat() {
     heartbeatTimer || (heartbeatTimer = setInterval(() => {
-      writeDaemonStatusQueued().catch(
+      writeGlobalHeartbeatQueued().catch(
         (err) => void deps.log({
           level: "warn",
           message: `daemon status heartbeat failed: ${String(err)}`
@@ -26015,10 +26281,31 @@ function createMultiSpaceDaemon(deps) {
     heartbeatTimer && clearInterval(heartbeatTimer), heartbeatTimer = void 0;
   }
   function writeDaemonStatusQueued() {
-    let write = statusWriteChain.then(() => writeDaemonStatusAndReadyFile());
-    return statusWriteChain = write.catch(() => {
+    let write = publicationWriteChain.then(
+      () => publishDirtyStateAndHeartbeat(),
+      () => publishDirtyStateAndHeartbeat()
+    );
+    return publicationWriteChain = write.catch(() => {
     }), write;
   }
+  async function writeGlobalHeartbeatQueued() {
+    let heartbeatAt = (deps.now() ?? /* @__PURE__ */ new Date()).toISOString(), statusWrite = globalStatusWriteChain.then(
+      () => writeGlobalStatusFile(heartbeatAt),
+      () => writeGlobalStatusFile(heartbeatAt)
+    );
+    globalStatusWriteChain = statusWrite.catch(() => {
+    }), await statusWrite;
+    let readyWrite = globalReadyWriteChain.then(
+      () => writeGlobalReadyFile(heartbeatAt),
+      () => writeGlobalReadyFile(heartbeatAt)
+    );
+    globalReadyWriteChain = readyWrite.catch(() => {
+    }), await readyWrite;
+  }
+  readIsTestEnv() && (_testStatusWriter = () => writeDaemonStatusQueued(), _testEmitConflict = (spaceId, event) => {
+    let ring = recentConflictsBySpace.get(spaceId) ?? [];
+    ring.push(event), ring.length > CONFLICT_RING_CAP_PER_SPACE && ring.splice(0, ring.length - CONFLICT_RING_CAP_PER_SPACE), recentConflictsBySpace.set(spaceId, ring), refreshSpaceCounters(), markSpaceStatusDirty(spaceId);
+  }, _testResetRing = () => recentConflictsBySpace.clear());
   function scheduleDaemonStatusWrite() {
     writeDaemonStatusQueued().catch((err) => {
       deps.log({
@@ -26077,11 +26364,12 @@ function createMultiSpaceDaemon(deps) {
       await upsertCloudMetadata(dir, {
         space_id: space.space_id,
         space_name: space.space_name,
-        team_id: space.team_id
+        team_id: space.team_id,
+        team_name: space.team_name
       }), spaceMetadata.set(space.space_id, {
         ...space.team_id ? { teamId: space.team_id } : {},
         spaceName: space.space_name
-      }), await mkdir23(join33(dir, "context-tree"), { recursive: !0 }), (space.sync_state === "paused" || !space.scopes.includes("space:read")) && (spaceStates.has(space.space_id) || spaceStates.set(space.space_id, {
+      }), markSpaceMetadataDirty(space.space_id), await mkdir22(join33(dir, "context-tree"), { recursive: !0 }), (space.sync_state === "paused" || !space.scopes.includes("space:read")) && (spaceStates.has(space.space_id) || setSpaceStatus(space.space_id, {
         space_id: space.space_id,
         state: "paused",
         bootstrapReady: !1,
@@ -26096,7 +26384,7 @@ function createMultiSpaceDaemon(deps) {
       await writeCapability(dir, capability), bySpaceId.set(capability.space_id, capability), spaceMetadata.set(capability.space_id, {
         ...capability.team_id ? { teamId: capability.team_id } : {},
         spaceName: capability.space_name
-      });
+      }), markSpaceMetadataDirty(capability.space_id);
     }
     return bySpaceId;
   }
@@ -26128,7 +26416,7 @@ function createMultiSpaceDaemon(deps) {
       });
       let worker = workers.get(entry);
       worker && (await worker.engine.stop().catch(() => {
-      }), workers.delete(entry)), spaceStates.set(entry, {
+      }), workers.delete(entry)), setSpaceStatus(entry, {
         space_id: entry,
         state: "paused",
         bootstrapReady: !1,
@@ -26151,7 +26439,7 @@ function createMultiSpaceDaemon(deps) {
     let stoppedWorkerIds = /* @__PURE__ */ new Set();
     for (let [spaceId, worker] of workers)
       currentSpaceIds.has(spaceId) || (await worker.engine.stop().catch(() => {
-      }), workers.delete(spaceId), spaceStates.delete(spaceId), spaceMetadata.delete(spaceId), stoppedWorkerIds.add(spaceId), await deps.log({
+      }), workers.delete(spaceId), await removeSpacePublicationState(spaceId), spaceMetadata.delete(spaceId), recentConflictsBySpace.delete(spaceId), stoppedWorkerIds.add(spaceId), await deps.log({
         level: "info",
         message: `stopped worker for removed space ${spaceId}`
       }));
@@ -26165,7 +26453,7 @@ function createMultiSpaceDaemon(deps) {
       if (!isUuid(entry) || currentSpaceIds.has(entry)) continue;
       let dir = cloudSpaceDir(deps.projectsRoot, entry), metadata = await readCloudMetadata(dir);
       if (metadata.kind !== "ok") {
-        await isResidualDaemonStateOnlySpaceDir(dir) && (await rm20(dir, { recursive: !0, force: !0 }), await deps.log({
+        await isResidualDaemonStateOnlySpaceDir(dir) && (await removeSpacePublicationState(entry), await rm19(dir, { recursive: !0, force: !0 }), await deps.log({
           level: "info",
           message: stoppedWorkerIds.has(entry) ? `deleted residual state for removed space ${entry}` : `deleted stale residual state for removed space ${entry}`
         }));
@@ -26177,11 +26465,11 @@ function createMultiSpaceDaemon(deps) {
       });
       let worker = workers.get(entry);
       if (worker && (await worker.engine.stop().catch(() => {
-      }), workers.delete(entry), await deps.log({
+      }), workers.delete(entry), recentConflictsBySpace.delete(entry), await deps.log({
         level: "info",
         message: `stopped worker for removed space ${entry}`
       })), !await deps.isCleanForDelete(dir)) {
-        spaceStates.set(entry, {
+        setSpaceStatus(entry, {
           space_id: entry,
           state: "orphaned_cloud_space",
           bootstrapReady: !1,
@@ -26198,11 +26486,12 @@ function createMultiSpaceDaemon(deps) {
         // Re-check cleanliness INSIDE safe-delete, immediately before `rm`, to
         // close the TOCTOU window between the check above and the deletion.
         isClean: () => deps.isCleanForDelete(dir),
+        remove: (path, options) => removePathForRemovedSpace(entry, path, options),
         log: deps.log
-      }) === "deleted" ? (spaceStates.delete(entry), spaceMetadata.delete(entry), await deps.log({
+      }) === "deleted" ? (await removeSpacePublicationState(entry), spaceMetadata.delete(entry), await deps.log({
         level: "info",
         message: `deleted removed space ${entry}`
-      })) : spaceStates.set(entry, {
+      })) : setSpaceStatus(entry, {
         space_id: entry,
         state: "orphaned_cloud_space",
         bootstrapReady: !1,
@@ -26219,7 +26508,7 @@ function createMultiSpaceDaemon(deps) {
       }), workers.delete(space.space_id), await deps.log({
         level: "info",
         message: `stopped worker for paused space ${space.space_id}`
-      })), spaceStates.set(space.space_id, {
+      })), setSpaceStatus(space.space_id, {
         space_id: space.space_id,
         state: "paused",
         bootstrapReady: !1,
@@ -26228,7 +26517,9 @@ function createMultiSpaceDaemon(deps) {
     }
   }
   async function provisionWritableSpaceMetadata(input) {
-    let spaceIdentity = await readSpaceIdentity(dirname13(input.contextTreeRoot)).catch(() => null);
+    let spaceIdentity = await readSpaceIdentity(
+      dirname12(input.contextTreeRoot)
+    ).catch(() => null);
     spaceIdentity?.publicKeyPem && spaceIdentity.space_id === input.space.space_id && (await provisionTrustAnchor(
       {
         baseUrl: input.deps.baseUrl,
@@ -26242,7 +26533,7 @@ function createMultiSpaceDaemon(deps) {
       message: `trust anchor for space ${input.space.space_id} differs from this space's local identity; its redacted/metadata layer is dark (likely a regenerated key \u2014 recovery needs the original key or a rotation).`
     }), await pushTopicIndex({
       contextTreeRoot: input.contextTreeRoot,
-      spaceDir: dirname13(input.contextTreeRoot),
+      spaceDir: dirname12(input.contextTreeRoot),
       spaceId: input.space.space_id,
       target: {
         baseUrl: input.deps.baseUrl,
@@ -26258,7 +26549,7 @@ function createMultiSpaceDaemon(deps) {
     try {
       await engine.start();
     } catch (err) {
-      workers.delete(space.space_id), spaceStates.set(space.space_id, {
+      workers.delete(space.space_id), setSpaceStatus(space.space_id, {
         space_id: space.space_id,
         state: "bootstrap_failed",
         bootstrapReady: !1,
@@ -26276,7 +26567,7 @@ function createMultiSpaceDaemon(deps) {
     let engineStatusAfterStart = engine.status();
     if (staleEngineStatus(engineStatusAfterStart)) {
       workers.delete(space.space_id), await engine.stop().catch(() => {
-      }), spaceStates.set(
+      }), setSpaceStatus(
         space.space_id,
         stoppedWorkerStatus(space.space_id, engineStatusAfterStart)
       ), await deps.log({
@@ -26286,7 +26577,7 @@ function createMultiSpaceDaemon(deps) {
       return;
     }
     let engineStatus = engine.status();
-    spaceStates.set(
+    setSpaceStatus(
       space.space_id,
       runningSpaceStatus(space.space_id, engineStatus)
     ), mode !== "pull-only" && await provisionWritableSpaceMetadata({
@@ -26306,26 +26597,25 @@ function createMultiSpaceDaemon(deps) {
   }
   function preSeedSpaceState(spaceId, opts) {
     if (!opts?.force && spaceStates.has(spaceId)) return;
-    let stub = {
-      mode: "snapshot",
-      phase: "checking_bootstrap",
-      usable: !1,
-      isCurrent: !1,
-      baselineRevision: null,
-      bootstrapTargetRevision: null,
-      latestKnownRevision: null,
-      revisionLag: null,
-      progress: { kind: "indeterminate" },
-      fallbackReason: null,
-      fallbackSeverity: null,
-      attemptId: null
-    };
-    spaceStates.set(spaceId, {
+    setSpaceStatus(spaceId, {
       space_id: spaceId,
       state: "running",
       bootstrapReady: !1,
       bootstrapError: null,
-      fastBootstrap: stub
+      fastBootstrap: {
+        mode: "snapshot",
+        phase: "checking_bootstrap",
+        usable: !1,
+        isCurrent: !1,
+        baselineRevision: null,
+        bootstrapTargetRevision: null,
+        latestKnownRevision: null,
+        revisionLag: null,
+        progress: { kind: "indeterminate" },
+        fallbackReason: null,
+        fallbackSeverity: null,
+        attemptId: null
+      }
     });
   }
   async function runBoundedStarts(units, limit) {
@@ -26350,7 +26640,7 @@ function createMultiSpaceDaemon(deps) {
       if (!accountSubject) {
         let existingBad = workers.get(space.space_id);
         existingBad && (await existingBad.engine.stop().catch(() => {
-        }), workers.delete(space.space_id)), spaceStates.set(space.space_id, {
+        }), workers.delete(space.space_id)), setSpaceStatus(space.space_id, {
           space_id: space.space_id,
           state: "bootstrap_failed",
           bootstrapReady: !1,
@@ -26388,7 +26678,7 @@ function createMultiSpaceDaemon(deps) {
       }), existing = void 0), existing) {
         let engineStatus = existing.engine.status();
         staleEngineStatus(engineStatus) && (await existing.engine.stop().catch(() => {
-        }), workers.delete(space.space_id), spaceStates.set(
+        }), workers.delete(space.space_id), setSpaceStatus(
           space.space_id,
           stoppedWorkerStatus(space.space_id, engineStatus)
         ), await deps.log({
@@ -26399,7 +26689,7 @@ function createMultiSpaceDaemon(deps) {
       if (existing) {
         existing.engine.setToken(mintToken2);
         let engineStatus = existing.engine.status();
-        spaceStates.set(
+        setSpaceStatus(
           space.space_id,
           runningSpaceStatus(space.space_id, engineStatus)
         );
@@ -26436,7 +26726,7 @@ function createMultiSpaceDaemon(deps) {
             authGeneration,
             log: logSyncEngine,
             readLocalIdentity: async (key) => {
-              let html = await readFile25(
+              let html = await readFile24(
                 join33(contextTreeRoot, key),
                 "utf8"
               ).catch(() => {
@@ -26458,7 +26748,7 @@ function createMultiSpaceDaemon(deps) {
           }
         );
       } catch (err) {
-        spaceStates.set(space.space_id, {
+        setSpaceStatus(space.space_id, {
           space_id: space.space_id,
           state: "bootstrap_failed",
           bootstrapReady: !1,
@@ -26483,13 +26773,24 @@ function createMultiSpaceDaemon(deps) {
           message: `pulled ${keys.length} file(s) in ${space.space_id}`
         });
       }), engine.on("conflict", (c) => {
+        let currentWorker = workers.get(space.space_id);
+        if (!currentWorker || currentWorker.engine !== engine || currentWorker.generation !== generation)
+          return;
         deps.log({
           level: "warn",
           message: `conflict in ${space.space_id} (winner=${c.winner}, reason=${c.reason})`
         });
+        let ring = recentConflictsBySpace.get(space.space_id) ?? [];
+        ring.push({
+          spaceId: space.space_id,
+          key: c.key,
+          winner: c.winner,
+          reason: c.reason,
+          at: c.at
+        }), ring.length > CONFLICT_RING_CAP_PER_SPACE && ring.splice(0, ring.length - CONFLICT_RING_CAP_PER_SPACE), recentConflictsBySpace.set(space.space_id, ring), refreshSpaceCounters(), markSpaceStatusDirty(space.space_id), scheduleDaemonStatusWrite();
       }), engine.on("status", (engineStatus) => {
         let currentWorker = workers.get(space.space_id);
-        !currentWorker || currentWorker.engine !== engine || currentWorker.generation !== generation || (spaceStates.set(
+        !currentWorker || currentWorker.engine !== engine || currentWorker.generation !== generation || (setSpaceStatus(
           space.space_id,
           runningSpaceStatus(space.space_id, engineStatus)
         ), scheduleDaemonStatusWrite());
@@ -26499,7 +26800,7 @@ function createMultiSpaceDaemon(deps) {
           changedCount: completion.changedCount,
           completedAt: completion.completedAt,
           batchId: completion.batchId
-        }, scheduleDaemonStatusWrite());
+        }, markSpaceStatusDirty(space.space_id), scheduleDaemonStatusWrite());
       }), workers.set(space.space_id, {
         engine,
         spaceId: space.space_id,
@@ -26542,11 +26843,31 @@ function createMultiSpaceDaemon(deps) {
     if (!(value2.length === 0 || value2.length > 80) && !/[\\/]/.test(value2) && !(/Bearer\s+/i.test(value2) || /token|secret/i.test(value2) || /brv_(desktop|daemon|api|sync)_[A-Za-z0-9_-]+/.test(value2)))
       return value2;
   }
-  async function writeDaemonStatusAndReadyFile() {
-    let daemonDir2 = join33(deps.projectsRoot, ".daemon");
-    await mkdir23(daemonDir2, { recursive: !0 });
-    let heartbeatAt = (deps.now() ?? /* @__PURE__ */ new Date()).toISOString(), statusFile = {
-      schemaVersion: 1,
+  function syncStateFor(s) {
+    return s.state === "paused" ? "paused" : "active";
+  }
+  function progressSummaryFor(progress) {
+    if (!(!progress || progress.kind !== "action-count"))
+      return {
+        kind: "action-count",
+        operation: progress.operation,
+        completedActions: progress.completedActions,
+        totalActions: progress.totalActions,
+        ...progress.percent !== void 0 ? { percent: progress.percent } : {},
+        ...progress.uploadPhase !== void 0 ? { uploadPhase: progress.uploadPhase } : {},
+        ...progress.throttled !== void 0 ? { throttled: progress.throttled } : {}
+      };
+  }
+  function shouldSurfaceFastBootstrap(s) {
+    let fastBootstrap = s.fastBootstrap;
+    if (!fastBootstrap || fastBootstrap.usable && fastBootstrap.isCurrent || readyForSpace(s) && (s.syncWorkState ?? "idle") === "idle" && fastBootstrap.phase === "ready")
+      return !1;
+    let fallbackSeverity = fastBootstrap.fallbackSeverity;
+    return !(fastBootstrap.fallbackReason !== null && (fallbackSeverity === null || fallbackSeverity === "silent" || fallbackSeverity === "informational"));
+  }
+  function buildGlobalStatus(heartbeatAt) {
+    return {
+      schemaVersion: 2,
       providerKind: deps.providerKind,
       authState: daemonState === "auth-expired" ? "auth_expired" : daemonState === "starting" ? "starting" : "running",
       daemonInstanceId: deps.daemonInstanceId,
@@ -26563,46 +26884,264 @@ function createMultiSpaceDaemon(deps) {
       ...deps.authIdentity ? { authIdentity: deps.authIdentity } : {},
       ...defaultRegistryWarning ? { warnings: [defaultRegistryWarning] } : {},
       ...recentCompletion ? { recentCompletion } : {},
-      spaces: Array.from(spaceStates.values()).map((s) => {
-        let metadata = spaceMetadata.get(s.space_id), healthState = healthStateFor(s), errorKind = sanitizedErrorKind(s), displayCurrentFileName = s.syncWorkState === "syncing" && s.currentFileName ? sanitizeDisplayBasename(s.currentFileName) : void 0;
-        return {
-          spaceId: s.space_id,
-          ...metadata?.teamId ? { teamId: metadata.teamId } : {},
-          ...metadata?.spaceName ? { spaceName: metadata.spaceName } : {},
-          syncState: s.state === "paused" ? "paused" : "active",
-          spaceHealthState: healthState,
-          ...s.syncWorkState ? { syncWorkState: s.syncWorkState } : {},
-          ...displayCurrentFileName ? { currentFileName: displayCurrentFileName } : {},
-          ...s.syncWorkState === "syncing" && s.progressPercent !== void 0 ? {
-            progressPercent: s.progressPercent,
-            progressKind: "action-count"
-          } : {},
-          ...s.operation ? { operation: s.operation } : {},
-          ...s.operationFileName ? { operationFileName: s.operationFileName } : {},
-          ...s.fastBootstrap ? { fastBootstrap: s.fastBootstrap } : {},
-          ...errorKind ? { errorKind, errorAt: heartbeatAt } : {},
-          ...s.progress ? { progress: s.progress } : {},
-          ...s.rejectedCount !== void 0 ? { rejectedCount: s.rejectedCount } : {},
-          ...s.attentionReason ? { attentionReason: s.attentionReason } : {}
-        };
-      })
+      spacesIndexRevision,
+      spacesIndexUpdatedAt,
+      spacesTotal,
+      spacesWithAttention,
+      spacesSyncing
     };
-    await writeDaemonStatus(daemonStatusPath(deps.projectsRoot), statusFile);
-    let spaces = {};
-    for (let [id, s] of spaceStates)
-      spaces[id] = {
-        baselineEstablishedAt: s.baselineEstablishedAt,
-        watchEnabledAt: s.watchEnabledAt,
-        bootstrapError: redactNullable(s.bootstrapError)
-      };
-    let ready = {
+  }
+  function buildGlobalReady(heartbeatAt) {
+    return {
+      schemaVersion: 2,
       ready: firstExchangeAt !== null,
       daemonInstanceId: deps.daemonInstanceId,
       heartbeatAt,
-      firstExchangeAt,
-      spaces
+      firstExchangeAt
     };
-    await writeReadyFile(join33(daemonDir2, "ready.json"), ready);
+  }
+  function buildSpaceSummary(input) {
+    let { spaceId, status: status3, detailRevision, detailUpdatedAt } = input, metadata = spaceMetadata.get(spaceId), attentionReasons = attentionReasonsFor(spaceId, status3), attentionRevision = attentionRevisions.get(spaceId), progress = progressSummaryFor(status3.progress), surfaceFastBootstrap = shouldSurfaceFastBootstrap(status3), fallbackSeverity = status3.fastBootstrap?.fallbackSeverity;
+    return {
+      spaceId,
+      daemonInstanceId: deps.daemonInstanceId,
+      ...metadata?.teamId ? { teamId: metadata.teamId } : {},
+      ...metadata?.spaceName ? { spaceName: metadata.spaceName } : {},
+      syncState: syncStateFor(status3),
+      spaceHealthState: healthStateFor(status3),
+      ...status3.syncWorkState ? { syncWorkState: status3.syncWorkState } : {},
+      ...status3.operation ? { operation: status3.operation } : {},
+      ...status3.syncWorkState === "syncing" && status3.progressPercent !== void 0 ? {
+        progressPercent: status3.progressPercent,
+        progressKind: "action-count"
+      } : {},
+      ...progress ? { progress } : {},
+      ...status3.rejectedCount !== void 0 ? { rejectedCount: status3.rejectedCount } : {},
+      ...recentConflictsBySpace.get(spaceId)?.length ? { recentConflictCount: recentConflictsBySpace.get(spaceId)?.length } : {},
+      ...attentionReasons.length > 0 ? { attentionReasons } : {},
+      ...attentionRevision !== void 0 ? { attentionRevision } : {},
+      detailRevision,
+      detailUpdatedAt,
+      hasDetail: !0,
+      ...surfaceFastBootstrap ? {
+        fastBootstrapSurface: !0,
+        fastBootstrapPhase: status3.fastBootstrap?.phase
+      } : {},
+      ...surfaceFastBootstrap && fallbackSeverity !== null && fallbackSeverity !== void 0 ? { fallbackSeverity } : {},
+      bootstrapReady: status3.bootstrapReady,
+      watcherState: readyForSpace(status3) ? "watching" : status3.state === "running" ? "starting" : "stopped"
+    };
+  }
+  function buildSpaceDetail(input) {
+    let { spaceId, status: status3, detailRevision, attentionRevision, updatedAt } = input, metadata = spaceMetadata.get(spaceId), attentionReasons = attentionReasonsFor(spaceId, status3), currentFileName = status3.syncWorkState === "syncing" && status3.currentFileName ? sanitizeDisplayBasename(status3.currentFileName) : void 0, operationFileName = status3.operationFileName ? sanitizeDisplayBasename(status3.operationFileName) : void 0, errorKind = sanitizedErrorKind(status3), surfaceFastBootstrap = shouldSurfaceFastBootstrap(status3), recentConflicts = (recentConflictsBySpace.get(spaceId) ?? []).slice(-DAEMON_RECENT_CONFLICTS_PER_SPACE_CAP).map((event) => ({
+      key: event.key,
+      winner: event.winner,
+      reason: event.reason,
+      at: event.at
+    }));
+    return {
+      schemaVersion: 2,
+      daemonInstanceId: deps.daemonInstanceId,
+      spaceId,
+      ...metadata?.teamId ? { teamId: metadata.teamId } : {},
+      ...metadata?.spaceName ? { spaceName: metadata.spaceName } : {},
+      detailRevision,
+      updatedAt,
+      syncState: syncStateFor(status3),
+      spaceHealthState: healthStateFor(status3),
+      ...status3.syncWorkState ? { syncWorkState: status3.syncWorkState } : {},
+      ...currentFileName ? { currentFileName } : {},
+      ...operationFileName ? { operationFileName } : {},
+      ...operationFileName ?? currentFileName ? { displayFileName: operationFileName ?? currentFileName } : {},
+      ...status3.syncWorkState === "syncing" && status3.progressPercent !== void 0 ? {
+        progressPercent: status3.progressPercent,
+        progressKind: "action-count"
+      } : {},
+      ...status3.operation ? { operation: status3.operation } : {},
+      ...errorKind ? { errorKind, errorAt: updatedAt } : {},
+      ...surfaceFastBootstrap && status3.fastBootstrap ? { fastBootstrap: status3.fastBootstrap } : {},
+      ...status3.progress ? { progress: status3.progress } : {},
+      ...status3.rejectedCount !== void 0 ? { rejectedCount: status3.rejectedCount } : {},
+      ...recentConflicts.length > 0 ? { recentConflictCount: recentConflicts.length } : {},
+      ...attentionReasons.length > 0 ? { attentionReasons } : {},
+      ...attentionRevision !== void 0 ? { attentionRevision } : {},
+      ...status3.rejected ? { rejected: status3.rejected.slice(0, DAEMON_REJECTED_PER_SPACE_CAP) } : {},
+      ...recentConflicts.length > 0 ? { recentConflicts } : {}
+    };
+  }
+  function buildSpaceReady(input) {
+    let { spaceId, status: status3, readyRevision, updatedAt } = input;
+    return {
+      schemaVersion: 2,
+      daemonInstanceId: deps.daemonInstanceId,
+      spaceId,
+      ready: readyForSpace(status3),
+      readyRevision,
+      updatedAt,
+      ...status3.baselineEstablishedAt ? { baselineEstablishedAt: status3.baselineEstablishedAt } : {},
+      ...status3.watchEnabledAt ? { watchEnabledAt: status3.watchEnabledAt } : {},
+      bootstrapError: redactNullable(status3.bootstrapError)
+    };
+  }
+  function buildSpacesIndex(revision, updatedAt) {
+    let spacesSummary = Array.from(spaceStates.keys()).sort().map(
+      (spaceId) => dirtyStatusSpaces.has(spaceId) ? void 0 : publishedSpaceSummaries.get(spaceId)
+    ).filter(
+      (summary) => summary !== void 0
+    );
+    return {
+      schemaVersion: 2,
+      daemonInstanceId: deps.daemonInstanceId,
+      revision,
+      updatedAt,
+      spacesSummary
+    };
+  }
+  async function ensureDaemonSplitDirs() {
+    await mkdir22(join33(deps.projectsRoot, ".daemon"), {
+      recursive: !0,
+      mode: 448
+    }), await mkdir22(daemonSpacesDir(deps.projectsRoot), {
+      recursive: !0,
+      mode: 448
+    });
+  }
+  async function writeSpaceStatusIfDirty(spaceId, updatedAt) {
+    let capturedGeneration = statusDirtyGenerations.get(spaceId) ?? 0;
+    try {
+      let written;
+      if (await queuePerSpaceWrite(perSpaceStatusWriteChains, spaceId, async () => {
+        let status3 = spaceStates.get(spaceId);
+        if (!status3) return;
+        let detailRevision = candidateRevision(detailRevisions, spaceId), attentionRevision = attentionReasonsFor(spaceId, status3).length > 0 ? candidateRevision(attentionRevisions, spaceId) : void 0, detail = buildSpaceDetail({
+          spaceId,
+          status: status3,
+          detailRevision,
+          attentionRevision,
+          updatedAt
+        });
+        await mkdir22(
+          dirname12(daemonSpaceStatusPath(deps.projectsRoot, spaceId)),
+          {
+            recursive: !0,
+            mode: 448
+          }
+        ), await (deps.writeDaemonSpaceStatusV2 ?? writeDaemonSpaceStatusV2)(
+          daemonSpaceStatusPath(deps.projectsRoot, spaceId),
+          detail
+        ), written = { attentionRevision, detailRevision, status: status3 };
+      }), !written || (statusDirtyGenerations.get(spaceId) ?? 0) !== capturedGeneration)
+        return;
+      commitRevision(detailRevisions, spaceId, written.detailRevision), written.attentionRevision !== void 0 && commitRevision(attentionRevisions, spaceId, written.attentionRevision), publishedSpaceSummaries.set(
+        spaceId,
+        buildSpaceSummary({
+          spaceId,
+          status: written.status,
+          detailRevision: written.detailRevision,
+          detailUpdatedAt: updatedAt
+        })
+      ), dirtyStatusSpaces.delete(spaceId), indexDirty = !0;
+    } catch (err) {
+      await deps.log({
+        level: "warn",
+        message: `failed to publish daemon detail for ${spaceId}: ${String(err)}`
+      });
+    }
+  }
+  async function writeSpaceReadyIfDirty(spaceId, updatedAt) {
+    let capturedGeneration = readyDirtyGenerations.get(spaceId) ?? 0;
+    try {
+      let written;
+      if (await queuePerSpaceWrite(perSpaceReadyWriteChains, spaceId, async () => {
+        let status3 = spaceStates.get(spaceId);
+        if (!status3) return;
+        let readyRevision = candidateRevision(readyRevisions, spaceId), ready = buildSpaceReady({
+          spaceId,
+          status: status3,
+          readyRevision,
+          updatedAt
+        });
+        await mkdir22(dirname12(daemonSpaceReadyPath(deps.projectsRoot, spaceId)), {
+          recursive: !0,
+          mode: 448
+        }), await (deps.writeDaemonSpaceReadyV2 ?? writeDaemonSpaceReadyV2)(
+          daemonSpaceReadyPath(deps.projectsRoot, spaceId),
+          ready
+        ), written = { readyRevision };
+      }), !written || (readyDirtyGenerations.get(spaceId) ?? 0) !== capturedGeneration)
+        return;
+      commitRevision(readyRevisions, spaceId, written.readyRevision), dirtyReadySpaces.delete(spaceId);
+    } catch (err) {
+      await deps.log({
+        level: "warn",
+        message: `failed to publish daemon ready for ${spaceId}: ${String(err)}`
+      });
+    }
+  }
+  async function publishDirtyPerSpace(updatedAt) {
+    let statusSpaceIds = [...dirtyStatusSpaces];
+    await Promise.all(
+      statusSpaceIds.map(
+        (spaceId) => writeSpaceStatusIfDirty(spaceId, updatedAt)
+      )
+    );
+    let readySpaceIds = [...dirtyReadySpaces];
+    await Promise.all(
+      readySpaceIds.map((spaceId) => writeSpaceReadyIfDirty(spaceId, updatedAt))
+    );
+  }
+  async function writeSpacesIndexIfDirty(updatedAt) {
+    if (!indexDirty) return;
+    let capturedGeneration = indexDirtyGeneration, writtenRevision, writeIndex = spacesIndexWriteChain.then(
+      async () => {
+        let revision = spacesIndexRevision + 1, index = buildSpacesIndex(revision, updatedAt);
+        await (deps.writeDaemonSpacesIndexV2 ?? writeDaemonSpacesIndexV2)(
+          daemonSpacesIndexPath(deps.projectsRoot),
+          index
+        ), writtenRevision = revision;
+      },
+      async () => {
+        let revision = spacesIndexRevision + 1, index = buildSpacesIndex(revision, updatedAt);
+        await (deps.writeDaemonSpacesIndexV2 ?? writeDaemonSpacesIndexV2)(
+          daemonSpacesIndexPath(deps.projectsRoot),
+          index
+        ), writtenRevision = revision;
+      }
+    );
+    spacesIndexWriteChain = writeIndex.catch(() => {
+    });
+    try {
+      if (await writeIndex, writtenRevision === void 0 || indexDirtyGeneration !== capturedGeneration)
+        return;
+      spacesIndexRevision = writtenRevision, spacesIndexUpdatedAt = updatedAt, indexDirty = !1;
+    } catch (err) {
+      await deps.log({
+        level: "warn",
+        message: `failed to publish daemon spaces index: ${String(err)}`
+      });
+    }
+  }
+  async function writeGlobalStatusFile(heartbeatAt) {
+    await mkdir22(join33(deps.projectsRoot, ".daemon"), {
+      recursive: !0,
+      mode: 448
+    }), await (deps.writeDaemonStatusV2 ?? writeDaemonStatusV2)(
+      daemonStatusPath(deps.projectsRoot),
+      buildGlobalStatus(heartbeatAt)
+    );
+  }
+  async function writeGlobalReadyFile(heartbeatAt) {
+    await mkdir22(join33(deps.projectsRoot, ".daemon"), {
+      recursive: !0,
+      mode: 448
+    }), await (deps.writeDaemonReadyV2 ?? writeDaemonReadyV2)(
+      daemonReadyPath(deps.projectsRoot),
+      buildGlobalReady(heartbeatAt)
+    );
+  }
+  async function publishDirtyStateAndHeartbeat() {
+    let updatedAt = (deps.now() ?? /* @__PURE__ */ new Date()).toISOString();
+    await ensureDaemonSplitDirs(), await publishDirtyPerSpace(updatedAt), await writeSpacesIndexIfDirty(updatedAt), await writeGlobalHeartbeatQueued();
   }
   async function tickImpl() {
     startHeartbeat(), await writeDaemonStatusQueued();
@@ -26615,7 +27154,7 @@ function createMultiSpaceDaemon(deps) {
         if (err.code === "legacy_filesync_token_too_large") {
           lastError = "legacy_filesync_token_too_large", daemonState = "running";
           for (let [spaceId, spaceStatus] of spaceStates)
-            spaceStates.set(spaceId, {
+            setSpaceStatus(spaceId, {
               ...spaceStatus,
               bootstrapError: "legacy_filesync_token_too_large"
             });
@@ -26640,7 +27179,7 @@ function createMultiSpaceDaemon(deps) {
       ...capabilities.values()
     ]), currentSpaceIds = mint.spaces.map((s) => s.space_id);
     return await applyDefaultSpaceLifecycle(defaultSpace), await applyRegistryStateWithRetry({
-      defaultSpace: { kind: "omitted" },
+      defaultSpace,
       spaceIds: currentSpaceIds
     }), await reconcileRemovedSpaces(new Set(currentSpaceIds)), await stopWorkersForPausedSpaces(mint.spaces), await startOrUpdateActiveWorkers(mint, capabilities), await writeDaemonStatusQueued(), mint.expiresIn;
   }
@@ -26681,7 +27220,11 @@ function createMultiSpaceDaemon(deps) {
       (w) => w.engine.stop().catch(() => {
       })
     );
-    await Promise.allSettled(stops), await statusWriteChain, workers.clear();
+    await Promise.allSettled(stops), await publicationWriteChain.catch(() => {
+    }), await globalStatusWriteChain.catch(() => {
+    }), await globalReadyWriteChain.catch(() => {
+    }), await spacesIndexWriteChain.catch(() => {
+    }), await Promise.allSettled(perSpaceStatusWriteChains.values()), await Promise.allSettled(perSpaceReadyWriteChains.values()), workers.clear();
   }
   function status2() {
     return {
@@ -26715,10 +27258,10 @@ function createMultiSpaceDaemon(deps) {
 
 // src/sync/sync-now-watcher.ts
 import { watch as watch2 } from "node:fs";
-import { dirname as dirname14 } from "node:path";
+import { dirname as dirname13 } from "node:path";
 var DEFAULT_DEBOUNCE_MS = 250;
 function startSyncNowWatcher(cfg) {
-  let sentinelPath = syncNowSentinelPath(cfg.projectsRoot), sentinelName = sentinelPath.slice(dirname14(sentinelPath).length + 1), debounceMs = cfg.debounceMs ?? DEFAULT_DEBOUNCE_MS, stopped = !1, debounceTimer, watcher, fireReconcile = () => {
+  let sentinelPath = syncNowSentinelPath(cfg.projectsRoot), sentinelName = sentinelPath.slice(dirname13(sentinelPath).length + 1), debounceMs = cfg.debounceMs ?? DEFAULT_DEBOUNCE_MS, stopped = !1, debounceTimer, watcher, fireReconcile = () => {
     stopped || (cfg.onLog?.("sync-now sentinel touched; forcing reconcile-all"), Promise.resolve().then(() => cfg.reconcileAll()).catch((err) => cfg.onError?.(err)));
   }, onEvent = (filename) => {
     stopped || filename !== null && filename !== sentinelName || (debounceTimer && clearTimeout(debounceTimer), debounceTimer = setTimeout(fireReconcile, debounceMs), debounceTimer.unref?.());
@@ -26733,7 +27276,7 @@ function startSyncNowWatcher(cfg) {
     return w.on("error", onErr), w;
   });
   try {
-    watcher = make(dirname14(sentinelPath), onEvent, onWatchError);
+    watcher = make(dirname13(sentinelPath), onEvent, onWatchError);
   } catch (err) {
     return cfg.onError?.(err), { stop() {
     } };
@@ -26947,12 +27490,12 @@ function startFlushWatcher(cfg) {
 // src/sync/pidfile.ts
 import { createHash as createHash11, randomUUID as randomUUID11 } from "node:crypto";
 import fs from "node:fs";
-import { chmod as chmod8, mkdir as mkdir24, open as open6, readFile as readFile26, rm as rm21 } from "node:fs/promises";
+import { chmod as chmod7, mkdir as mkdir23, open as open5, readFile as readFile25, rm as rm20 } from "node:fs/promises";
 import { join as join34 } from "node:path";
 var FILE = "daemon.pid";
 async function hashBundle(path) {
   try {
-    return createHash11("sha256").update(await readFile26(path)).digest("hex");
+    return createHash11("sha256").update(await readFile25(path)).digest("hex");
   } catch {
     return "";
   }
@@ -26970,7 +27513,7 @@ function newPidRecord(projectsRoot2, version, codeHash) {
 }
 async function readPid(daemonDir2) {
   try {
-    let data = JSON.parse(await readFile26(join34(daemonDir2, FILE), "utf8"));
+    let data = JSON.parse(await readFile25(join34(daemonDir2, FILE), "utf8"));
     if (typeof data.pid != "number" || data.script !== "sync-daemon" || typeof data.projectsRoot != "string")
       return null;
     let authIdentityResult = data.authIdentity === void 0 ? null : parseDaemonAuthMarkerIdentity(data.authIdentity), authIdentity = authIdentityResult?.ok === !0 ? authIdentityResult.identity : void 0;
@@ -26989,7 +27532,7 @@ async function readPid(daemonDir2) {
   }
 }
 async function removePid(daemonDir2) {
-  await rm21(join34(daemonDir2, FILE), { force: !0 });
+  await rm20(join34(daemonDir2, FILE), { force: !0 });
 }
 function isAlive(pid) {
   try {
@@ -27002,15 +27545,15 @@ function isOwnedDaemon(record, projectsRoot2) {
   return !!(record && record.script === "sync-daemon" && record.projectsRoot === projectsRoot2);
 }
 async function acquirePid(daemonDir2, record) {
-  await mkdir24(daemonDir2, { recursive: !0, mode: 448 });
+  await mkdir23(daemonDir2, { recursive: !0, mode: 448 });
   try {
-    await chmod8(daemonDir2, 448);
+    await chmod7(daemonDir2, 448);
   } catch {
   }
   let path = join34(daemonDir2, FILE), O_NOFOLLOW = fs.constants.O_NOFOLLOW ?? 0, exclFlags = fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_EXCL | O_NOFOLLOW;
   for (let attempt = 0; attempt < 2; attempt++)
     try {
-      let fh = await open6(path, exclFlags, 384);
+      let fh = await open5(path, exclFlags, 384);
       try {
         await fh.chmod(384), await fh.write(JSON.stringify(record, null, 2) + `
 `), await fh.datasync();
@@ -27026,7 +27569,7 @@ async function acquirePid(daemonDir2, record) {
       let recheck = await readPid(daemonDir2);
       if (recheck && (recheck.pid !== owner?.pid || recheck.nonce !== owner?.nonce) || recheck === null && owner !== null)
         continue;
-      await rm21(path, { force: !0 });
+      await rm20(path, { force: !0 });
     }
   return !1;
 }
@@ -27113,8 +27656,85 @@ async function daemonLog(projectsRoot2, entry) {
   let logPath = prepareDaemonLog(projectsRoot2), line = `${(/* @__PURE__ */ new Date()).toISOString()} [${entry.level}] ${redactSecrets(entry.message)}
 `;
   await appendFile2(logPath, line, { mode: 384 }).catch(() => {
-  }), await chmod9(logPath, 384).catch(() => {
+  }), await chmod8(logPath, 384).catch(() => {
   });
+}
+function isContainedPath(parentReal, childReal) {
+  let parent = parentReal.endsWith(sep9) ? parentReal : `${parentReal}${sep9}`;
+  return childReal === parentReal || childReal.startsWith(parent);
+}
+async function readMarkerDaemonInstanceId(path) {
+  try {
+    return JSON.parse(await readFile26(path, "utf8")).daemonInstanceId;
+  } catch {
+    return;
+  }
+}
+async function removeOwnedMarkerFile(path, daemonInstanceId, options = {}) {
+  await readMarkerDaemonInstanceId(path) === daemonInstanceId && (await options.beforeRemoveOwnedMarkerFileForTest?.(path), await readMarkerDaemonInstanceId(path) === daemonInstanceId && await rm21(path, { force: !0 }).catch(() => {
+  }));
+}
+function isSafeDaemonSpaceId(spaceId) {
+  try {
+    return assertSafeDaemonSpaceId(spaceId), !0;
+  } catch {
+    return !1;
+  }
+}
+async function removeOwnedDaemonMarkers(projectsRoot2, daemonInstanceId, options = {}) {
+  await removeOwnedMarkerFile(
+    daemonStatusPath(projectsRoot2),
+    daemonInstanceId,
+    options
+  ), await removeOwnedMarkerFile(
+    daemonReadyPath(projectsRoot2),
+    daemonInstanceId,
+    options
+  ), await removeOwnedMarkerFile(
+    daemonSpacesIndexPath(projectsRoot2),
+    daemonInstanceId,
+    options
+  );
+  let spacesDir = daemonSpacesDir(projectsRoot2), spacesDirReal;
+  try {
+    let spacesDirStat = await lstat3(spacesDir);
+    if (!spacesDirStat.isDirectory() || spacesDirStat.isSymbolicLink()) return;
+    spacesDirReal = await realpath3(spacesDir);
+  } catch {
+    return;
+  }
+  let entries;
+  try {
+    entries = await readdir9(spacesDir);
+  } catch {
+    return;
+  }
+  for (let entry of entries) {
+    if (!isSafeDaemonSpaceId(entry)) continue;
+    let spaceDir = join35(spacesDir, entry), spaceDirStat;
+    try {
+      spaceDirStat = await lstat3(spaceDir);
+    } catch {
+      continue;
+    }
+    if (spaceDirStat.isSymbolicLink() || !spaceDirStat.isDirectory())
+      continue;
+    let spaceDirReal;
+    try {
+      spaceDirReal = await realpath3(spaceDir);
+    } catch {
+      continue;
+    }
+    isContainedPath(spacesDirReal, spaceDirReal) && (await removeOwnedMarkerFile(
+      daemonSpaceStatusPath(projectsRoot2, entry),
+      daemonInstanceId,
+      options
+    ), await removeOwnedMarkerFile(
+      daemonSpaceReadyPath(projectsRoot2, entry),
+      daemonInstanceId,
+      options
+    ));
+  }
 }
 async function runDaemon(projectsRoot2, deps = {}) {
   let authUrl = AUTH_URL, readAuthIdentity = deps.readCurrentAuthIdentity ?? readCurrentDaemonAuthIdentity, authIdentityResult = await readAuthIdentity(projectsRoot2);
@@ -27221,17 +27841,7 @@ async function runDaemon(projectsRoot2, deps = {}) {
     let current = await readPid(daemonDir2);
     current?.nonce === pidRecord.nonce && current.pid === process.pid && await removePid(daemonDir2);
   }, cleanupRuntimeMarkers = async () => {
-    let removeIfOwn = async (file) => {
-      let path = join35(daemonDir2, file);
-      try {
-        if (JSON.parse(await readFile27(path, "utf8")).daemonInstanceId !== pidRecord.nonce) return;
-      } catch {
-        return;
-      }
-      await rm22(path, { force: !0 }).catch(() => {
-      });
-    };
-    await removeIfOwn("status.json"), await removeIfOwn("ready.json");
+    await removeOwnedDaemonMarkers(projectsRoot2, pidRecord.nonce);
   }, absorbSignal = () => {
   }, shutdown = async () => {
     if (shuttingDown) return;

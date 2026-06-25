@@ -5387,17 +5387,20 @@ var AnalyticsEventNames = {
   RECORD_RUN_COMPLETED: "record_run_completed",
   DREAM_COMPLETED: "dream_completed",
   QUERY_COMPLETED: "query_completed",
-  READ_COMPLETED: "read_completed"
+  READ_COMPLETED: "read_completed",
+  MIGRATION_RUN_COMPLETED: "migration_run_completed"
 }, TASK_TYPE = {
   RECORD: "record",
   DREAM: "dream",
   QUERY: "query",
-  READ: "read"
+  READ: "read",
+  MIGRATE: "migrate"
 }, TASK_TYPE_VALUES = [
   TASK_TYPE.RECORD,
   TASK_TYPE.DREAM,
   TASK_TYPE.QUERY,
-  TASK_TYPE.READ
+  TASK_TYPE.READ,
+  TASK_TYPE.MIGRATE
 ], DREAM_MODES = ["merge", "link", "prune", "synthesize"];
 
 // ../../packages/core/src/analytics/events/record-run-completed.ts
@@ -5515,6 +5518,15 @@ var RelatedPathWithMetadataSchema = external_exports.object({
     external_exports.literal(4)
   ]).optional(),
   /**
+   * The raw query text the user (or agent) asked. Optional because rows
+   * predate this field, and because a `search` invocation with no
+   * positionals yields an empty string we'd rather omit. Capped at 512
+   * chars at emit time; queries longer than that get a trailing `…`. The
+   * Usefulness panel uses this to label the "Used for these tasks" row
+   * with the actual query instead of an opaque `task_id`.
+   */
+  query: external_exports.string().max(512).optional(),
+  /**
    * Attribution slug of the host agent that ran this query (e.g. `claude`,
    * `codex`, `cursor`, `gemini`), resolved from the CLI env fingerprint
    * (skill-runtime `resolveAgent`). Omitted when undetected.
@@ -5582,12 +5594,38 @@ var RelatedPathWithMetadataSchema2 = external_exports.object({
   agent_id: external_exports.string().regex(AGENT_SLUG_REGEX).max(64).optional()
 }).strict();
 
+// ../../packages/core/src/analytics/events/migration-run-completed.ts
+var MigrationRunCompletedSchema = external_exports.object({
+  duration_ms: external_exports.number().int().nonnegative(),
+  /** `completed` = every project migrated; `partial` = some failed; `error` = none. */
+  outcome: external_exports.enum(["completed", "partial", "error"]),
+  /** v3 projects discovered for this run (a folder with `.brv/context-tree/*.md`). */
+  projects_total: external_exports.number().int().nonnegative(),
+  /** Projects whose v4 space was created AND materialized. */
+  spaces_migrated: external_exports.number().int().nonnegative(),
+  /** Projects that failed (createSpace / materialize error). */
+  projects_failed: external_exports.number().int().nonnegative(),
+  /** Markdown topics converted to `<bv-topic>` HTML across all migrated spaces. */
+  topics_converted: external_exports.number().int().nonnegative(),
+  /** Topics that failed to convert. */
+  topics_failed: external_exports.number().int().nonnegative(),
+  task_id: external_exports.string().min(1),
+  task_type: external_exports.enum(TASK_TYPE_VALUES),
+  /** Team the spaces were created under. */
+  team_id: external_exports.string().min(1).max(64).optional(),
+  /** Host agent slug that ran the migration (e.g. `openclaw`); omitted when undetected. */
+  agent: external_exports.string().regex(AGENT_SLUG_REGEX).max(64).optional(),
+  /** Same slug under the dashboard's canonical `agent_id` key (activation-funnel join). */
+  agent_id: external_exports.string().regex(AGENT_SLUG_REGEX).max(64).optional()
+}).strict();
+
 // ../../packages/core/src/analytics/events/index.ts
 var ALL_EVENT_SCHEMAS = {
   [AnalyticsEventNames.RECORD_RUN_COMPLETED]: RecordRunCompletedSchema,
   [AnalyticsEventNames.DREAM_COMPLETED]: DreamCompletedSchema,
   [AnalyticsEventNames.QUERY_COMPLETED]: QueryCompletedSchema,
-  [AnalyticsEventNames.READ_COMPLETED]: ReadCompletedSchema
+  [AnalyticsEventNames.READ_COMPLETED]: ReadCompletedSchema,
+  [AnalyticsEventNames.MIGRATION_RUN_COMPLETED]: MigrationRunCompletedSchema
 };
 
 // ../../packages/core/src/analytics/bounded-append.ts

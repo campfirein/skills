@@ -2,7 +2,7 @@
 name: byterover
 description: "Persistent, portable memory for Al builders and agent teams. Use BEFORE any non-trivial work to retrieve prior decisions, patterns, and gotchas; use AFTER finishing to record what was learned. ALSO use to authenticate with ByteRover — when the user says to authenticate / auth / log in / sign in / connect / link ByteRover (or log out / sign out / disconnect), run the auth flow. Iron Law: query before you think, curate after you implement."
 metadata:
-  version: 4.0.5
+  version: 4.0.7
 ---
 
 # ByteRover — durable project memory
@@ -72,8 +72,13 @@ desktop app — the agent never creates them.
 | Combine many topics into a new one | `node scripts/synthesize.mjs <new-path> --html '<bv-topic …>…</bv-topic>' --absorb a.html,b.html,c.html` |
 | Move a topic to a different space | `node scripts/move.mjs <topic-path> --from-space <name> --to-space <name>` (rebuilds manifest + index in both spaces; reports any sibling `related=` refs in the source that now dangle) |
 | Migrate legacy markdown | `node scripts/migrate.mjs [--dry-run]` |
+| Migrate a self-hosted **v3 VPS** → v4 (full guided procedure) | follow [migrate-v3-to-v4.md](migrate-v3-to-v4.md) |
 | Authenticate / log in to ByteRover | `node scripts/auth.mjs` — returns at once; the user approves in the browser, then `auth.mjs status`; see [Authenticate with ByteRover](#authenticate-with-byterover) |
+| Check whether signed in (local, no network) | `node scripts/auth.mjs whoami` — prints `{ ok, authed, providerKind }` (a credential exists locally; not a server-side validity check) |
 | Log out of ByteRover | `node scripts/logout.mjs` |
+| See which space this folder uses | `node scripts/space.mjs current` |
+| List spaces (grouped by `team_name`) | `node scripts/space.mjs list` |
+| Bind this folder to a space | `node scripts/space.mjs bind "<name>"` |
 
 To delete a topic, surface the request to the user — deletions happen through
 the ByteRover desktop app.

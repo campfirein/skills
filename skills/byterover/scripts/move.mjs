@@ -59,10 +59,10 @@ var require_realtime_contracts = __commonJS({
       CAPABILITY_PUBLISH_REASONS: () => CAPABILITY_PUBLISH_REASONS,
       CHANGES_FALLBACK_REASONS: () => CHANGES_FALLBACK_REASONS,
       FAST_BOOTSTRAP_LOCAL_REASONS: () => FAST_BOOTSTRAP_LOCAL_REASONS,
-      FAST_BOOTSTRAP_MODES: () => FAST_BOOTSTRAP_MODES,
-      FAST_BOOTSTRAP_PHASES: () => FAST_BOOTSTRAP_PHASES,
-      FAST_BOOTSTRAP_SEVERITIES: () => FAST_BOOTSTRAP_SEVERITIES,
-      FAST_BOOTSTRAP_STATUS_REASONS: () => FAST_BOOTSTRAP_STATUS_REASONS,
+      FAST_BOOTSTRAP_MODES: () => FAST_BOOTSTRAP_MODES2,
+      FAST_BOOTSTRAP_PHASES: () => FAST_BOOTSTRAP_PHASES2,
+      FAST_BOOTSTRAP_SEVERITIES: () => FAST_BOOTSTRAP_SEVERITIES2,
+      FAST_BOOTSTRAP_STATUS_REASONS: () => FAST_BOOTSTRAP_STATUS_REASONS2,
       FAST_SYNC_BACKEND_REASONS: () => FAST_SYNC_BACKEND_REASONS,
       FAST_SYNC_FALLBACK_ACTIONS: () => FAST_SYNC_FALLBACK_ACTIONS,
       FAST_SYNC_FALLBACK_REASONS: () => FAST_SYNC_FALLBACK_REASONS,
@@ -113,23 +113,23 @@ var require_realtime_contracts = __commonJS({
       zeroPadRevision: () => zeroPadRevision
     });
     module.exports = __toCommonJS(index_exports);
-    var import_node_path38 = __toESM2(__require("node:path"), 1);
+    var import_node_path40 = __toESM2(__require("node:path"), 1);
     function assertSafeTarEntryName(name, options = {}) {
       if (options.type && options.type !== "file")
         throw new Error("unsafe tar entry");
-      if (name.includes("\\") || name.includes("\0") || import_node_path38.default.posix.isAbsolute(name))
+      if (name.includes("\\") || name.includes("\0") || import_node_path40.default.posix.isAbsolute(name))
         throw new Error("unsafe tar entry");
-      let normalized = import_node_path38.default.posix.normalize(name);
+      let normalized = import_node_path40.default.posix.normalize(name);
       if (normalized === "." || normalized === ".." || normalized.startsWith("../"))
         throw new Error("unsafe tar entry");
       if (options.seen?.has(normalized)) throw new Error("duplicate tar entry");
       return normalized;
     }
     function isMemoryChangedEvent(value) {
-      return !(!isRecord2(value) || typeof value.teamId != "string" || typeof value.spaceId != "string" || typeof value.key != "string" || typeof value.at != "string" || value.op !== "put" && value.op !== "delete" || value.md5 !== void 0 && typeof value.md5 != "string" || value.rev !== void 0 && !isRevisionNumber(value.rev) || value.prevRev !== void 0 && value.prevRev !== null && !isRevisionNumber(value.prevRev));
+      return !(!isRecord3(value) || typeof value.teamId != "string" || typeof value.spaceId != "string" || typeof value.key != "string" || typeof value.at != "string" || value.op !== "put" && value.op !== "delete" || value.md5 !== void 0 && typeof value.md5 != "string" || value.rev !== void 0 && !isRevisionNumber(value.rev) || value.prevRev !== void 0 && value.prevRev !== null && !isRevisionNumber(value.prevRev));
     }
     function isFolderDeletedEvent(value) {
-      return !(!isRecord2(value) || typeof value.teamId != "string" || typeof value.spaceId != "string" || typeof value.prefix != "string" || typeof value.at != "string" || value.rev !== void 0 && !isRevisionNumber(value.rev) || value.prevRev !== void 0 && value.prevRev !== null && !isRevisionNumber(value.prevRev));
+      return !(!isRecord3(value) || typeof value.teamId != "string" || typeof value.spaceId != "string" || typeof value.prefix != "string" || typeof value.at != "string" || value.rev !== void 0 && !isRevisionNumber(value.rev) || value.prevRev !== void 0 && value.prevRev !== null && !isRevisionNumber(value.prevRev));
     }
     var CAPABILITY_CHANGED_EVENT = "capabilities.changed", INVITATIONS_CHANGED_EVENT = "invitations.changed", NOTIFICATIONS_CHANGED_EVENT = "notifications.changed", CAPABILITY_PUBLISH_MAX_EVENTS = 500, INVITATION_PUBLISH_MAX_EVENTS = 500, INVITATION_PUBLISH_PATH = "/internal/invitations", NOTIFICATION_PUBLISH_MAX_EVENTS = 100, NOTIFICATION_PUBLISH_PATH = "/internal/notifications", CAPABILITY_PUBLISH_REASONS = [
       "team_created",
@@ -177,13 +177,13 @@ var require_realtime_contracts = __commonJS({
       return input;
     }
     function isCapabilityChangedEvent(value) {
-      return !(!isRecord2(value) || !Object.keys(value).every((key) => key === "capabilityVersion" || key === "at") || typeof value.at != "string" || Number.isNaN(Date.parse(value.at)) || "capabilityVersion" in value && !isNonNegativeSafeInteger(value.capabilityVersion));
+      return !(!isRecord3(value) || !Object.keys(value).every((key) => key === "capabilityVersion" || key === "at") || typeof value.at != "string" || Number.isNaN(Date.parse(value.at)) || "capabilityVersion" in value && !isNonNegativeSafeInteger(value.capabilityVersion));
     }
     function isCapabilityPublishRequest(value) {
-      return !isRecord2(value) || !Array.isArray(value.events) || value.events.length === 0 || value.events.length > 500 ? !1 : value.events.every(isCapabilityPublishEvent);
+      return !isRecord3(value) || !Array.isArray(value.events) || value.events.length === 0 || value.events.length > 500 ? !1 : value.events.every(isCapabilityPublishEvent);
     }
     function isCapabilityPublishEvent(value) {
-      return !(!isRecord2(value) || typeof value.userId != "string" || !UUID_RE2.test(value.userId) || !isNonNegativeSafeInteger(value.capabilityVersion) || typeof value.reason != "string" || !reasons.has(value.reason) || "teamId" in value && !isOptionalUuid(value.teamId) || "spaceId" in value && !isOptionalUuid(value.spaceId) || requiresTeamId(value.reason) && typeof value.teamId != "string" || requiresSpaceId(value.reason) && typeof value.spaceId != "string");
+      return !(!isRecord3(value) || typeof value.userId != "string" || !UUID_RE2.test(value.userId) || !isNonNegativeSafeInteger(value.capabilityVersion) || typeof value.reason != "string" || !reasons.has(value.reason) || "teamId" in value && !isOptionalUuid(value.teamId) || "spaceId" in value && !isOptionalUuid(value.spaceId) || requiresTeamId(value.reason) && typeof value.teamId != "string" || requiresSpaceId(value.reason) && typeof value.spaceId != "string");
     }
     function requiresTeamId(reason) {
       return reason !== "billing_sync_state_changed";
@@ -203,15 +203,15 @@ var require_realtime_contracts = __commonJS({
       return input;
     }
     function isInvitationsChangedEvent(value) {
-      return !(!isRecord2(value) || !Object.keys(value).every((key) => key === "reason" || key === "at") || typeof value.reason != "string" || !invitationReasons.has(value.reason) || typeof value.at != "string" || Number.isNaN(Date.parse(value.at)));
+      return !(!isRecord3(value) || !Object.keys(value).every((key) => key === "reason" || key === "at") || typeof value.reason != "string" || !invitationReasons.has(value.reason) || typeof value.at != "string" || Number.isNaN(Date.parse(value.at)));
     }
     function isInvitationPublishRequest(value) {
-      if (!isRecord2(value)) return !1;
+      if (!isRecord3(value)) return !1;
       let keys = Object.keys(value);
       return keys.length !== 1 || keys[0] !== "events" || !Array.isArray(value.events) || value.events.length === 0 || value.events.length > INVITATION_PUBLISH_MAX_EVENTS ? !1 : value.events.every(isInvitationPublishEvent);
     }
     function isInvitationPublishEvent(value) {
-      if (!isRecord2(value)) return !1;
+      if (!isRecord3(value)) return !1;
       let keys = Object.keys(value), hasAt = "at" in value;
       if (hasAt) {
         if (!keys.every((key) => key === "userId" || key === "reason" || key === "at"))
@@ -232,15 +232,15 @@ var require_realtime_contracts = __commonJS({
       return input;
     }
     function isNotificationsChangedEvent(value) {
-      return !(!isRecord2(value) || !Object.keys(value).every((key) => key === "reason" || key === "at") || typeof value.reason != "string" || !notificationReasons.has(value.reason) || typeof value.at != "string" || Number.isNaN(Date.parse(value.at)));
+      return !(!isRecord3(value) || !Object.keys(value).every((key) => key === "reason" || key === "at") || typeof value.reason != "string" || !notificationReasons.has(value.reason) || typeof value.at != "string" || Number.isNaN(Date.parse(value.at)));
     }
     function isNotificationPublishRequest(value) {
-      if (!isRecord2(value)) return !1;
+      if (!isRecord3(value)) return !1;
       let keys = Object.keys(value);
       return keys.length !== 1 || keys[0] !== "events" || !Array.isArray(value.events) || value.events.length === 0 || value.events.length > NOTIFICATION_PUBLISH_MAX_EVENTS ? !1 : value.events.every(isNotificationPublishEvent);
     }
     function isNotificationPublishEvent(value) {
-      if (!isRecord2(value)) return !1;
+      if (!isRecord3(value)) return !1;
       let keys = Object.keys(value), hasAt = "at" in value;
       if (hasAt) {
         if (!keys.every((key) => key === "userId" || key === "reason" || key === "at"))
@@ -249,7 +249,7 @@ var require_realtime_contracts = __commonJS({
         return !1;
       return !(typeof value.userId != "string" || !UUID_RE2.test(value.userId) || typeof value.reason != "string" || !notificationReasons.has(value.reason) || hasAt && (typeof value.at != "string" || Number.isNaN(Date.parse(value.at))));
     }
-    function isRecord2(value) {
+    function isRecord3(value) {
       return typeof value == "object" && value !== null && !Array.isArray(value);
     }
     function isOptionalUuid(value) {
@@ -281,7 +281,7 @@ var require_realtime_contracts = __commonJS({
       "legacy",
       "retry_bootstrap",
       "blocked"
-    ], FAST_BOOTSTRAP_MODES = ["snapshot", "legacy"], FAST_SYNC_BACKEND_REASONS = [
+    ], FAST_BOOTSTRAP_MODES2 = ["snapshot", "legacy"], FAST_SYNC_BACKEND_REASONS = [
       "unsupported_layer",
       "snapshot_missing",
       "snapshot_stale",
@@ -301,19 +301,19 @@ var require_realtime_contracts = __commonJS({
       "bootstrap_contract_invalid",
       "worker_revoked",
       "too_many_syncable_spaces"
-    ], FAST_BOOTSTRAP_STATUS_REASONS = [
+    ], FAST_BOOTSTRAP_STATUS_REASONS2 = [
       ...FAST_SYNC_BACKEND_REASONS,
       ...FAST_BOOTSTRAP_LOCAL_REASONS
     ];
     function isFastBootstrapStatusReason(value) {
-      return typeof value == "string" && FAST_BOOTSTRAP_STATUS_REASONS.includes(value);
+      return typeof value == "string" && FAST_BOOTSTRAP_STATUS_REASONS2.includes(value);
     }
-    var FAST_BOOTSTRAP_SEVERITIES = [
+    var FAST_BOOTSTRAP_SEVERITIES2 = [
       "silent",
       "informational",
       "warning",
       "error"
-    ], FAST_BOOTSTRAP_PHASES = [
+    ], FAST_BOOTSTRAP_PHASES2 = [
       "idle",
       "checking_bootstrap",
       "snapshot_downloading",
@@ -340,7 +340,7 @@ var require_realtime_contracts = __commonJS({
       return String(rev).padStart(18, "0");
     }
     function isRevisionRecord(value) {
-      if (!isRecord2(value) || !hasExactBaseKeys(value)) return !1;
+      if (!isRecord3(value) || !hasExactBaseKeys(value)) return !1;
       if (value.op === "put") {
         let putKeys = [
           "schemaVersion",
@@ -383,10 +383,10 @@ var require_realtime_contracts = __commonJS({
       ]) && value.deleteScope === "exact_keys" && isSafeSyncKey(value.deletePrefix) && Array.isArray(value.deletedKeys) && value.deletedKeys.every(isSafeSyncKey) && isSorted(value.deletedKeys) : !1;
     }
     function isBootstrapResponse2(value) {
-      return isRecord2(value) ? value.kind === "snapshot" ? hasOnlyKeys(value, ["kind", "manifest", "currentRevision", "bundle"]) && isSnapshotManifest(value.manifest) && isRevisionCursor(value.currentRevision) && isRecord2(value.bundle) && hasOnlyKeys(value.bundle, ["kind", "handle"]) && value.bundle.kind === "backend-handle" && typeof value.bundle.handle == "string" && value.bundle.handle.length > 0 : value.kind === "fallback_required" ? isFallbackResponse(value, BOOTSTRAP_FALLBACK_REASONS, !0) : !1 : !1;
+      return isRecord3(value) ? value.kind === "snapshot" ? hasOnlyKeys(value, ["kind", "manifest", "currentRevision", "bundle"]) && isSnapshotManifest(value.manifest) && isRevisionCursor(value.currentRevision) && isRecord3(value.bundle) && hasOnlyKeys(value.bundle, ["kind", "handle"]) && value.bundle.kind === "backend-handle" && typeof value.bundle.handle == "string" && value.bundle.handle.length > 0 : value.kind === "fallback_required" ? isFallbackResponse(value, BOOTSTRAP_FALLBACK_REASONS, !0) : !1 : !1;
     }
     function isChangesResponse2(value) {
-      return isRecord2(value) ? value.kind === "revision_list" ? hasOnlyKeys(value, [
+      return isRecord3(value) ? value.kind === "revision_list" ? hasOnlyKeys(value, [
         "kind",
         "fromRevExclusive",
         "toRevInclusive",
@@ -394,7 +394,7 @@ var require_realtime_contracts = __commonJS({
       ]) && isRevisionCursor(value.fromRevExclusive) && isRevisionNumber(value.toRevInclusive) && value.toRevInclusive >= value.fromRevExclusive && Array.isArray(value.records) && value.records.every(isRevisionRecord) : value.kind === "fallback_required" ? isFallbackResponse(value, CHANGES_FALLBACK_REASONS, !1) : !1 : !1;
     }
     function isSnapshotManifest(value) {
-      return isRecord2(value) && hasOnlyKeys(value, [
+      return isRecord3(value) && hasOnlyKeys(value, [
         "schemaVersion",
         "formatVersion",
         "teamId",
@@ -410,7 +410,7 @@ var require_realtime_contracts = __commonJS({
       ]) && value.schemaVersion === 1 && value.formatVersion === "tar-gzip-v1" && typeof value.teamId == "string" && typeof value.spaceId == "string" && isRevisionCursor(value.snapshotRevision) && typeof value.createdAt == "string" && !Number.isNaN(Date.parse(value.createdAt)) && isNonNegativeSafeInteger(value.fileCount) && isNonNegativeSafeInteger(value.totalBytes) && isSha256(value.bundleSha256) && isNonNegativeSafeInteger(value.bundleByteCount) && typeof value.objectGeneration == "string" && Array.isArray(value.manifestEntries) && value.manifestEntries.every(isManifestEntry);
     }
     function isManifestEntry(value) {
-      return isRecord2(value) && hasOnlyKeys(value, ["key", "md5", "size", "contentType", "updatedAt"]) && isSafeSyncKey(value.key) && typeof value.md5 == "string" && /^[0-9a-f]{32}$/.test(value.md5) && isNonNegativeSafeInteger(value.size) && typeof value.contentType == "string" && typeof value.updatedAt == "string" && !Number.isNaN(Date.parse(value.updatedAt));
+      return isRecord3(value) && hasOnlyKeys(value, ["key", "md5", "size", "contentType", "updatedAt"]) && isSafeSyncKey(value.key) && typeof value.md5 == "string" && /^[0-9a-f]{32}$/.test(value.md5) && isNonNegativeSafeInteger(value.size) && typeof value.contentType == "string" && typeof value.updatedAt == "string" && !Number.isNaN(Date.parse(value.updatedAt));
     }
     function hasExactBaseKeys(value) {
       return value.schemaVersion === 1 && isRevisionNumber(value.rev) && (value.prevRev === null || isRevisionNumber(value.prevRev)) && typeof value.teamId == "string" && typeof value.spaceId == "string" && typeof value.requestId == "string" && typeof value.createdAt == "string" && !Number.isNaN(Date.parse(value.createdAt));
@@ -443,10 +443,10 @@ var require_realtime_contracts = __commonJS({
       return typeof value == "number" && Number.isSafeInteger(value) && value > 0;
     }
     function isInlineRevisionBody(value) {
-      return isRecord2(value) && hasOnlyKeys(value, ["kind", "base64"]) && value.kind === "inline-base64" && typeof value.base64 == "string" && value.base64.length > 0 && value.base64.length <= 4 * 1024 * 1024 && /^[A-Za-z0-9+/]*={0,2}$/.test(value.base64) && Buffer.from(value.base64, "base64").toString("base64") === value.base64;
+      return isRecord3(value) && hasOnlyKeys(value, ["kind", "base64"]) && value.kind === "inline-base64" && typeof value.base64 == "string" && value.base64.length > 0 && value.base64.length <= 4 * 1024 * 1024 && /^[A-Za-z0-9+/]*={0,2}$/.test(value.base64) && Buffer.from(value.base64, "base64").toString("base64") === value.base64;
     }
     function isFastSyncSpaceSizePolicy(value) {
-      return isRecord2(value) && hasOnlyKeys(value, [
+      return isRecord3(value) && hasOnlyKeys(value, [
         "class",
         "fileCount",
         "totalBytes",
@@ -482,24 +482,24 @@ var require_realtime_contracts = __commonJS({
     }
     var WS_SUBSCRIBE = "subscribe", WS_UNSUBSCRIBE = "unsubscribe", WS_SUBSCRIBED = "subscribed", WS_UNSUBSCRIBED = "unsubscribed";
     function isWsSubscribePayload(value) {
-      return isRecord2(value) ? typeof value.teamId == "string" && typeof value.spaceId == "string" : !1;
+      return isRecord3(value) ? typeof value.teamId == "string" && typeof value.spaceId == "string" : !1;
     }
     function isWsSubscribedAck(value) {
-      return !(!isRecord2(value) || typeof value.teamId != "string" || typeof value.spaceId != "string" || typeof value.ok != "boolean" || value.ok === !1 && value.reason !== "denied" && value.reason !== "stale" && value.reason !== "error");
+      return !(!isRecord3(value) || typeof value.teamId != "string" || typeof value.spaceId != "string" || typeof value.ok != "boolean" || value.ok === !1 && value.reason !== "denied" && value.reason !== "stale" && value.reason !== "error");
     }
     function isPushBundleResult2(value) {
-      return !isRecord2(value) || !hasOnlyKeys(value, ["revision", "files"]) || !isRevisionNumber(value.revision) || !Array.isArray(value.files) ? !1 : value.files.every(
-        (f) => isRecord2(f) && hasOnlyKeys(f, ["key", "md5", "updatedAt"]) && isSafeSyncKey(f.key) && typeof f.md5 == "string" && /^[0-9a-f]{32}$/.test(f.md5) && typeof f.updatedAt == "string" && !Number.isNaN(Date.parse(f.updatedAt))
+      return !isRecord3(value) || !hasOnlyKeys(value, ["revision", "files"]) || !isRevisionNumber(value.revision) || !Array.isArray(value.files) ? !1 : value.files.every(
+        (f) => isRecord3(f) && hasOnlyKeys(f, ["key", "md5", "updatedAt"]) && isSafeSyncKey(f.key) && typeof f.md5 == "string" && /^[0-9a-f]{32}$/.test(f.md5) && typeof f.updatedAt == "string" && !Number.isNaN(Date.parse(f.updatedAt))
       );
     }
   }
 });
 
 // src/commands.ts
-import { randomUUID as randomUUID6 } from "node:crypto";
+import { randomUUID as randomUUID7 } from "node:crypto";
 import { existsSync as existsSync4, readFileSync as readFileSync2 } from "node:fs";
-import { mkdir as mkdir18, readdir as readdir6, readFile as readFile24, rm as rm16, stat as stat8 } from "node:fs/promises";
-import { basename as basename4, dirname as dirname13, join as join26, resolve as resolve10, sep as sep7 } from "node:path";
+import { mkdir as mkdir19, readdir as readdir7, readFile as readFile26, rm as rm17, stat as stat8 } from "node:fs/promises";
+import { basename as basename4, dirname as dirname13, join as join28, resolve as resolve10, sep as sep7 } from "node:path";
 
 // ../../packages/core/src/render/element-types.ts
 var ELEMENT_NAMES = [
@@ -9963,6 +9963,13 @@ function syncStateDirForSpace(projectsRoot, spaceId) {
 function syncStateDirForSpaceDir(spaceDir) {
   return assertAbsolutePath("spaceDir", spaceDir), syncStateDirForSpace(dirname2(spaceDir), basename(spaceDir));
 }
+function syncStateDirForContextTreeRoot(contextTreeRoot) {
+  if (assertAbsolutePath("contextTreeRoot", contextTreeRoot), basename(contextTreeRoot) !== CONTEXT_TREE_DIRNAME)
+    throw new Error(
+      `sync state can only be derived from a ${CONTEXT_TREE_DIRNAME} root`
+    );
+  return syncStateDirForSpaceDir(dirname2(contextTreeRoot));
+}
 function resolveWithinTree(root, relPath) {
   let base = resolve2(root), resolved = resolve2(base, relPath);
   if (resolved !== base && !resolved.startsWith(base + sep2))
@@ -13623,7 +13630,7 @@ var SPACE_METADATA_FILENAME = "metadata.json", InvalidSpaceMetadataError = class
     this.name = "InvalidSpaceMetadataError";
   }
 };
-function validateFields(space_id, space_name, team_id, created_at) {
+function validateFields(space_id, space_name, team_id, created_at, team_name) {
   if (!isUuid(space_id))
     throw new InvalidSpaceMetadataError(
       "'space_id' must be a UUID string"
@@ -13640,7 +13647,17 @@ function validateFields(space_id, space_name, team_id, created_at) {
     throw new InvalidSpaceMetadataError(
       "'created_at' must be an ISO 8601 string"
     );
-  return { created_at, space_id, space_name, team_id };
+  if (team_name != null && typeof team_name != "string")
+    throw new InvalidSpaceMetadataError(
+      "'team_name' must be a string, null, or omitted"
+    );
+  return {
+    created_at,
+    space_id,
+    space_name,
+    team_id,
+    ...typeof team_name == "string" ? { team_name } : {}
+  };
 }
 function parseSpaceMetadata(content) {
   let raw;
@@ -13656,7 +13673,13 @@ function parseSpaceMetadata(content) {
       "root must be a JSON object (got " + (raw === null ? "null" : Array.isArray(raw) ? "array" : typeof raw) + ")"
     );
   let obj = raw;
-  return validateFields(obj.space_id, obj.space_name, obj.team_id, obj.created_at);
+  return validateFields(
+    obj.space_id,
+    obj.space_name,
+    obj.team_id,
+    obj.created_at,
+    obj.team_name
+  );
 }
 async function readSpaceMetadata(spaceDir) {
   let target = join11(spaceDir, SPACE_METADATA_FILENAME);
@@ -13673,7 +13696,8 @@ async function writeSpaceMetadata(spaceDir, metadata) {
     metadata.space_id,
     metadata.space_name,
     metadata.team_id,
-    metadata.created_at
+    metadata.created_at,
+    metadata.team_name
   );
   let target = join11(spaceDir, SPACE_METADATA_FILENAME), tmp = `${target}.tmp.${randomBytes3(6).toString("hex")}`, serialized = `${JSON.stringify(metadata, null, 2)}
 `;
@@ -16048,17 +16072,20 @@ var AnalyticsEventNames = {
   RECORD_RUN_COMPLETED: "record_run_completed",
   DREAM_COMPLETED: "dream_completed",
   QUERY_COMPLETED: "query_completed",
-  READ_COMPLETED: "read_completed"
+  READ_COMPLETED: "read_completed",
+  MIGRATION_RUN_COMPLETED: "migration_run_completed"
 }, TASK_TYPE = {
   RECORD: "record",
   DREAM: "dream",
   QUERY: "query",
-  READ: "read"
+  READ: "read",
+  MIGRATE: "migrate"
 }, TASK_TYPE_VALUES = [
   TASK_TYPE.RECORD,
   TASK_TYPE.DREAM,
   TASK_TYPE.QUERY,
-  TASK_TYPE.READ
+  TASK_TYPE.READ,
+  TASK_TYPE.MIGRATE
 ], DREAM_MODES = ["merge", "link", "prune", "synthesize"];
 
 // ../../packages/core/src/analytics/events/record-run-completed.ts
@@ -16176,6 +16203,15 @@ var RelatedPathWithMetadataSchema = external_exports.object({
     external_exports.literal(4)
   ]).optional(),
   /**
+   * The raw query text the user (or agent) asked. Optional because rows
+   * predate this field, and because a `search` invocation with no
+   * positionals yields an empty string we'd rather omit. Capped at 512
+   * chars at emit time; queries longer than that get a trailing `…`. The
+   * Usefulness panel uses this to label the "Used for these tasks" row
+   * with the actual query instead of an opaque `task_id`.
+   */
+  query: external_exports.string().max(512).optional(),
+  /**
    * Attribution slug of the host agent that ran this query (e.g. `claude`,
    * `codex`, `cursor`, `gemini`), resolved from the CLI env fingerprint
    * (skill-runtime `resolveAgent`). Omitted when undetected.
@@ -16243,12 +16279,38 @@ var RelatedPathWithMetadataSchema2 = external_exports.object({
   agent_id: external_exports.string().regex(AGENT_SLUG_REGEX).max(64).optional()
 }).strict();
 
+// ../../packages/core/src/analytics/events/migration-run-completed.ts
+var MigrationRunCompletedSchema = external_exports.object({
+  duration_ms: external_exports.number().int().nonnegative(),
+  /** `completed` = every project migrated; `partial` = some failed; `error` = none. */
+  outcome: external_exports.enum(["completed", "partial", "error"]),
+  /** v3 projects discovered for this run (a folder with `.brv/context-tree/*.md`). */
+  projects_total: external_exports.number().int().nonnegative(),
+  /** Projects whose v4 space was created AND materialized. */
+  spaces_migrated: external_exports.number().int().nonnegative(),
+  /** Projects that failed (createSpace / materialize error). */
+  projects_failed: external_exports.number().int().nonnegative(),
+  /** Markdown topics converted to `<bv-topic>` HTML across all migrated spaces. */
+  topics_converted: external_exports.number().int().nonnegative(),
+  /** Topics that failed to convert. */
+  topics_failed: external_exports.number().int().nonnegative(),
+  task_id: external_exports.string().min(1),
+  task_type: external_exports.enum(TASK_TYPE_VALUES),
+  /** Team the spaces were created under. */
+  team_id: external_exports.string().min(1).max(64).optional(),
+  /** Host agent slug that ran the migration (e.g. `openclaw`); omitted when undetected. */
+  agent: external_exports.string().regex(AGENT_SLUG_REGEX).max(64).optional(),
+  /** Same slug under the dashboard's canonical `agent_id` key (activation-funnel join). */
+  agent_id: external_exports.string().regex(AGENT_SLUG_REGEX).max(64).optional()
+}).strict();
+
 // ../../packages/core/src/analytics/events/index.ts
 var ALL_EVENT_SCHEMAS = {
   [AnalyticsEventNames.RECORD_RUN_COMPLETED]: RecordRunCompletedSchema,
   [AnalyticsEventNames.DREAM_COMPLETED]: DreamCompletedSchema,
   [AnalyticsEventNames.QUERY_COMPLETED]: QueryCompletedSchema,
-  [AnalyticsEventNames.READ_COMPLETED]: ReadCompletedSchema
+  [AnalyticsEventNames.READ_COMPLETED]: ReadCompletedSchema,
+  [AnalyticsEventNames.MIGRATION_RUN_COMPLETED]: MigrationRunCompletedSchema
 };
 
 // ../../packages/core/src/analytics/pending-producer.ts
@@ -17410,20 +17472,104 @@ var MemoryHttpClient = class {
   }
 };
 
+// ../../packages/sync/src/delete-intent.ts
+import { randomUUID as randomUUID5 } from "node:crypto";
+import {
+  chmod as chmod3,
+  mkdir as mkdir13,
+  readFile as readFile18,
+  readdir as readdir5,
+  rename as rename8,
+  rm as rm14,
+  writeFile as writeFile12
+} from "node:fs/promises";
+import { join as join20 } from "node:path";
+var DELETE_INTENT_TTL_MS = 1440 * 60 * 1e3, DELETE_INTENTS_DIR = "delete-intents";
+function intentsDir(syncDir) {
+  return join20(syncDir, DELETE_INTENTS_DIR);
+}
+function parseIntent(raw, now) {
+  if (typeof raw != "object" || raw === null) return null;
+  let rec = raw;
+  if (rec.schemaVersion !== 1 || typeof rec.id != "string" || rec.id.length === 0 || typeof rec.prefix != "string" || rec.prefix.length === 0 || typeof rec.createdAt != "string" || typeof rec.expiresAt != "string" || rec.authGeneration !== void 0 && typeof rec.authGeneration != "string")
+    return null;
+  let expiresAt = Date.parse(rec.expiresAt);
+  return Number.isNaN(expiresAt) || expiresAt <= now.getTime() ? null : {
+    schemaVersion: 1,
+    id: rec.id,
+    prefix: rec.prefix,
+    createdAt: rec.createdAt,
+    expiresAt: rec.expiresAt,
+    ...typeof rec.authGeneration == "string" ? { authGeneration: rec.authGeneration } : {}
+  };
+}
+async function writeIntentFile(dir, intent) {
+  await mkdir13(dir, { recursive: !0, mode: 448 });
+  try {
+    await chmod3(dir, 448);
+  } catch {
+  }
+  let tmpPath = join20(dir, `.${intent.id}.${randomUUID5()}.tmp`), finalPath = join20(dir, `${intent.id}.json`);
+  await writeFile12(tmpPath, JSON.stringify(intent, null, 2) + `
+`, {
+    mode: 384
+  }), await rename8(tmpPath, finalPath);
+}
+async function readDeleteIntents(syncDir, opts) {
+  let now = opts?.now ?? /* @__PURE__ */ new Date(), dir = intentsDir(syncDir), entries;
+  try {
+    entries = await readdir5(dir);
+  } catch {
+    return [];
+  }
+  let result = [];
+  for (let name of entries) {
+    if (!name.endsWith(".json")) continue;
+    let filePath = join20(dir, name), parsed = null;
+    try {
+      parsed = parseIntent(JSON.parse(await readFile18(filePath, "utf8")), now);
+    } catch {
+      parsed = null;
+    }
+    parsed ? result.push(parsed) : await rm14(filePath, { force: !0 }).catch(() => {
+    });
+  }
+  return result;
+}
+async function recordDeleteIntent(input) {
+  let now = input.now ?? /* @__PURE__ */ new Date(), dir = intentsDir(input.syncDir), duplicate = (await readDeleteIntents(input.syncDir, { now })).find((intent2) => intent2.prefix === input.prefix);
+  if (duplicate) return duplicate;
+  let intent = {
+    schemaVersion: 1,
+    id: randomUUID5(),
+    prefix: input.prefix,
+    createdAt: now.toISOString(),
+    expiresAt: new Date(now.getTime() + DELETE_INTENT_TTL_MS).toISOString(),
+    ...input.authGeneration ? { authGeneration: input.authGeneration } : {}
+  };
+  return await writeIntentFile(dir, intent), intent;
+}
+
 // ../../packages/sync/src/daemon-auth-store.ts
-import { chmod as chmod3, mkdir as mkdir13, readFile as readFile18, rename as rename8, writeFile as writeFile12, rm as rm14 } from "node:fs/promises";
-import { dirname as dirname10, join as join20 } from "node:path";
+import { chmod as chmod4, mkdir as mkdir14, readFile as readFile19, rename as rename9, writeFile as writeFile13, rm as rm15 } from "node:fs/promises";
+import { dirname as dirname10, join as join21 } from "node:path";
 function daemonAuthPath(projectsRoot) {
-  return join20(projectsRoot, ".daemon", "auth.json");
+  return join21(projectsRoot, ".daemon", "auth.json");
 }
 async function readDaemonAuth(path2) {
   try {
-    let raw = await readFile18(path2, "utf8");
+    let raw = await readFile19(path2, "utf8");
     return JSON.parse(raw);
   } catch {
     return null;
   }
 }
+
+// ../../packages/sync/src/daemon-status.ts
+var import_realtime_contracts2 = __toESM(require_realtime_contracts());
+import { constants } from "node:fs";
+import { open as open4, readFile as readFile20 } from "node:fs/promises";
+import { join as join22 } from "node:path";
 
 // ../../packages/sync/src/daemon-auth-identity.ts
 import { createHash as createHash6 } from "node:crypto";
@@ -17490,13 +17636,247 @@ function authIdentitiesEqual(expected, running) {
   return expected.providerKind === running.providerKind && expected.identityDigest === running.identityDigest;
 }
 
+// ../../packages/sync/src/daemon-status.ts
+var DAEMON_PID_MAX_BYTES = 16 * 1024, DAEMON_STATUS_V2_MAX_BYTES = 64 * 1024, DAEMON_READY_V2_MAX_BYTES = 16 * 1024, DAEMON_SPACES_INDEX_V2_MAX_BYTES = 512 * 1024, DAEMON_SPACE_STATUS_V2_MAX_BYTES = 256 * 1024, DAEMON_SPACE_READY_V2_MAX_BYTES = 16 * 1024, DAEMON_STATUS_V1_FALLBACK_MAX_BYTES = 2 * 1024 * 1024, DAEMON_READY_V1_FALLBACK_MAX_BYTES = 1 * 1024 * 1024;
+function daemonStatusPath(projectsRoot) {
+  return join22(projectsRoot, ".daemon", "status.json");
+}
+function assertSafeDaemonSpaceId(spaceId) {
+  if (!normalizeUuidLike(spaceId))
+    throw new Error(`invalid daemon space id: ${spaceId}`);
+}
+function daemonReadyPath(projectsRoot) {
+  return join22(projectsRoot, ".daemon", "ready.json");
+}
+function daemonSpacesDir(projectsRoot) {
+  return join22(projectsRoot, ".daemon", "spaces");
+}
+function daemonSpaceReadyPath(projectsRoot, spaceId) {
+  return assertSafeDaemonSpaceId(spaceId), join22(daemonSpacesDir(projectsRoot), spaceId, "ready.json");
+}
+function normalizeAuthState(value) {
+  return value === "auth-expired" || value === "auth_expired" ? "auth_expired" : value === "not_configured" || value === "signed_out" || value === "provisioning" || value === "starting" || value === "transient_error" || value === "credential_persistence_error" || value === "running" ? value : null;
+}
+function normalizeProviderKind(value) {
+  return value === "api-key" || value === "daemon-device-session" || value === "none" ? value : null;
+}
+function normalizeCapabilityRefreshResult(value) {
+  return value === "success" || value === "error" ? value : void 0;
+}
+function normalizeCapabilitySocketState(value) {
+  if (value === "connected" || value === "reconnecting" || value === "degraded")
+    return value;
+}
+function normalizeWarnings(value) {
+  if (!Array.isArray(value)) return;
+  let warnings = value.filter(
+    (entry) => typeof entry == "string" && entry.length > 0 && entry.length <= 80 && !entry.includes("/") && !entry.includes("\\") && !entry.includes("Bearer ") && !entry.includes("brv_")
+  );
+  return warnings.length > 0 ? warnings : void 0;
+}
+function isTokenLike(value) {
+  return /\bBearer\s+/i.test(value) || /brv_(desktop|daemon|api|sync)_[A-Za-z0-9_-]+/.test(value);
+}
+function normalizeUuidLike(value) {
+  if (typeof value == "string")
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      value
+    ) ? value : void 0;
+}
+function isRecord2(value) {
+  return typeof value == "object" && value !== null && !Array.isArray(value);
+}
+function normalizeDaemonInstanceId(value) {
+  if (typeof value != "string") return null;
+  let trimmed = value.trim();
+  return trimmed.length === 0 || trimmed.length > 256 || /[\x00-\x1F\x7F]/.test(trimmed) || isTokenLike(trimmed) ? null : trimmed;
+}
+function normalizeRevision(value) {
+  return isSafeNonNegInt(value) ? value : null;
+}
+function normalizeIsoDate(value) {
+  if (typeof value != "string") return null;
+  let time = Date.parse(value);
+  return Number.isNaN(time) ? null : new Date(time).toISOString();
+}
+function normalizeNullableIsoDate(value) {
+  return value === null ? null : normalizeIsoDate(value) ?? void 0;
+}
+function normalizeNullableString(value) {
+  if (value === null) return null;
+  if (typeof value == "string")
+    return value;
+}
+function isSafeNonNegInt(value) {
+  return typeof value == "number" && Number.isSafeInteger(value) && value >= 0;
+}
+function normalizeRecentCompletion(value) {
+  if (typeof value != "object" || value === null || Array.isArray(value))
+    return;
+  let rec = value, changedCount = rec.changedCount, completedAt = rec.completedAt, batchId = rec.batchId;
+  if (!(typeof changedCount != "number" || !Number.isSafeInteger(changedCount) || changedCount <= 0) && !(typeof completedAt != "string" || Number.isNaN(Date.parse(completedAt))) && !(typeof batchId != "string" || batchId.trim() === "" || batchId.length > 80))
+    return { changedCount, completedAt, batchId };
+}
+var FAST_BOOTSTRAP_MODE_SET = new Set(
+  import_realtime_contracts2.FAST_BOOTSTRAP_MODES
+), FAST_BOOTSTRAP_PHASE_SET = new Set(
+  import_realtime_contracts2.FAST_BOOTSTRAP_PHASES
+), FAST_BOOTSTRAP_SEVERITY_SET = new Set(
+  import_realtime_contracts2.FAST_BOOTSTRAP_SEVERITIES
+), FAST_BOOTSTRAP_STATUS_REASON_SET = new Set(
+  import_realtime_contracts2.FAST_BOOTSTRAP_STATUS_REASONS
+);
+function normalizeDaemonStatusV2(raw) {
+  if (!isRecord2(raw) || raw.schemaVersion !== 2) return null;
+  let providerKind = normalizeProviderKind(raw.providerKind), authState = normalizeAuthState(raw.authState), daemonInstanceId = normalizeDaemonInstanceId(raw.daemonInstanceId), heartbeatAt = normalizeIsoDate(raw.heartbeatAt), lastExchangeAt = normalizeNullableIsoDate(raw.lastExchangeAt), nextRetryAt = normalizeNullableIsoDate(raw.nextRetryAt), error = normalizeNullableString(raw.error), spacesIndexRevision = normalizeRevision(raw.spacesIndexRevision), spacesIndexUpdatedAt = normalizeNullableIsoDate(
+    raw.spacesIndexUpdatedAt
+  ), spacesTotal = normalizeRevision(raw.spacesTotal), spacesWithAttention = normalizeRevision(raw.spacesWithAttention), spacesSyncing = normalizeRevision(raw.spacesSyncing);
+  if (!providerKind || !authState || !daemonInstanceId || !heartbeatAt || lastExchangeAt === void 0 || nextRetryAt === void 0 || error === void 0 || spacesIndexRevision === null || spacesIndexUpdatedAt === void 0 || spacesTotal === null || spacesWithAttention === null || spacesSyncing === null || raw.registryProjectionMode !== "enabled" && raw.registryProjectionMode !== "disabled")
+    return null;
+  let authIdentityParse = raw.authIdentity === void 0 ? null : parseDaemonAuthMarkerIdentity(raw.authIdentity), authIdentity = authIdentityParse?.ok === !0 ? authIdentityParse.identity : void 0, lastCapabilityRefreshAt = raw.lastCapabilityRefreshAt === void 0 ? void 0 : normalizeIsoDate(raw.lastCapabilityRefreshAt) ?? void 0, lastCapabilityRefreshErrorCode = raw.lastCapabilityRefreshErrorCode === void 0 ? void 0 : normalizeNullableString(raw.lastCapabilityRefreshErrorCode), lastCapabilityVersion = normalizeRevision(raw.lastCapabilityVersion), warnings = normalizeWarnings(raw.warnings), recentCompletion = normalizeRecentCompletion(raw.recentCompletion);
+  return {
+    schemaVersion: 2,
+    providerKind,
+    ...authIdentity ? { authIdentity } : {},
+    authState,
+    daemonInstanceId,
+    heartbeatAt,
+    lastExchangeAt,
+    nextRetryAt,
+    error,
+    ...lastCapabilityRefreshAt !== void 0 ? { lastCapabilityRefreshAt } : {},
+    ...raw.lastCapabilityRefreshResult !== void 0 ? {
+      lastCapabilityRefreshResult: normalizeCapabilityRefreshResult(
+        raw.lastCapabilityRefreshResult
+      )
+    } : {},
+    ...lastCapabilityRefreshErrorCode !== void 0 ? { lastCapabilityRefreshErrorCode } : {},
+    ...lastCapabilityVersion !== null ? { lastCapabilityVersion } : {},
+    ...normalizeCapabilitySocketState(raw.capabilitySocketState) ? {
+      capabilitySocketState: normalizeCapabilitySocketState(
+        raw.capabilitySocketState
+      )
+    } : {},
+    registryProjectionMode: raw.registryProjectionMode,
+    ...warnings ? { warnings } : {},
+    ...recentCompletion ? { recentCompletion } : {},
+    spacesIndexRevision,
+    spacesIndexUpdatedAt,
+    spacesTotal,
+    spacesWithAttention,
+    spacesSyncing
+  };
+}
+function normalizeDaemonSpaceReadyV2(raw) {
+  if (!isRecord2(raw) || raw.schemaVersion !== 2) return null;
+  let daemonInstanceId = normalizeDaemonInstanceId(raw.daemonInstanceId), spaceId = normalizeUuidLike(raw.spaceId), readyRevision = normalizeRevision(raw.readyRevision), updatedAt = normalizeIsoDate(raw.updatedAt), baselineEstablishedAt = raw.baselineEstablishedAt === void 0 ? void 0 : normalizeIsoDate(raw.baselineEstablishedAt) ?? void 0, watchEnabledAt = raw.watchEnabledAt === void 0 ? void 0 : normalizeIsoDate(raw.watchEnabledAt) ?? void 0, bootstrapError = normalizeNullableString(raw.bootstrapError);
+  return !daemonInstanceId || !spaceId || typeof raw.ready != "boolean" || readyRevision === null || !updatedAt || bootstrapError === void 0 ? null : {
+    schemaVersion: 2,
+    daemonInstanceId,
+    spaceId,
+    ready: raw.ready,
+    readyRevision,
+    updatedAt,
+    ...baselineEstablishedAt !== void 0 ? { baselineEstablishedAt } : {},
+    ...watchEnabledAt !== void 0 ? { watchEnabledAt } : {},
+    bootstrapError
+  };
+}
+async function defaultReadJson(path2, maxBytes2 = DAEMON_STATUS_V2_MAX_BYTES) {
+  let handle;
+  try {
+    let noFollow = typeof constants.O_NOFOLLOW == "number" ? constants.O_NOFOLLOW : 0;
+    handle = await open4(path2, constants.O_RDONLY | noFollow);
+    let fileStat = await handle.stat();
+    if (!fileStat.isFile() || fileStat.size > maxBytes2 || !Number.isSafeInteger(fileStat.size) || fileStat.size < 0) return null;
+    let buffer = Buffer.alloc(fileStat.size), { bytesRead } = await handle.read(buffer, 0, fileStat.size, 0);
+    if (bytesRead > maxBytes2) return null;
+    let raw = buffer.subarray(0, bytesRead).toString("utf8");
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  } finally {
+    await handle?.close().catch(() => {
+    });
+  }
+}
+async function regularFileExistsNoFollow(path2) {
+  let handle;
+  try {
+    let noFollow = typeof constants.O_NOFOLLOW == "number" ? constants.O_NOFOLLOW : 0;
+    return handle = await open4(path2, constants.O_RDONLY | noFollow), (await handle.stat()).isFile();
+  } catch {
+    return !1;
+  } finally {
+    await handle?.close().catch(() => {
+    });
+  }
+}
+function normalizeLegacySpaceReady(raw, spaceId) {
+  if (!isRecord2(raw)) return null;
+  let spaces = raw.spaces;
+  if (!isRecord2(spaces)) return null;
+  let entry = spaces[spaceId];
+  if (!isRecord2(entry)) return null;
+  let bootstrapError = normalizeNullableString(entry.bootstrapError);
+  if (bootstrapError === void 0) return null;
+  let baselineEstablishedAt = entry.baselineEstablishedAt === void 0 ? void 0 : normalizeIsoDate(entry.baselineEstablishedAt) ?? void 0, watchEnabledAt = entry.watchEnabledAt === void 0 ? void 0 : normalizeIsoDate(entry.watchEnabledAt) ?? void 0;
+  return {
+    bootstrapError,
+    ...baselineEstablishedAt !== void 0 ? { baselineEstablishedAt } : {},
+    ...watchEnabledAt !== void 0 ? { watchEnabledAt } : {}
+  };
+}
+async function readLegacySpaceReady(input) {
+  let raw = await input.readJson(
+    daemonReadyPath(input.projectsRoot),
+    DAEMON_READY_V1_FALLBACK_MAX_BYTES
+  ), ready = normalizeLegacySpaceReady(raw, input.spaceId);
+  return ready ? { sourceSchema: 1, source: "legacy-global", ready } : null;
+}
+async function readDaemonStatusEnvelope(input) {
+  let raw = await (input.readJson ?? defaultReadJson)(
+    daemonStatusPath(input.projectsRoot),
+    DAEMON_STATUS_V1_FALLBACK_MAX_BYTES
+  );
+  if (!isRecord2(raw)) return { schemaVersion: null, daemonInstanceId: null };
+  if (raw.schemaVersion === 2) {
+    let status = normalizeDaemonStatusV2(raw);
+    return status ? { schemaVersion: 2, daemonInstanceId: status.daemonInstanceId } : { schemaVersion: "invalid-v2", daemonInstanceId: null };
+  }
+  return raw.schemaVersion === 1 || raw.schemaVersion === void 0 ? { schemaVersion: 1, daemonInstanceId: null } : { schemaVersion: null, daemonInstanceId: null };
+}
+async function readDaemonSpaceReady(input) {
+  let readJson = input.readJson ?? defaultReadJson;
+  if (input.currentGlobalSchema === 2) {
+    if (!input.daemonInstanceId)
+      return { sourceSchema: 2, source: "invalid", ready: null };
+    let path2;
+    try {
+      path2 = daemonSpaceReadyPath(input.projectsRoot, input.spaceId);
+    } catch {
+      return { sourceSchema: 2, source: "invalid", ready: null };
+    }
+    let raw = await readJson(path2, DAEMON_SPACE_READY_V2_MAX_BYTES);
+    if (raw === null)
+      return !input.readJson && await regularFileExistsNoFollow(path2) ? { sourceSchema: 2, source: "invalid", ready: null } : null;
+    let ready = normalizeDaemonSpaceReadyV2(raw);
+    return !ready || ready.daemonInstanceId !== input.daemonInstanceId || ready.spaceId !== input.spaceId ? { sourceSchema: 2, source: "invalid", ready: null } : { sourceSchema: 2, source: "per-space", ready };
+  }
+  return readLegacySpaceReady({
+    projectsRoot: input.projectsRoot,
+    spaceId: input.spaceId,
+    readJson
+  });
+}
+
 // src/sync/cloud-resolver.ts
-import { access as access2, readdir as readdir5, readFile as readFile21 } from "node:fs/promises";
-import { basename as basename3, dirname as dirname11, join as join23 } from "node:path";
+import { access as access2, readdir as readdir6, readFile as readFile23 } from "node:fs/promises";
+import { basename as basename3, dirname as dirname11, join as join25 } from "node:path";
 
 // src/sync/capability.ts
-import { mkdir as mkdir14, readFile as readFile19, rename as rename9, writeFile as writeFile13 } from "node:fs/promises";
-import { basename as basename2, join as join21 } from "node:path";
+import { mkdir as mkdir15, readFile as readFile21, rename as rename10, writeFile as writeFile14 } from "node:fs/promises";
+import { basename as basename2, join as join23 } from "node:path";
 function validateCapabilityRecord(record) {
   if (record.capability_source !== "jwt" && record.capability_source !== "projection")
     return { kind: "invalid", reason: "invalid capability_source" };
@@ -17533,9 +17913,9 @@ function validateCapabilityRecord(record) {
   };
 }
 async function readCapability(spaceDir) {
-  let path2 = join21(syncStateDirForSpaceDir(spaceDir), "capability.json"), raw;
+  let path2 = join23(syncStateDirForSpaceDir(spaceDir), "capability.json"), raw;
   try {
-    raw = await readFile19(path2, "utf8");
+    raw = await readFile21(path2, "utf8");
   } catch (err) {
     if (err.code === "ENOENT")
       return { kind: "missing" };
@@ -17555,23 +17935,23 @@ async function readCapability(spaceDir) {
 }
 
 // src/sync/cloud-projects.ts
-import { join as join22 } from "node:path";
+import { join as join24 } from "node:path";
 function isUuid2(value) {
   return isUuid(value);
 }
 function cloudSpaceDir(projectsRoot, spaceId) {
   if (!isUuid2(spaceId)) throw new Error(`invalid space_id: ${spaceId}`);
-  return join22(projectsRoot, spaceId);
+  return join24(projectsRoot, spaceId);
 }
 
 // src/sync/readiness.ts
-import { constants } from "node:fs";
-import { chmod as chmod4, mkdir as mkdir15, open as open4, readFile as readFile20, rm as rm15, writeFile as writeFile14 } from "node:fs/promises";
+import { constants as constants2 } from "node:fs";
+import { chmod as chmod5, mkdir as mkdir16, open as open5, readFile as readFile22, rm as rm16, writeFile as writeFile15 } from "node:fs/promises";
 var MAX_DAEMON_READY_JSON_BYTES = 64 * 1024;
 async function readDaemonReadyJson(path2) {
   let file = null;
   try {
-    file = await open4(path2, constants.O_RDONLY | constants.O_NOFOLLOW);
+    file = await open5(path2, constants2.O_RDONLY | constants2.O_NOFOLLOW);
     let stat10 = await file.stat();
     if (!stat10.isFile() || stat10.size > MAX_DAEMON_READY_JSON_BYTES) return null;
     let buffer = Buffer.alloc(stat10.size);
@@ -17593,28 +17973,82 @@ async function exists(path2) {
 }
 async function hasCloudSidecar(spaceDir) {
   let syncDir = syncStateDirForSpaceDir(spaceDir);
-  return await exists(join23(syncDir, "status.json")) || await exists(join23(syncDir, "capability.json")) || await exists(join23(syncDir, "baseline.json"));
+  return await exists(join25(syncDir, "status.json")) || await exists(join25(syncDir, "capability.json")) || await exists(join25(syncDir, "baseline.json"));
 }
-async function readDaemonBootstrapError(spaceDir) {
-  let projectsRoot = dirname11(spaceDir), spaceId = basename3(spaceDir), ready = await readDaemonReadyJson(join23(projectsRoot, ".daemon", "ready.json"));
+async function readDaemonBootstrapStateForSpace(input) {
+  let envelope = await readDaemonStatusEnvelope({
+    projectsRoot: input.projectsRoot
+  });
+  if (envelope.schemaVersion === "invalid-v2")
+    return {
+      kind: "invalid",
+      sourceSchema: 2,
+      reason: "invalid_v2_status"
+    };
+  if (envelope.schemaVersion === 2) {
+    let v2Ready = await readDaemonSpaceReady({
+      projectsRoot: input.projectsRoot,
+      spaceId: input.spaceId,
+      daemonInstanceId: envelope.daemonInstanceId,
+      currentGlobalSchema: 2
+    });
+    return v2Ready?.sourceSchema === 2 && v2Ready.source === "per-space" ? v2Ready.ready.ready ? {
+      kind: "ready",
+      sourceSchema: 2,
+      bootstrapError: v2Ready.ready.bootstrapError
+    } : {
+      kind: "not_ready",
+      sourceSchema: 2,
+      bootstrapError: v2Ready.ready.bootstrapError
+    } : v2Ready?.sourceSchema === 2 && v2Ready.source === "invalid" ? {
+      kind: "invalid",
+      sourceSchema: 2,
+      reason: "invalid_v2_ready"
+    } : { kind: "missing", sourceSchema: 2 };
+  }
+  let ready = await readDaemonReadyJson(
+    join25(input.projectsRoot, ".daemon", "ready.json")
+  );
   if (typeof ready != "object" || ready === null || Array.isArray(ready))
-    return null;
+    return { kind: "missing", sourceSchema: envelope.schemaVersion };
   let spaces = ready.spaces;
   if (typeof spaces != "object" || spaces === null || Array.isArray(spaces))
-    return null;
-  let entry = spaces[spaceId];
+    return { kind: "missing", sourceSchema: envelope.schemaVersion };
+  let entry = spaces[input.spaceId];
   if (typeof entry != "object" || entry === null || Array.isArray(entry))
-    return null;
+    return { kind: "missing", sourceSchema: envelope.schemaVersion };
   let bootstrapError = entry.bootstrapError;
-  return typeof bootstrapError == "string" && bootstrapError !== "" ? bootstrapError : null;
+  return {
+    kind: "not_ready",
+    sourceSchema: 1,
+    bootstrapError: typeof bootstrapError == "string" && bootstrapError !== "" ? bootstrapError : null
+  };
+}
+async function readDaemonBootstrapState(spaceDir) {
+  return readDaemonBootstrapStateForSpace({
+    projectsRoot: dirname11(spaceDir),
+    spaceId: basename3(spaceDir)
+  });
+}
+function v2BootstrapBlocker(state) {
+  return state.sourceSchema !== 2 || state.kind === "ready" ? null : state.kind === "invalid" ? { kind: "invalid", reason: state.reason } : state.kind === "missing" ? { kind: "not_ready", reason: "missing_v2_ready" } : state.bootstrapError === "auth_expired" ? null : {
+    kind: "not_ready",
+    reason: state.bootstrapError ?? "bootstrap_not_ready"
+  };
+}
+function bootstrapErrorForCache(state) {
+  return state.kind === "not_ready" ? state.bootstrapError : null;
+}
+function isV2AuthExpiredCacheRead(state) {
+  return state.sourceSchema === 2 && state.kind === "not_ready" && state.bootstrapError === "auth_expired";
 }
 function isAuthExpiredLocalCache(input) {
   return input.capabilityReason === "auth_expired" || input.daemonBootstrapError === "auth_expired";
 }
 async function readEngineBootstrapReady(spaceDir) {
   try {
-    let raw = await readFile21(
-      join23(syncStateDirForSpaceDir(spaceDir), "status.json"),
+    let raw = await readFile23(
+      join25(syncStateDirForSpaceDir(spaceDir), "status.json"),
       "utf8"
     );
     return { kind: "ok", ready: JSON.parse(raw).bootstrapReady === !0 };
@@ -17626,10 +18060,16 @@ async function readEngineBootstrapReady(spaceDir) {
     throw err;
   }
 }
+async function hasUsableLocalCache(spaceDir) {
+  let status = await readEngineBootstrapReady(spaceDir);
+  return status.kind !== "ok" || !status.ready || !await exists(
+    join25(syncStateDirForSpaceDir(spaceDir), "baseline.json")
+  ) ? !1 : exists(join25(spaceDir, "context-tree"));
+}
 async function readStrictMetadata(spaceDir) {
   let raw;
   try {
-    raw = await readFile21(join23(spaceDir, "metadata.json"), "utf8");
+    raw = await readFile23(join25(spaceDir, "metadata.json"), "utf8");
   } catch (err) {
     if (err.code === "ENOENT")
       return { kind: "missing" };
@@ -17674,10 +18114,14 @@ async function classifyCloudSpace(spaceDir) {
     return { kind: "invalid", reason: capability.reason };
   if (metadata.metadata.team_id !== null && capability.capability.team_id !== metadata.metadata.team_id)
     return { kind: "invalid", reason: "capability team_id mismatch" };
-  let daemonBootstrapError = await readDaemonBootstrapError(spaceDir), authExpiredLocalCache = isAuthExpiredLocalCache({
+  let daemonBootstrapState = await readDaemonBootstrapState(spaceDir), v2Blocker = v2BootstrapBlocker(daemonBootstrapState);
+  if (v2Blocker) return v2Blocker;
+  let daemonBootstrapError = bootstrapErrorForCache(daemonBootstrapState), authExpiredLocalCache = isAuthExpiredLocalCache({
     capabilityReason: capability.capability.sync_disabled_reason,
     daemonBootstrapError
   });
+  if (authExpiredLocalCache && isV2AuthExpiredCacheRead(daemonBootstrapState) && !await hasUsableLocalCache(spaceDir))
+    return { kind: "not_ready", reason: "auth_expired" };
   if (!authExpiredLocalCache && Date.parse(capability.capability.token_expires_at) <= Date.now())
     return { kind: "not_ready", reason: "capability_expired" };
   if (!authExpiredLocalCache) {
@@ -17689,7 +18133,7 @@ async function classifyCloudSpace(spaceDir) {
     if (!status.ready)
       return { kind: "not_ready", reason: "bootstrap_not_ready" };
     if (!await exists(
-      join23(syncStateDirForSpaceDir(spaceDir), "baseline.json")
+      join25(syncStateDirForSpaceDir(spaceDir), "baseline.json")
     ))
       return { kind: "not_ready", reason: "missing_baseline" };
   }
@@ -17700,7 +18144,7 @@ async function classifyCloudSpace(spaceDir) {
     team_id: capability.capability.team_id,
     can_read: authExpiredLocalCache ? !0 : capability.capability.can_read,
     can_write: authExpiredLocalCache ? !0 : capability.capability.can_write,
-    root: join23(spaceDir, "context-tree")
+    root: join25(spaceDir, "context-tree")
   };
 }
 async function resolveCloudBoundRoot(input) {
@@ -17755,7 +18199,7 @@ async function resolveCloudBoundRoot(input) {
 async function listQueryableCloudRoots(projectsRoot) {
   let entries;
   try {
-    entries = await readdir5(projectsRoot);
+    entries = await readdir6(projectsRoot);
   } catch {
     return [];
   }
@@ -17796,16 +18240,16 @@ async function awaitBaselineReady(spaceDir, opts = {}) {
 }
 
 // src/space-identity.ts
-import { chmod as chmod5, mkdir as mkdir16, readFile as readFile22, unlink as unlink2, writeFile as writeFile15 } from "node:fs/promises";
-import { join as join24 } from "node:path";
-var publicIdentityPath = (spaceDir) => join24(spaceDir, "identity.json"), privateKeyDir = (spaceDir) => join24(spaceDir, "identity"), plaintextKeyPath = (spaceDir, spaceId) => join24(privateKeyDir(spaceDir), `${spaceId}.key.pem`);
+import { chmod as chmod6, mkdir as mkdir17, readFile as readFile24, unlink as unlink2, writeFile as writeFile16 } from "node:fs/promises";
+import { join as join26 } from "node:path";
+var publicIdentityPath = (spaceDir) => join26(spaceDir, "identity.json"), privateKeyDir = (spaceDir) => join26(spaceDir, "identity"), plaintextKeyPath = (spaceDir, spaceId) => join26(privateKeyDir(spaceDir), `${spaceId}.key.pem`);
 function resolvePassphrase(opts) {
   return opts?.passphrase;
 }
 async function readRecord(spaceDir) {
   let raw;
   try {
-    raw = await readFile22(publicIdentityPath(spaceDir), "utf8");
+    raw = await readFile24(publicIdentityPath(spaceDir), "utf8");
   } catch (e) {
     if (e.code === "ENOENT") return null;
     throw e;
@@ -17851,7 +18295,7 @@ async function persistNewIdentity(spaceDir, spaceId, opts) {
     );
   else {
     let keyPath = plaintextKeyPath(spaceDir, spaceId);
-    await writeFile15(keyPath, privateKeyPem, { mode: 384 }), await chmod5(keyPath, 384);
+    await writeFile16(keyPath, privateKeyPem, { mode: 384 }), await chmod6(keyPath, 384);
   }
   let record = {
     space_id: spaceId,
@@ -17861,7 +18305,7 @@ async function persistNewIdentity(spaceDir, spaceId, opts) {
     key_storage: keyStorage,
     created_at: (/* @__PURE__ */ new Date()).toISOString()
   };
-  return await writeFile15(
+  return await writeFile16(
     publicIdentityPath(spaceDir),
     `${JSON.stringify(record, null, 2)}
 `,
@@ -17871,10 +18315,10 @@ async function persistNewIdentity(spaceDir, spaceId, opts) {
 async function getOrCreateSpaceIdentity(spaceDir, spaceId, opts) {
   let existing = await readRecord(spaceDir);
   if (existing) return toPublic(existing);
-  await mkdir16(privateKeyDir(spaceDir), { recursive: !0, mode: 448 }), await chmod5(privateKeyDir(spaceDir), 448);
-  let lockPath2 = join24(privateKeyDir(spaceDir), `${spaceId}.lock`), won = !1;
+  await mkdir17(privateKeyDir(spaceDir), { recursive: !0, mode: 448 }), await chmod6(privateKeyDir(spaceDir), 448);
+  let lockPath2 = join26(privateKeyDir(spaceDir), `${spaceId}.lock`), won = !1;
   try {
-    await writeFile15(lockPath2, String(process.pid), { flag: "wx", mode: 384 }), won = !0;
+    await writeFile16(lockPath2, String(process.pid), { flag: "wx", mode: 384 }), won = !0;
   } catch (e) {
     if (e.code !== "EEXIST") throw e;
   }
@@ -17908,7 +18352,7 @@ async function loadSpacePrivateKey(spaceDir, spaceId, opts) {
     );
   }
   try {
-    return await readFile22(plaintextKeyPath(spaceDir, spaceId), "utf8");
+    return await readFile24(plaintextKeyPath(spaceDir, spaceId), "utf8");
   } catch (e) {
     if (e.code === "ENOENT") return null;
     throw e;
@@ -17918,17 +18362,17 @@ async function loadSpacePrivateKey(spaceDir, spaceId, opts) {
 // src/sync/config.ts
 import {
   access as access3,
-  chmod as chmod6,
-  mkdir as mkdir17,
-  readFile as readFile23,
-  rename as rename10,
-  writeFile as writeFile16
+  chmod as chmod7,
+  mkdir as mkdir18,
+  readFile as readFile25,
+  rename as rename11,
+  writeFile as writeFile17
 } from "node:fs/promises";
-import { dirname as dirname12, join as join25 } from "node:path";
+import { dirname as dirname12, join as join27 } from "node:path";
 var FILE = "sync.json";
 async function readConfig(syncDir) {
   try {
-    let raw = await readFile23(join25(syncDir, FILE), "utf8");
+    let raw = await readFile25(join27(syncDir, FILE), "utf8");
     return JSON.parse(raw);
   } catch {
     return null;
@@ -18084,10 +18528,10 @@ function verifyHtmlTopic(html, publicKeyPem) {
 }
 
 // src/command-event.ts
-import { randomUUID as randomUUID5 } from "node:crypto";
+import { randomUUID as randomUUID6 } from "node:crypto";
 
 // src/config.ts
-var SKILL_VERSION = "4.0.5", AUTH_URL = "https://v4-app.byterover.dev";
+var SKILL_VERSION = "4.0.7", AUTH_URL = "https://v4-app.byterover.dev";
 var ANALYTICS_TELEMETRY_URL = "https://v4-telemetry.byterover.dev", ANALYTICS_ENABLED = ANALYTICS_TELEMETRY_URL.length > 0, rawMaxBytes = 0, EVENT_MAX_BYTES = Number.isInteger(rawMaxBytes) && rawMaxBytes > 0 ? rawMaxBytes : 4096, rawCapabilityRefresh = "", CAPABILITY_REFRESH_ENABLED = !["0", "false", "off"].includes(
   rawCapabilityRefresh.trim().toLowerCase()
 );
@@ -18119,7 +18563,7 @@ function buildEventProperties(input, cap) {
     ...attribution
   };
   if (byteLen(inline) <= effectiveCap) return [inline];
-  let groupId = randomUUID5(), metaTemplate = {
+  let groupId = randomUUID6(), metaTemplate = {
     command: input.command,
     cwd: process.cwd(),
     ok: input.result.ok,
@@ -18197,7 +18641,7 @@ async function spaceAttributionForRoot(root) {
   let space_id = spaceIdFromContextTreeRoot(resolve10(root));
   if (space_id === null) return {};
   try {
-    let meta = await readSpaceMetadata(join26(getProjectsDir(), space_id));
+    let meta = await readSpaceMetadata(join28(getProjectsDir(), space_id));
     return {
       space_id,
       ...meta?.team_id ? { team_id: meta.team_id } : {}
@@ -18220,14 +18664,14 @@ function pickMostRecentBindingForSpace(bindings, space_id) {
 async function findSpaceIdByDisplayName(displayName) {
   let entries = [];
   try {
-    entries = await readdir6(getProjectsDir());
+    entries = await readdir7(getProjectsDir());
   } catch {
     return null;
   }
   for (let name of entries)
     if (isUuid(name))
       try {
-        let meta = await readSpaceMetadata(join26(getProjectsDir(), name));
+        let meta = await readSpaceMetadata(join28(getProjectsDir(), name));
         if (meta !== null && meta.space_name === displayName)
           return meta.space_id;
       } catch {
@@ -18307,6 +18751,17 @@ var CONTEXT_TREE_PREFIX = ".brv/context-tree/";
 function knowledgePath(relOrPath) {
   return relOrPath.replace(/\.html$/i, "");
 }
+async function recordDeleteIntentBestEffort(root, prefix) {
+  try {
+    let syncDir = syncStateDirForContextTreeRoot(root);
+    await recordDeleteIntent({ syncDir, prefix });
+  } catch (err) {
+    console.error(
+      "[skill] recording delete-intent failed (ignored)",
+      err
+    );
+  }
+}
 function spaceIdFromRoot(root) {
   let parent = basename4(dirname13(root));
   if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
@@ -18316,7 +18771,7 @@ function spaceIdFromRoot(root) {
 }
 function resolveWebBaseUrl() {
   try {
-    let portPath = join26(getGlobalDataDir(), "bridge-port.txt"), raw = readFileSync2(portPath, "utf8").trim();
+    let portPath = join28(getGlobalDataDir(), "bridge-port.txt"), raw = readFileSync2(portPath, "utf8").trim();
     if (/^\d+$/.test(raw)) {
       let port = Number(raw);
       if (port > 0 && port < 65536) return `http://127.0.0.1:${port}`;
@@ -18562,7 +19017,7 @@ async function runCommand(name, argv) {
   let { positionals, flags } = parseArgs(argv);
   switch (name) {
     case "record": {
-      let startedAt = Date.now(), taskId = randomUUID6(), path2 = positionals[0];
+      let startedAt = Date.now(), taskId = randomUUID7(), path2 = positionals[0];
       if (!path2) return { ok: !1, error: "record requires a topic path" };
       let resolvedRoot = await rootForRecord(flags);
       if (resolvedRoot.kind === "error") return resolvedRoot.result;
@@ -18640,7 +19095,7 @@ async function runCommand(name, argv) {
       };
     }
     case "prune": {
-      let startedAt = Date.now(), taskId = randomUUID6(), paths = positionals.filter((p) => !!p);
+      let startedAt = Date.now(), taskId = randomUUID7(), paths = positionals.filter((p) => !!p);
       if (paths.length === 0)
         return {
           ok: !1,
@@ -18652,7 +19107,9 @@ async function runCommand(name, argv) {
       if (blocked) return blocked;
       let pruned = [], preservedSignals = [], firstMetaBefore = paths.length === 1 ? await topicMetadata(root, canonicalRel(paths[0])) : void 0;
       for (let i = 0; i < paths.length; i++) {
-        let path2 = paths[i], rel = canonicalRel(path2), signalBefore = await getSignal(root, rel), result = await applyDelete(root, path2);
+        let path2 = paths[i], rel = canonicalRel(path2), signalBefore = await getSignal(root, rel);
+        await recordDeleteIntentBestEffort(root, rel);
+        let result = await applyDelete(root, path2);
         if (!result.ok)
           return await emit2({
             name: AnalyticsEventNames.RECORD_RUN_COMPLETED,
@@ -18718,7 +19175,7 @@ async function runCommand(name, argv) {
       };
     }
     case "synthesize": {
-      let startedAt = Date.now(), taskId = randomUUID6(), newPath = positionals[0];
+      let startedAt = Date.now(), taskId = randomUUID7(), newPath = positionals[0];
       if (!newPath)
         return {
           ok: !1,
@@ -18782,7 +19239,9 @@ async function runCommand(name, argv) {
       ) : await recordCurateUpdateSignal(root, writeResult.relPath);
       let absorbed = [], reconcileEvents = [];
       for (let i = 0; i < absorbPaths.length; i++) {
-        let path2 = absorbPaths[i], loserRel = canonicalRel(path2), signalBefore = await getSignal(root, loserRel), result = await applyDelete(root, path2);
+        let path2 = absorbPaths[i], loserRel = canonicalRel(path2), signalBefore = await getSignal(root, loserRel);
+        await recordDeleteIntentBestEffort(root, loserRel);
+        let result = await applyDelete(root, path2);
         if (!result.ok)
           return await emit2({
             name: AnalyticsEventNames.RECORD_RUN_COMPLETED,
@@ -18857,7 +19316,7 @@ async function runCommand(name, argv) {
       };
     }
     case "move": {
-      let startedAt = Date.now(), taskId = randomUUID6(), topicPath = positionals[0], fromSpaceFlag = str2(flags["from-space"]), toSpaceFlag = str2(flags["to-space"]);
+      let startedAt = Date.now(), taskId = randomUUID7(), topicPath = positionals[0], fromSpaceFlag = str2(flags["from-space"]), toSpaceFlag = str2(flags["to-space"]);
       if (!topicPath)
         return {
           ok: !1,
@@ -18888,7 +19347,7 @@ async function runCommand(name, argv) {
       if (toBlocked) return toBlocked;
       let rel = canonicalRel(topicPath), fromAbs = resolveWithinTree(fromRoot, rel), sourceHtml;
       try {
-        sourceHtml = await readFile24(fromAbs, "utf8");
+        sourceHtml = await readFile26(fromAbs, "utf8");
       } catch {
         return {
           ok: !1,
@@ -18898,7 +19357,7 @@ async function runCommand(name, argv) {
       let sourceSignal = await getSignal(fromRoot, rel), danglingRefs = [], siblings = (await listTopics(fromRoot)).filter((p) => p !== rel);
       for (let sib of siblings)
         try {
-          let sibAbs = resolveWithinTree(fromRoot, sib), sibHtml = await readFile24(sibAbs, "utf8"), related = readTopicRootAttribute(sibHtml, "related");
+          let sibAbs = resolveWithinTree(fromRoot, sib), sibHtml = await readFile26(sibAbs, "utf8"), related = readTopicRootAttribute(sibHtml, "related");
           parseRelatedAttr(related).some((ref) => refTargets(ref, rel)) && danglingRefs.push(sib);
         } catch {
         }
@@ -19007,7 +19466,7 @@ async function runCommand(name, argv) {
       };
     }
     case "read": {
-      let startedAt = Date.now(), taskId = randomUUID6(), path2 = positionals[0];
+      let startedAt = Date.now(), taskId = randomUUID7(), path2 = positionals[0];
       if (!path2)
         return await emit2({
           name: AnalyticsEventNames.READ_COMPLETED,
@@ -19106,7 +19565,9 @@ async function runCommand(name, argv) {
     }
     case "query":
     case "search": {
-      let startedAt = Date.now(), taskId = randomUUID6(), query = positionals.join(" "), limit = str2(flags.limit) ? Number(str2(flags.limit)) : 10, resolvedRoots = await rootsForQuery(flags);
+      let startedAt = Date.now(), taskId = randomUUID7(), query = positionals.join(" "), QUERY_TEXT_MAX = 512, queryProp = query.length === 0 ? {} : {
+        query: query.length > QUERY_TEXT_MAX ? `${query.slice(0, QUERY_TEXT_MAX - 1)}\u2026` : query
+      }, limit = str2(flags.limit) ? Number(str2(flags.limit)) : 10, resolvedRoots = await rootsForQuery(flags);
       if (resolvedRoots.kind === "error") return resolvedRoots.result;
       let elementTag = str2(flags["element-tag"]);
       if (elementTag !== void 0 && !ELEMENT_NAMES.includes(elementTag))
@@ -19169,6 +19630,7 @@ async function runCommand(name, argv) {
               duration_ms: completedAt - startedAt,
               matched_doc_count: spaceHits.length,
               outcome: "completed",
+              ...queryProp,
               read_doc_count: 0,
               read_paths_with_metadata: enriched2,
               read_tool_call_count: 0,
@@ -19229,6 +19691,7 @@ async function runCommand(name, argv) {
           matched_doc_count: hits.length,
           outcome: "completed",
           project_path_hash: await projectHashForRoot(root),
+          ...queryProp,
           ...await spaceAttributionForRoot(root),
           read_doc_count: 0,
           read_paths_with_metadata: enriched,
@@ -19259,7 +19722,7 @@ async function runCommand(name, argv) {
         }), blocks = [], matchedDocs = [];
         for (let hit of hits)
           try {
-            let abs = resolveWithinTree(root, hit.path), raw = await readFile24(abs, "utf8");
+            let abs = resolveWithinTree(root, hit.path), raw = await readFile26(abs, "utf8");
             blocks.push(raw), matchedDocs.push({
               path: hit.path,
               title: hit.title,
@@ -19284,7 +19747,7 @@ async function runCommand(name, argv) {
       }
     }
     case "dream": {
-      let startedAt = Date.now(), taskId = randomUUID6(), root = await rootFrom(flags), blocked = await legacyGuard(root);
+      let startedAt = Date.now(), taskId = randomUUID7(), root = await rootFrom(flags), blocked = await legacyGuard(root);
       if (blocked) return blocked;
       let mode = str2(flags.mode) ?? "merge", num = (key) => str2(flags[key]) !== void 0 ? Number(str2(flags[key])) : void 0, minScore = num("min-score"), limit = num("limit"), candidates;
       switch (mode) {
@@ -19332,7 +19795,7 @@ async function runCommand(name, argv) {
       }), { ok: !0, data: { candidates, mode } };
     }
     case "merge": {
-      let startedAt = Date.now(), taskId = randomUUID6(), survivorPath = positionals[0], loserPath = positionals[1];
+      let startedAt = Date.now(), taskId = randomUUID7(), survivorPath = positionals[0], loserPath = positionals[1];
       if (!survivorPath || !loserPath)
         return {
           ok: !1,
@@ -19342,7 +19805,9 @@ async function runCommand(name, argv) {
       if (resolvedRoot.kind === "error") return resolvedRoot.result;
       let root = resolvedRoot.root, blocked = await legacyGuard(root);
       if (blocked) return blocked;
-      let signer = await buildTopicSignerForRoot(root), result = await applyMerge(
+      let signer = await buildTopicSignerForRoot(root);
+      await recordDeleteIntentBestEffort(root, canonicalRel(loserPath));
+      let result = await applyMerge(
         root,
         {
           agent: resolveAgent(),
@@ -19463,12 +19928,12 @@ async function countTopics(root) {
   async function walk3(dir) {
     let entries;
     try {
-      entries = await readdir6(dir, { withFileTypes: !0 });
+      entries = await readdir7(dir, { withFileTypes: !0 });
     } catch {
       return;
     }
     for (let e of entries) {
-      let abs = join26(dir, e.name);
+      let abs = join28(dir, e.name);
       e.isDirectory() ? await walk3(abs) : e.name.endsWith(".html") && count++;
     }
   }
@@ -19477,7 +19942,7 @@ async function countTopics(root) {
 async function runSpaceList() {
   let dir = getProjectsDir(), onDisk = /* @__PURE__ */ new Set();
   try {
-    let entries = await readdir6(dir, { withFileTypes: !0 });
+    let entries = await readdir7(dir, { withFileTypes: !0 });
     for (let e of entries)
       e.isDirectory() && isUuid(e.name) && onDisk.add(e.name);
   } catch {
@@ -19491,7 +19956,7 @@ async function runSpaceList() {
   let ids = [...onDisk].sort();
   return { ok: !0, data: { spaces: await Promise.all(
     ids.map(async (space_id) => {
-      let meta = await readSpaceMetadata(join26(dir, space_id)).catch(
+      let meta = await readSpaceMetadata(join28(dir, space_id)).catch(
         () => null
       ), root = spaceContextTreePath(space_id), topicCount = await pathExists(root) ? await countTopics(root) : 0;
       return {
@@ -19499,6 +19964,7 @@ async function runSpaceList() {
         space_id,
         space_name: meta?.space_name ?? "Untitled Space",
         team_id: meta?.team_id ?? null,
+        team_name: meta?.team_name ?? null,
         topicCount
       };
     })
@@ -19521,7 +19987,7 @@ async function runSpaceCurrent() {
   };
   resolution.source === "marker" && (data.markerPath = resolution.markerPath);
   let meta = await readSpaceMetadata(
-    join26(getProjectsDir(), resolution.space_id)
+    join28(getProjectsDir(), resolution.space_id)
   ).catch(() => null);
   return meta !== null ? data.space_name = meta.space_name : resolution.source === "marker" && (data.space_name = resolution.space_name), resolution.source === "registry" && (data.bindingFolder = resolution.bindingFolder), resolution.deleted !== void 0 && (data.deleted = resolution.deleted), resolution.source === "default" && !await hasTipBeenShown(process.cwd()) && (data.tip = 'Using the default space. To work in a named space, create one in the ByteRover desktop app and then run `space bind "<name>"` from this folder.'), { ok: !0, data };
 }
@@ -19571,7 +20037,7 @@ async function runSpaceReidentify(flags) {
     };
   let topics = await listTopics(root), failed = [], resigned = 0;
   for (let rel of topics) {
-    let rawHtml = await readFile24(join26(root, rel), "utf8").catch(() => null);
+    let rawHtml = await readFile26(join28(root, rel), "utf8").catch(() => null);
     if (rawHtml === null) {
       failed.push(rel);
       continue;
@@ -19650,7 +20116,7 @@ async function runSpaceVerify(topicPath, flags) {
     };
   let html;
   try {
-    html = await readFile24(abs, "utf8");
+    html = await readFile26(abs, "utf8");
   } catch {
     return { ok: !1, code: "not-found", error: `topic not found: ${topicPath}` };
   }
@@ -19703,7 +20169,7 @@ async function runSpaceDisclose(topicPath, flags) {
     };
   let html;
   try {
-    html = await readFile24(abs, "utf8");
+    html = await readFile26(abs, "utf8");
   } catch {
     return { ok: !1, code: "not-found", error: `topic not found: ${topicPath}` };
   }
@@ -19767,7 +20233,7 @@ async function runSpaceBind(name) {
     }
     space_id = resolution.space_id;
     let meta = await readSpaceMetadata(
-      join26(getProjectsDir(), space_id)
+      join28(getProjectsDir(), space_id)
     ).catch(() => null);
     meta !== null ? space_name = meta.space_name : resolution.source === "marker" ? space_name = resolution.space_name : space_name = "Untitled Space", pinned = !0;
   }
@@ -19783,7 +20249,7 @@ async function runSpaceBind(name) {
   return await addBinding(cwd, space_id), {
     data: {
       folder: cwd,
-      marker: join26(cwd, MARKER_FILENAME),
+      marker: join28(cwd, MARKER_FILENAME),
       pinnedFromResolver: pinned,
       space_id,
       space_name
@@ -19792,7 +20258,7 @@ async function runSpaceBind(name) {
   };
 }
 async function runSpaceUnbind() {
-  let cwd = process.cwd(), markerPath = join26(cwd, MARKER_FILENAME), previousSpaceId, marker = await readMarkerAt(cwd).catch(() => null);
+  let cwd = process.cwd(), markerPath = join28(cwd, MARKER_FILENAME), previousSpaceId, marker = await readMarkerAt(cwd).catch(() => null);
   marker !== null && (previousSpaceId = marker.space_id);
   let active = (await readBindings()).find(
     (b) => resolve10(b.folder) === resolve10(cwd) && b.removedAt === void 0
@@ -19805,7 +20271,7 @@ async function runSpaceUnbind() {
     };
   if (marker !== null)
     try {
-      await rm16(markerPath, { force: !0 });
+      await rm17(markerPath, { force: !0 });
     } catch (err) {
       return {
         ok: !1,
@@ -19863,7 +20329,7 @@ async function runSpaceRename(oldName, newName, _flags) {
       error: `A space named "${newName}" already exists`,
       ok: !1
     };
-  let spaceDir = join26(getProjectsDir(), space_id), meta = await readSpaceMetadata(spaceDir);
+  let spaceDir = join28(getProjectsDir(), space_id), meta = await readSpaceMetadata(spaceDir);
   return meta === null ? {
     code: "no-metadata",
     error: `Space ${space_id} has no metadata.json \u2014 cannot rename`,
@@ -19933,7 +20399,7 @@ async function main(argv) {
 
 // src/sync/ensure-daemon.ts
 import { stat as stat9 } from "node:fs/promises";
-import { join as join31 } from "node:path";
+import { join as join33 } from "node:path";
 
 // src/sync/auth-provider.ts
 async function hasDaemonAuthProvider(input) {
@@ -19942,11 +20408,11 @@ async function hasDaemonAuthProvider(input) {
 }
 
 // src/sync/daemon-auth-identity-reader.ts
-import { readFile as readFile25 } from "node:fs/promises";
+import { readFile as readFile27 } from "node:fs/promises";
 async function readCurrentDaemonAuthIdentity(projectsRoot) {
   let path2 = daemonAuthPath(projectsRoot), raw;
   try {
-    raw = JSON.parse(await readFile25(path2, "utf8"));
+    raw = JSON.parse(await readFile27(path2, "utf8"));
   } catch (err) {
     if (err.code === "ENOENT")
       raw = null;
@@ -19967,7 +20433,7 @@ function readDaemonAnalyticsEnv() {
 // src/sync/spawn-daemon.ts
 import { spawn } from "node:child_process";
 import { closeSync as closeSync2 } from "node:fs";
-import { dirname as dirname14, join as join28 } from "node:path";
+import { dirname as dirname14, join as join30 } from "node:path";
 import { fileURLToPath } from "node:url";
 
 // src/sync/daemon-log.ts
@@ -19982,13 +20448,13 @@ import {
   rmSync,
   statSync
 } from "node:fs";
-import { join as join27 } from "node:path";
+import { join as join29 } from "node:path";
 var DAEMON_LOG_FILE = "daemon.log", ROTATED_DAEMON_LOG_PREFIX = "daemon-", MAX_ACTIVE_DAEMON_LOG_BYTES = 150 * 1024 * 1024, ROTATED_DAEMON_LOG_RETENTION_MS = 10080 * 60 * 1e3;
 function daemonDir(projectsRoot) {
-  return join27(projectsRoot, ".daemon");
+  return join29(projectsRoot, ".daemon");
 }
 function daemonLogPath(projectsRoot) {
-  return join27(daemonDir(projectsRoot), DAEMON_LOG_FILE);
+  return join29(daemonDir(projectsRoot), DAEMON_LOG_FILE);
 }
 function localDateKey(date) {
   let year = date.getFullYear(), month = String(date.getMonth() + 1).padStart(2, "0"), day = String(date.getDate()).padStart(2, "0");
@@ -20000,7 +20466,7 @@ function timestampKey(date) {
 }
 function rotatedLogPath(dir, now, suffix) {
   let base = `${ROTATED_DAEMON_LOG_PREFIX}${timestampKey(now)}`, suffixPart = suffix === 0 ? "" : `-${suffix}`;
-  return join27(dir, `${base}${suffixPart}.log`);
+  return join29(dir, `${base}${suffixPart}.log`);
 }
 function isCollisionError(err) {
   return isNodeError(err) && (err.code === "EEXIST" || err.code === "ENOTEMPTY");
@@ -20057,7 +20523,7 @@ function pruneRotatedLogs(dir, now, retentionMs, fs) {
   let cutoff = now.getTime() - retentionMs;
   for (let name of names) {
     if (!isRotatedDaemonLog(name)) continue;
-    let path2 = join27(dir, name);
+    let path2 = join29(dir, name);
     try {
       fs.statSync(path2).mtimeMs < cutoff && fs.rmSync(path2, { force: !0 });
     } catch {
@@ -20104,7 +20570,7 @@ function isNodeError(error) {
 
 // src/sync/spawn-daemon.ts
 function spawnDetachedEntry(projectsRoot, entryFile, args) {
-  let entry = join28(dirname14(fileURLToPath(import.meta.url)), entryFile), logTarget = openDaemonLogForSpawn(projectsRoot), child = spawn(process.execPath, [entry, ...args], {
+  let entry = join30(dirname14(fileURLToPath(import.meta.url)), entryFile), logTarget = openDaemonLogForSpawn(projectsRoot), child = spawn(process.execPath, [entry, ...args], {
     detached: !0,
     stdio: ["ignore", logTarget, logTarget],
     cwd: process.cwd(),
@@ -20118,20 +20584,20 @@ function spawnDaemonProcess(projectsRoot) {
 }
 
 // src/sync/pidfile.ts
-import { createHash as createHash9, randomUUID as randomUUID7 } from "node:crypto";
-import { chmod as chmod7, mkdir as mkdir19, open as open5, readFile as readFile26, rm as rm17 } from "node:fs/promises";
-import { join as join29 } from "node:path";
+import { createHash as createHash9, randomUUID as randomUUID8 } from "node:crypto";
+import { chmod as chmod8, mkdir as mkdir20, open as open6, readFile as readFile28, rm as rm18 } from "node:fs/promises";
+import { join as join31 } from "node:path";
 var FILE2 = "daemon.pid";
 async function hashBundle(path2) {
   try {
-    return createHash9("sha256").update(await readFile26(path2)).digest("hex");
+    return createHash9("sha256").update(await readFile28(path2)).digest("hex");
   } catch {
     return "";
   }
 }
 async function readPid(daemonDir2) {
   try {
-    let data = JSON.parse(await readFile26(join29(daemonDir2, FILE2), "utf8"));
+    let data = JSON.parse(await readFile28(join31(daemonDir2, FILE2), "utf8"));
     if (typeof data.pid != "number" || data.script !== "sync-daemon" || typeof data.projectsRoot != "string")
       return null;
     let authIdentityResult = data.authIdentity === void 0 ? null : parseDaemonAuthMarkerIdentity(data.authIdentity), authIdentity = authIdentityResult?.ok === !0 ? authIdentityResult.identity : void 0;
@@ -20150,7 +20616,7 @@ async function readPid(daemonDir2) {
   }
 }
 async function removePid(daemonDir2) {
-  await rm17(join29(daemonDir2, FILE2), { force: !0 });
+  await rm18(join31(daemonDir2, FILE2), { force: !0 });
 }
 function isAlive2(pid) {
   try {
@@ -20164,10 +20630,10 @@ function isOwnedDaemon(record, projectsRoot) {
 }
 
 // src/sync/stop-daemon.ts
-import { join as join30 } from "node:path";
+import { join as join32 } from "node:path";
 var STOP_POLL_INTERVAL_MS = 100;
 async function stopOwnedDaemon(projectsRoot, deps = {}) {
-  let daemonDir2 = join30(projectsRoot, ".daemon"), isAlive3 = deps.isAlive ?? isAlive2, readPid2 = deps.readPid ?? readPid, kill = deps.kill ?? ((pid, signal) => process.kill(pid, signal)), sleep3 = deps.sleep ?? ((ms) => new Promise((r) => setTimeout(r, ms))), initial = await readPid2(daemonDir2);
+  let daemonDir2 = join32(projectsRoot, ".daemon"), isAlive3 = deps.isAlive ?? isAlive2, readPid2 = deps.readPid ?? readPid, kill = deps.kill ?? ((pid, signal) => process.kill(pid, signal)), sleep3 = deps.sleep ?? ((ms) => new Promise((r) => setTimeout(r, ms))), initial = await readPid2(daemonDir2);
   if (!isOwnedDaemon(initial, projectsRoot) || !isAlive3(initial.pid))
     return await removePid(daemonDir2), { stopped: !0, reason: "not-running" };
   let beforeTerm = await readPid2(daemonDir2);
@@ -20234,7 +20700,7 @@ async function supersedeDaemon(pid, deps) {
   return !deps.isAlive(pid);
 }
 function daemonScriptPath() {
-  return join31(new URL(".", import.meta.url).pathname, "sync-daemon.mjs");
+  return join33(new URL(".", import.meta.url).pathname, "sync-daemon.mjs");
 }
 async function defaultBundleInfo() {
   let path2 = daemonScriptPath();
@@ -20254,7 +20720,7 @@ async function ensureDaemonInternal(cwd = process.cwd(), deps = {}) {
     authUrl
   }), analyticsEnabled = deps.analyticsEnabled ?? readDaemonAnalyticsEnv().enabled;
   if (!providerAvailable && !analyticsEnabled) return { kind: "not-needed" };
-  let daemonDir2 = join31(projectsRoot, ".daemon"), pidPath = join31(daemonDir2, "daemon.pid"), isAlive3 = deps.isAlive ?? isAlive2, record = await (deps.readPid ?? readPid)(daemonDir2);
+  let daemonDir2 = join33(projectsRoot, ".daemon"), pidPath = join33(daemonDir2, "daemon.pid"), isAlive3 = deps.isAlive ?? isAlive2, record = await (deps.readPid ?? readPid)(daemonDir2);
   if (isOwnedDaemon(record, projectsRoot) && isAlive3(record.pid)) {
     let expectedIdentity;
     if (deps.expectedAuthIdentity !== void 0)

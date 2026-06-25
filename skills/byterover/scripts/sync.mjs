@@ -16818,7 +16818,7 @@ var SPACE_METADATA_FILENAME = "metadata.json", InvalidSpaceMetadataError = class
     this.name = "InvalidSpaceMetadataError";
   }
 };
-function validateFields(space_id, space_name, team_id, created_at) {
+function validateFields(space_id, space_name, team_id, created_at, team_name) {
   if (!isUuid(space_id))
     throw new InvalidSpaceMetadataError(
       "'space_id' must be a UUID string"
@@ -16835,14 +16835,25 @@ function validateFields(space_id, space_name, team_id, created_at) {
     throw new InvalidSpaceMetadataError(
       "'created_at' must be an ISO 8601 string"
     );
-  return { created_at, space_id, space_name, team_id };
+  if (team_name != null && typeof team_name != "string")
+    throw new InvalidSpaceMetadataError(
+      "'team_name' must be a string, null, or omitted"
+    );
+  return {
+    created_at,
+    space_id,
+    space_name,
+    team_id,
+    ...typeof team_name == "string" ? { team_name } : {}
+  };
 }
 async function writeSpaceMetadata(spaceDir, metadata) {
   validateFields(
     metadata.space_id,
     metadata.space_name,
     metadata.team_id,
-    metadata.created_at
+    metadata.created_at,
+    metadata.team_name
   );
   let target = join9(spaceDir, SPACE_METADATA_FILENAME), tmp = `${target}.tmp.${randomBytes2(6).toString("hex")}`, serialized = `${JSON.stringify(metadata, null, 2)}
 `;
@@ -17050,17 +17061,20 @@ var AnalyticsEventNames = {
   RECORD_RUN_COMPLETED: "record_run_completed",
   DREAM_COMPLETED: "dream_completed",
   QUERY_COMPLETED: "query_completed",
-  READ_COMPLETED: "read_completed"
+  READ_COMPLETED: "read_completed",
+  MIGRATION_RUN_COMPLETED: "migration_run_completed"
 }, TASK_TYPE = {
   RECORD: "record",
   DREAM: "dream",
   QUERY: "query",
-  READ: "read"
+  READ: "read",
+  MIGRATE: "migrate"
 }, TASK_TYPE_VALUES = [
   TASK_TYPE.RECORD,
   TASK_TYPE.DREAM,
   TASK_TYPE.QUERY,
-  TASK_TYPE.READ
+  TASK_TYPE.READ,
+  TASK_TYPE.MIGRATE
 ], DREAM_MODES = ["merge", "link", "prune", "synthesize"];
 
 // ../../packages/core/src/analytics/events/record-run-completed.ts
@@ -17178,6 +17192,15 @@ var RelatedPathWithMetadataSchema = external_exports.object({
     external_exports.literal(4)
   ]).optional(),
   /**
+   * The raw query text the user (or agent) asked. Optional because rows
+   * predate this field, and because a `search` invocation with no
+   * positionals yields an empty string we'd rather omit. Capped at 512
+   * chars at emit time; queries longer than that get a trailing `…`. The
+   * Usefulness panel uses this to label the "Used for these tasks" row
+   * with the actual query instead of an opaque `task_id`.
+   */
+  query: external_exports.string().max(512).optional(),
+  /**
    * Attribution slug of the host agent that ran this query (e.g. `claude`,
    * `codex`, `cursor`, `gemini`), resolved from the CLI env fingerprint
    * (skill-runtime `resolveAgent`). Omitted when undetected.
@@ -17245,12 +17268,38 @@ var RelatedPathWithMetadataSchema2 = external_exports.object({
   agent_id: external_exports.string().regex(AGENT_SLUG_REGEX).max(64).optional()
 }).strict();
 
+// ../../packages/core/src/analytics/events/migration-run-completed.ts
+var MigrationRunCompletedSchema = external_exports.object({
+  duration_ms: external_exports.number().int().nonnegative(),
+  /** `completed` = every project migrated; `partial` = some failed; `error` = none. */
+  outcome: external_exports.enum(["completed", "partial", "error"]),
+  /** v3 projects discovered for this run (a folder with `.brv/context-tree/*.md`). */
+  projects_total: external_exports.number().int().nonnegative(),
+  /** Projects whose v4 space was created AND materialized. */
+  spaces_migrated: external_exports.number().int().nonnegative(),
+  /** Projects that failed (createSpace / materialize error). */
+  projects_failed: external_exports.number().int().nonnegative(),
+  /** Markdown topics converted to `<bv-topic>` HTML across all migrated spaces. */
+  topics_converted: external_exports.number().int().nonnegative(),
+  /** Topics that failed to convert. */
+  topics_failed: external_exports.number().int().nonnegative(),
+  task_id: external_exports.string().min(1),
+  task_type: external_exports.enum(TASK_TYPE_VALUES),
+  /** Team the spaces were created under. */
+  team_id: external_exports.string().min(1).max(64).optional(),
+  /** Host agent slug that ran the migration (e.g. `openclaw`); omitted when undetected. */
+  agent: external_exports.string().regex(AGENT_SLUG_REGEX).max(64).optional(),
+  /** Same slug under the dashboard's canonical `agent_id` key (activation-funnel join). */
+  agent_id: external_exports.string().regex(AGENT_SLUG_REGEX).max(64).optional()
+}).strict();
+
 // ../../packages/core/src/analytics/events/index.ts
 var ALL_EVENT_SCHEMAS = {
   [AnalyticsEventNames.RECORD_RUN_COMPLETED]: RecordRunCompletedSchema,
   [AnalyticsEventNames.DREAM_COMPLETED]: DreamCompletedSchema,
   [AnalyticsEventNames.QUERY_COMPLETED]: QueryCompletedSchema,
-  [AnalyticsEventNames.READ_COMPLETED]: ReadCompletedSchema
+  [AnalyticsEventNames.READ_COMPLETED]: ReadCompletedSchema,
+  [AnalyticsEventNames.MIGRATION_RUN_COMPLETED]: MigrationRunCompletedSchema
 };
 
 // ../../packages/core/src/analytics/bounded-append.ts
@@ -21223,7 +21272,9 @@ async function extractSnapshotBundle(input) {
   await mkdir8(input.stagingPath, { recursive: !0 });
   let expected = new Map(
     input.manifest.manifestEntries.map((entry) => [entry.key, entry])
-  ), seen = /* @__PURE__ */ new Set(), extract = import_tar_stream.default.extract(), bundleHash = createHash5("sha256"), bundleBytes = 0, source = Readable.fromWeb(input.body).on("data", (chunk2) => {
+  ), seen = /* @__PURE__ */ new Set(), extract = import_tar_stream.default.extract(), bundleHash = createHash5("sha256"), bundleBytes = 0, source = Readable.fromWeb(
+    input.body
+  ).on("data", (chunk2) => {
     bundleBytes += chunk2.byteLength, bundleHash.update(chunk2);
   }), gunzip = createGunzip(), settled = !1, finished = new Promise((resolve7, reject) => {
     let onError = (err) => {
@@ -22929,7 +22980,7 @@ async function clearDaemonAuthIfFingerprint(path, fingerprint2) {
 
 // ../../packages/sync/src/daemon-status.ts
 var import_realtime_contracts6 = __toESM(require_realtime_contracts());
-import { readFile as readFile13 } from "node:fs/promises";
+import { open as open2, readFile as readFile13 } from "node:fs/promises";
 import { join as join19 } from "node:path";
 
 // ../../packages/sync/src/daemon-auth-identity.ts
@@ -22998,6 +23049,7 @@ function authIdentitiesEqual(expected, running) {
 }
 
 // ../../packages/sync/src/daemon-status.ts
+var DAEMON_PID_MAX_BYTES = 16 * 1024, DAEMON_STATUS_V2_MAX_BYTES = 64 * 1024, DAEMON_READY_V2_MAX_BYTES = 16 * 1024, DAEMON_SPACES_INDEX_V2_MAX_BYTES = 512 * 1024, DAEMON_SPACE_STATUS_V2_MAX_BYTES = 256 * 1024, DAEMON_SPACE_READY_V2_MAX_BYTES = 16 * 1024, DAEMON_STATUS_V1_FALLBACK_MAX_BYTES = 2 * 1024 * 1024, DAEMON_READY_V1_FALLBACK_MAX_BYTES = 1 * 1024 * 1024;
 var OPERATIONS = /* @__PURE__ */ new Set([
   "push",
   "pull",
@@ -23070,7 +23122,7 @@ function sanitizeDisplayBasename(value2) {
 }
 function normalizeUuidLike(value2) {
   if (typeof value2 == "string")
-    return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
       value2
     ) ? value2 : void 0;
 }
@@ -23127,6 +23179,57 @@ function normalizeRecentCompletion(value2) {
   let rec = value2, changedCount = rec.changedCount, completedAt = rec.completedAt, batchId = rec.batchId;
   if (!(typeof changedCount != "number" || !Number.isSafeInteger(changedCount) || changedCount <= 0) && !(typeof completedAt != "string" || Number.isNaN(Date.parse(completedAt))) && !(typeof batchId != "string" || batchId.trim() === "" || batchId.length > 80))
     return { changedCount, completedAt, batchId };
+}
+var CONFLICT_REASONS = /* @__PURE__ */ new Set([
+  "newer",
+  "tie-md5",
+  "first-sync",
+  "edit-vs-delete"
+]), REJECT_REASONS = /* @__PURE__ */ new Set([
+  "extension",
+  "content-type",
+  "too-large",
+  "invalid-key",
+  "forbidden"
+]);
+function normalizeConflictEvent(value2) {
+  if (typeof value2 != "object" || value2 === null || Array.isArray(value2))
+    return;
+  let rec = value2, spaceId = normalizeUuidLike(rec.spaceId);
+  if (!spaceId) return;
+  let key = rec.key;
+  if (typeof key != "string" || key.length === 0 || key.length > 512)
+    return;
+  let winner = rec.winner;
+  if (winner !== "remote" && winner !== "local") return;
+  let reason = rec.reason;
+  if (typeof reason != "string" || !CONFLICT_REASONS.has(reason))
+    return;
+  let at = rec.at;
+  if (!(typeof at != "string" || Number.isNaN(Date.parse(at))))
+    return {
+      spaceId,
+      key,
+      winner,
+      reason,
+      at: new Date(at).toISOString()
+    };
+}
+function normalizeRecentConflicts(value2) {
+  if (!Array.isArray(value2)) return;
+  let events = value2.map(normalizeConflictEvent).filter((e) => e !== void 0).slice(-200);
+  return events.length > 0 ? events : void 0;
+}
+function normalizeRejectedList(value2) {
+  if (!Array.isArray(value2)) return;
+  let seen = /* @__PURE__ */ new Set(), out = [];
+  for (let entry of value2) {
+    if (typeof entry != "object" || entry === null) continue;
+    let rec = entry, key = rec.key, reason = rec.reason;
+    if (!(typeof key != "string" || key.length === 0 || key.length > 512) && !(typeof reason != "string" || !REJECT_REASONS.has(reason)) && !seen.has(key) && (seen.add(key), out.push({ key, reason }), out.length >= 50))
+      break;
+  }
+  return out.length > 0 ? out : void 0;
 }
 var FAST_BOOTSTRAP_MODE_SET = new Set(
   import_realtime_contracts6.FAST_BOOTSTRAP_MODES
@@ -23205,7 +23308,7 @@ function normalizeDaemonStatus(raw) {
   if (!raw || typeof raw != "object") return null;
   let value2 = raw, authState = normalizeAuthState(value2.authState ?? value2.state);
   if (!authState) return null;
-  let warnings = normalizeWarnings(value2.warnings), authIdentityParse = value2.authIdentity === void 0 ? null : parseDaemonAuthMarkerIdentity(value2.authIdentity), authIdentity = authIdentityParse?.ok === !0 ? authIdentityParse.identity : void 0, recentCompletion = normalizeRecentCompletion(value2.recentCompletion);
+  let warnings = normalizeWarnings(value2.warnings), authIdentityParse = value2.authIdentity === void 0 ? null : parseDaemonAuthMarkerIdentity(value2.authIdentity), authIdentity = authIdentityParse?.ok === !0 ? authIdentityParse.identity : void 0, recentCompletion = normalizeRecentCompletion(value2.recentCompletion), recentConflicts = normalizeRecentConflicts(value2.recentConflicts);
   return {
     schemaVersion: 1,
     providerKind: normalizeProviderKind(value2.providerKind) ?? "none",
@@ -23226,6 +23329,7 @@ function normalizeDaemonStatus(raw) {
       value2.capabilitySocketState
     ),
     ...recentCompletion ? { recentCompletion } : {},
+    ...recentConflicts ? { recentConflicts } : {},
     spaces: Array.isArray(value2.spaces) ? value2.spaces.map((rawSpace) => {
       let space = rawSpace, syncWorkState = normalizeSyncWorkState(space.syncWorkState), currentFileName = normalizeCurrentFileName(
         space.currentFileName
@@ -23244,7 +23348,7 @@ function normalizeDaemonStatus(raw) {
         space.errorKind ?? space.pendingError
       ), fastBootstrap = normalizeFastBootstrap(space.fastBootstrap), batchProgress2 = normalizeBatchProgress(space.progress), rejectedCount = normalizeRejectedCount(space.rejectedCount), attentionReason = normalizeAttentionReason(
         space.attentionReason
-      );
+      ), rejected = normalizeRejectedList(space.rejected);
       return spaceId ? {
         spaceId,
         ...teamId ? { teamId } : {},
@@ -23265,7 +23369,8 @@ function normalizeDaemonStatus(raw) {
         ...fastBootstrap ? { fastBootstrap } : {},
         progress: batchProgress2,
         ...rejectedCount !== void 0 ? { rejectedCount } : {},
-        ...attentionReason ? { attentionReason } : {}
+        ...attentionReason ? { attentionReason } : {},
+        ...rejected ? { rejected } : {}
       } : null;
     }).filter((space) => space !== null) : [],
     ...warnings ? { warnings } : {}
@@ -23757,7 +23862,7 @@ import { chmod as chmod8, mkdir as mkdir15, readFile as readFile18, rename as re
 import { dirname as dirname12, join as join26 } from "node:path";
 
 // src/sync/pidfile.ts
-import { chmod as chmod7, mkdir as mkdir14, open as open2, readFile as readFile17, rm as rm13 } from "node:fs/promises";
+import { chmod as chmod7, mkdir as mkdir14, open as open3, readFile as readFile17, rm as rm13 } from "node:fs/promises";
 import { join as join22 } from "node:path";
 var FILE = "daemon.pid";
 async function readPid(daemonDir2) {
@@ -24136,12 +24241,12 @@ function redactNullable(value2) {
 
 // src/sync/readiness.ts
 import { constants } from "node:fs";
-import { chmod as chmod10, mkdir as mkdir17, open as open3, readFile as readFile20, rm as rm15, writeFile as writeFile12 } from "node:fs/promises";
+import { chmod as chmod10, mkdir as mkdir17, open as open4, readFile as readFile20, rm as rm15, writeFile as writeFile12 } from "node:fs/promises";
 var MAX_DAEMON_READY_JSON_BYTES = 64 * 1024;
 async function readDaemonReadyJson(path) {
   let file = null;
   try {
-    file = await open3(path, constants.O_RDONLY | constants.O_NOFOLLOW);
+    file = await open4(path, constants.O_RDONLY | constants.O_NOFOLLOW);
     let stat7 = await file.stat();
     if (!stat7.isFile() || stat7.size > MAX_DAEMON_READY_JSON_BYTES) return null;
     let buffer = Buffer.alloc(stat7.size);

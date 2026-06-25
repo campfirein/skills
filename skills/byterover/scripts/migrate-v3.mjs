@@ -6,8 +6,10 @@ var __export = (target, all) => {
     __defProp(target, name, { get: all[name], enumerable: !0 });
 };
 
-// src/entries/auth.ts
-import { readFile as readFile5 } from "node:fs/promises";
+// src/migrate-v3.ts
+import { cp, mkdir as mkdir7, readFile as readFile7, readdir, rm as rm8, stat as stat3, writeFile as writeFile7 } from "node:fs/promises";
+import { homedir as homedir2 } from "node:os";
+import path from "node:path";
 
 // ../../packages/core/src/render/element-types.ts
 var ELEMENT_NAMES = [
@@ -404,7 +406,7 @@ function getErrorMap() {
 
 // ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/helpers/parseUtil.js
 var makeIssue = (params) => {
-  let { data, path, errorMaps, issueData } = params, fullPath = [...path, ...issueData.path || []], fullIssue = {
+  let { data, path: path2, errorMaps, issueData } = params, fullPath = [...path2, ...issueData.path || []], fullIssue = {
     ...issueData,
     path: fullPath
   };
@@ -493,8 +495,8 @@ var errorUtil;
 
 // ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/types.js
 var ParseInputLazyPath = class {
-  constructor(parent, value, path, key) {
-    this._cachedPath = [], this.parent = parent, this.data = value, this._path = path, this._key = key;
+  constructor(parent, value, path2, key) {
+    this._cachedPath = [], this.parent = parent, this.data = value, this._path = path2, this._key = key;
   }
   get path() {
     return this._cachedPath.length || (Array.isArray(this._key) ? this._cachedPath.push(...this._path, ...this._key) : this._cachedPath.push(...this._path, this._key)), this._cachedPath;
@@ -743,18 +745,18 @@ var ZodType = class {
     return this.safeParse(null).success;
   }
 }, cuidRegex = /^c[^\s-]{8,}$/i, cuid2Regex = /^[0-9a-z]+$/, ulidRegex = /^[0-9A-HJKMNP-TV-Z]{26}$/i, uuidRegex = /^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/i, nanoidRegex = /^[a-z0-9_-]{21}$/i, jwtRegex = /^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]*$/, durationRegex = /^[-+]?P(?!$)(?:(?:[-+]?\d+Y)|(?:[-+]?\d+[.,]\d+Y$))?(?:(?:[-+]?\d+M)|(?:[-+]?\d+[.,]\d+M$))?(?:(?:[-+]?\d+W)|(?:[-+]?\d+[.,]\d+W$))?(?:(?:[-+]?\d+D)|(?:[-+]?\d+[.,]\d+D$))?(?:T(?=[\d+-])(?:(?:[-+]?\d+H)|(?:[-+]?\d+[.,]\d+H$))?(?:(?:[-+]?\d+M)|(?:[-+]?\d+[.,]\d+M$))?(?:[-+]?\d+(?:[.,]\d+)?S)?)??$/, emailRegex = /^(?!\.)(?!.*\.\.)([A-Z0-9_'+\-\.]*)[A-Z0-9_+-]@([A-Z0-9][A-Z0-9\-]*\.)+[A-Z]{2,}$/i, _emojiRegex = "^(\\p{Extended_Pictographic}|\\p{Emoji_Component})+$", emojiRegex, ipv4Regex = /^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])$/, ipv4CidrRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\/(3[0-2]|[12]?[0-9])$/, ipv6Regex = /^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))$/, ipv6CidrRegex = /^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))\/(12[0-8]|1[01][0-9]|[1-9]?[0-9])$/, base64Regex = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/, base64urlRegex = /^([0-9a-zA-Z-_]{4})*(([0-9a-zA-Z-_]{2}(==)?)|([0-9a-zA-Z-_]{3}(=)?))?$/, dateRegexSource = "((\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-((0[13578]|1[02])-(0[1-9]|[12]\\d|3[01])|(0[469]|11)-(0[1-9]|[12]\\d|30)|(02)-(0[1-9]|1\\d|2[0-8])))", dateRegex = new RegExp(`^${dateRegexSource}$`);
-function timeRegexSource(args2) {
+function timeRegexSource(args) {
   let secondsRegexSource = "[0-5]\\d";
-  args2.precision ? secondsRegexSource = `${secondsRegexSource}\\.\\d{${args2.precision}}` : args2.precision == null && (secondsRegexSource = `${secondsRegexSource}(\\.\\d+)?`);
-  let secondsQuantifier = args2.precision ? "+" : "?";
+  args.precision ? secondsRegexSource = `${secondsRegexSource}\\.\\d{${args.precision}}` : args.precision == null && (secondsRegexSource = `${secondsRegexSource}(\\.\\d+)?`);
+  let secondsQuantifier = args.precision ? "+" : "?";
   return `([01]\\d|2[0-3]):[0-5]\\d(:${secondsRegexSource})${secondsQuantifier}`;
 }
-function timeRegex(args2) {
-  return new RegExp(`^${timeRegexSource(args2)}$`);
+function timeRegex(args) {
+  return new RegExp(`^${timeRegexSource(args)}$`);
 }
-function datetimeRegex(args2) {
-  let regex = `${dateRegexSource}T${timeRegexSource(args2)}`, opts = [];
-  return opts.push(args2.local ? "Z?" : "Z"), args2.offset && opts.push("([+-]\\d{2}:?\\d{2})"), regex = `${regex}(${opts.join("|")})`, new RegExp(`^${regex}$`);
+function datetimeRegex(args) {
+  let regex = `${dateRegexSource}T${timeRegexSource(args)}`, opts2 = [];
+  return opts2.push(args.local ? "Z?" : "Z"), args.offset && opts2.push("([+-]\\d{2}:?\\d{2})"), regex = `${regex}(${opts2.join("|")})`, new RegExp(`^${regex}$`);
 }
 function isValidIP(ip, version) {
   return !!((version === "v4" || !version) && ipv4Regex.test(ip) || (version === "v6" || !version) && ipv6Regex.test(ip));
@@ -2109,8 +2111,8 @@ var ZodUnion = class extends ZodType {
     return this._def.options;
   }
 };
-ZodUnion.create = (types, params) => new ZodUnion({
-  options: types,
+ZodUnion.create = (types2, params) => new ZodUnion({
+  options: types2,
   typeName: ZodFirstPartyTypeKind.ZodUnion,
   ...processCreateParams(params)
 });
@@ -2454,9 +2456,9 @@ var ZodFunction = class _ZodFunction extends ZodType {
         expected: ZodParsedType.function,
         received: ctx.parsedType
       }), INVALID;
-    function makeArgsIssue(args2, error) {
+    function makeArgsIssue(args, error) {
       return makeIssue({
-        data: args2,
+        data: args,
         path: ctx.path,
         errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap(), en_default].filter((x) => !!x),
         issueData: {
@@ -2479,9 +2481,9 @@ var ZodFunction = class _ZodFunction extends ZodType {
     let params = { errorMap: ctx.common.contextualErrorMap }, fn = ctx.data;
     if (this._def.returns instanceof ZodPromise) {
       let me = this;
-      return OK(async function(...args2) {
-        let error = new ZodError([]), parsedArgs = await me._def.args.parseAsync(args2, params).catch((e) => {
-          throw error.addIssue(makeArgsIssue(args2, e)), error;
+      return OK(async function(...args) {
+        let error = new ZodError([]), parsedArgs = await me._def.args.parseAsync(args, params).catch((e) => {
+          throw error.addIssue(makeArgsIssue(args, e)), error;
         }), result = await Reflect.apply(fn, this, parsedArgs);
         return await me._def.returns._def.type.parseAsync(result, params).catch((e) => {
           throw error.addIssue(makeReturnsIssue(result, e)), error;
@@ -2489,10 +2491,10 @@ var ZodFunction = class _ZodFunction extends ZodType {
       });
     } else {
       let me = this;
-      return OK(function(...args2) {
-        let parsedArgs = me._def.args.safeParse(args2, params);
+      return OK(function(...args) {
+        let parsedArgs = me._def.args.safeParse(args, params);
         if (!parsedArgs.success)
-          throw new ZodError([makeArgsIssue(args2, parsedArgs.error)]);
+          throw new ZodError([makeArgsIssue(args, parsedArgs.error)]);
         let result = Reflect.apply(fn, this, parsedArgs.data), parsedReturns = me._def.returns.safeParse(result, params);
         if (!parsedReturns.success)
           throw new ZodError([makeReturnsIssue(result, parsedReturns.error)]);
@@ -2524,9 +2526,9 @@ var ZodFunction = class _ZodFunction extends ZodType {
   strictImplement(func) {
     return this.parse(func);
   }
-  static create(args2, returns, params) {
+  static create(args, returns, params) {
     return new _ZodFunction({
-      args: args2 || ZodTuple.create([]).rest(ZodUnknown.create()),
+      args: args || ZodTuple.create([]).rest(ZodUnknown.create()),
       returns: returns || ZodUnknown.create(),
       typeName: ZodFirstPartyTypeKind.ZodFunction,
       ...processCreateParams(params)
@@ -3757,17 +3759,38 @@ var VOID_ELEMENTS = /* @__PURE__ */ new Set([
   TAG_NAMES.WBR
 ]);
 
+// ../../packages/storage/src/cas-atomic-write.ts
+import { chmod, mkdir, rename, rm, writeFile } from "node:fs/promises";
+var RENAME_RETRY_DELAYS_MS = [10, 25, 50, 100, 200];
+async function renameWithRetry(tmp, filePath) {
+  for (let delayMs of RENAME_RETRY_DELAYS_MS)
+    try {
+      await rename(tmp, filePath);
+      return;
+    } catch (err) {
+      let code = err.code;
+      if (code !== "EPERM" && code !== "EACCES") throw err;
+      await new Promise((resolve3) => setTimeout(resolve3, delayMs));
+    }
+  await rename(tmp, filePath);
+}
+
 // ../../packages/core/src/tree/paths.ts
 import { homedir, platform } from "node:os";
 import { basename, dirname, isAbsolute, join, resolve, sep } from "node:path";
 
 // ../../packages/core/src/identity/uuid-v4.ts
+import { randomUUID } from "node:crypto";
 var UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
+function uuidv4(rng = randomUUID) {
+  return rng();
+}
 function isUuid(value) {
   return typeof value == "string" && UUID_REGEX.test(value);
 }
 
 // ../../packages/core/src/tree/paths.ts
+var CONTEXT_TREE_DIRNAME = "context-tree";
 var PROJECTS_DIRNAME = "projects", GLOBAL_DATA_DIRNAME = "brv";
 function getGlobalDataDir() {
   let override = process.env.BRV_DATA_DIR;
@@ -3793,6 +3816,93 @@ function getGlobalDataDir() {
 }
 function getProjectsDir() {
   return join(getGlobalDataDir(), PROJECTS_DIRNAME);
+}
+function spaceContextTreePath(space_id) {
+  return join(
+    getGlobalDataDir(),
+    PROJECTS_DIRNAME,
+    space_id,
+    CONTEXT_TREE_DIRNAME
+  );
+}
+function resolveWithinTree(root, relPath) {
+  let base = resolve(root), resolved = resolve(base, relPath);
+  if (resolved !== base && !resolved.startsWith(base + sep))
+    throw new Error(`Path escapes context-tree root: ${relPath}`);
+  return resolved;
+}
+
+// ../../packages/core/src/render/writer/topic-attributes.ts
+function escapeHtmlAttributeValue(value) {
+  return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
+}
+function decodeHtmlAttributeValue(value) {
+  return value.replaceAll("&lt;", "<").replaceAll("&gt;", ">").replaceAll("&quot;", '"').replaceAll("&amp;", "&");
+}
+function matchBvTopicOpenTag(html) {
+  let lower = html.toLowerCase(), NAME = "<bv-topic", i = 0;
+  for (; i < html.length; ) {
+    if (lower.startsWith("<!--", i)) {
+      let end = lower.indexOf("-->", i + 4);
+      i = end < 0 ? html.length : end + 3;
+      continue;
+    }
+    if (lower.startsWith(NAME, i)) {
+      let after = html[i + NAME.length];
+      if (after === void 0 || /[\s/>]/.test(after)) {
+        let quote;
+        for (let j = i + 1; j < html.length; j++) {
+          let ch = html[j];
+          if (quote !== void 0)
+            ch === quote && (quote = void 0);
+          else if (ch === '"' || ch === "'")
+            quote = ch;
+          else if (ch === ">")
+            return { index: i, tag: html.slice(i, j + 1) };
+        }
+        return;
+      }
+    }
+    i++;
+  }
+}
+function readTopicRootAttribute(html, name) {
+  let match = matchBvTopicOpenTag(html);
+  if (!match) return;
+  let attr = match.tag.match(
+    new RegExp(`\\s${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)')`, "i")
+  ), raw = attr?.[1] ?? attr?.[2];
+  return raw === void 0 ? void 0 : decodeHtmlAttributeValue(raw);
+}
+function patchBvTopicRootAttributes(html, attrs) {
+  let result = html;
+  for (let [name, value] of Object.entries(attrs))
+    result = setBvTopicAttribute(result, name, value);
+  return result;
+}
+var ATTR_VALUE_GRAMMAR = `("[^"]*"|'[^']*'|[^\\s"'=<>\`]+)`;
+function setBvTopicAttribute(html, name, value) {
+  let match = matchBvTopicOpenTag(html);
+  if (!match) return html;
+  let { index, tag } = match, escaped = escapeHtmlAttributeValue(value), attrPattern = new RegExp(
+    `\\s${name}\\s*=\\s*${ATTR_VALUE_GRAMMAR}`,
+    "gi"
+  ), replaced = !1, newTag = tag.replace(attrPattern, () => replaced ? "" : (replaced = !0, ` ${name}="${escaped}"`));
+  return replaced || (newTag = tag.endsWith("/>") ? `${tag.slice(0, -2)} ${name}="${escaped}"/>` : `${tag.slice(0, -1)} ${name}="${escaped}">`), html.slice(0, index) + newTag + html.slice(index + tag.length);
+}
+
+// ../../packages/core/src/identity/topic-id.ts
+import { randomUUID as randomUUID2 } from "node:crypto";
+var ID_PREFIX = "tpc_";
+function makeTopicId(rng = randomUUID2) {
+  return `${ID_PREFIX}${rng().replaceAll("-", "")}`;
+}
+function ensureTopicId(html, makeId = makeTopicId) {
+  let existing = readTopicRootAttribute(html, "id");
+  if (existing !== void 0 && existing.length > 0)
+    return { created: !1, html, id: existing };
+  let id = makeId();
+  return { created: !0, html: patchBvTopicRootAttributes(html, { id }), id };
 }
 
 // ../../packages/core/src/render/materialize-layer.ts
@@ -4543,13 +4653,13 @@ function throwWarning(state, message) {
   state.onWarning && state.onWarning.call(null, generateError(state, message));
 }
 var directiveHandlers = {
-  YAML: function(state, name, args2) {
+  YAML: function(state, name, args) {
     var match, major, minor;
-    state.version !== null && throwError(state, "duplication of %YAML directive"), args2.length !== 1 && throwError(state, "YAML directive accepts exactly one argument"), match = /^([0-9]+)\.([0-9]+)$/.exec(args2[0]), match === null && throwError(state, "ill-formed argument of the YAML directive"), major = parseInt(match[1], 10), minor = parseInt(match[2], 10), major !== 1 && throwError(state, "unacceptable YAML version of the document"), state.version = args2[0], state.checkLineBreaks = minor < 2, minor !== 1 && minor !== 2 && throwWarning(state, "unsupported YAML version of the document");
+    state.version !== null && throwError(state, "duplication of %YAML directive"), args.length !== 1 && throwError(state, "YAML directive accepts exactly one argument"), match = /^([0-9]+)\.([0-9]+)$/.exec(args[0]), match === null && throwError(state, "ill-formed argument of the YAML directive"), major = parseInt(match[1], 10), minor = parseInt(match[2], 10), major !== 1 && throwError(state, "unacceptable YAML version of the document"), state.version = args[0], state.checkLineBreaks = minor < 2, minor !== 1 && minor !== 2 && throwWarning(state, "unsupported YAML version of the document");
   },
-  TAG: function(state, name, args2) {
+  TAG: function(state, name, args) {
     var handle, prefix;
-    args2.length !== 2 && throwError(state, "TAG directive accepts exactly two arguments"), handle = args2[0], prefix = args2[1], PATTERN_TAG_HANDLE.test(handle) || throwError(state, "ill-formed tag handle (first argument) of the TAG directive"), _hasOwnProperty$1.call(state.tagMap, handle) && throwError(state, 'there is a previously declared suffix for "' + handle + '" tag handle'), PATTERN_TAG_URI.test(prefix) || throwError(state, "ill-formed tag prefix (second argument) of the TAG directive");
+    args.length !== 2 && throwError(state, "TAG directive accepts exactly two arguments"), handle = args[0], prefix = args[1], PATTERN_TAG_HANDLE.test(handle) || throwError(state, "ill-formed tag handle (first argument) of the TAG directive"), _hasOwnProperty$1.call(state.tagMap, handle) && throwError(state, 'there is a previously declared suffix for "' + handle + '" tag handle'), PATTERN_TAG_URI.test(prefix) || throwError(state, "ill-formed tag prefix (second argument) of the TAG directive");
     try {
       prefix = decodeURIComponent(prefix);
     } catch {
@@ -5217,8 +5327,507 @@ function renamed(from, to) {
     throw new Error("Function yaml." + from + " is removed in js-yaml 4. Use yaml." + to + " instead, which is now safe by default.");
   };
 }
-var load = loader.load, loadAll = loader.loadAll, dump = dumper.dump;
-var safeLoad = renamed("safeLoad", "load"), safeLoadAll = renamed("safeLoadAll", "loadAll"), safeDump = renamed("safeDump", "dump");
+var Type = type, Schema = schema, FAILSAFE_SCHEMA = failsafe, JSON_SCHEMA = json, CORE_SCHEMA = core, DEFAULT_SCHEMA = _default, load = loader.load, loadAll = loader.loadAll, dump = dumper.dump, YAMLException = exception, types = {
+  binary,
+  float,
+  map,
+  null: _null,
+  pairs,
+  set,
+  timestamp,
+  bool,
+  int,
+  merge,
+  omap,
+  seq,
+  str
+}, safeLoad = renamed("safeLoad", "load"), safeLoadAll = renamed("safeLoadAll", "loadAll"), safeDump = renamed("safeDump", "dump"), jsYaml = {
+  Type,
+  Schema,
+  FAILSAFE_SCHEMA,
+  JSON_SCHEMA,
+  CORE_SCHEMA,
+  DEFAULT_SCHEMA,
+  load,
+  loadAll,
+  dump,
+  YAMLException,
+  types,
+  safeLoad,
+  safeLoadAll,
+  safeDump
+};
+
+// ../../packages/core/src/migrate/convert.ts
+var FRONTMATTER_RE = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/, DIAGRAM_TYPES = /* @__PURE__ */ new Set([
+  "ascii",
+  "dot",
+  "graphviz",
+  "mermaid",
+  "other",
+  "plantuml"
+]), FACT_CATEGORIES = /* @__PURE__ */ new Set([
+  "convention",
+  "environment",
+  "other",
+  "personal",
+  "preference",
+  "project",
+  "team"
+]), RAW_CONCEPT_LABELS = /* @__PURE__ */ new Map([
+  ["author", "author"],
+  ["authors", "author"],
+  ["change", "changes"],
+  ["changes", "changes"],
+  ["file", "files"],
+  ["files", "files"],
+  ["flow", "flow"],
+  ["flows", "flow"],
+  ["pattern", "patterns"],
+  ["patterns", "patterns"],
+  ["task", "task"],
+  ["tasks", "task"],
+  ["timestamp", "timestamp"],
+  ["timestamps", "timestamp"]
+]), ORPHAN_H2 = /* @__PURE__ */ new Map([
+  ["abstract", "summary"],
+  ["architecture", "structure"],
+  ["decisions", "decisions"],
+  ["dependencies", "dependencies"],
+  ["evidence", "facts"],
+  ["examples", "examples"],
+  ["features", "highlights"],
+  ["highlights", "highlights"],
+  ["overview", "reason"],
+  ["patterns", "patterns"],
+  ["purpose", "reason"],
+  ["rules", "rules"],
+  ["scope", "structure"],
+  ["structure", "structure"]
+]);
+function escapeText(text) {
+  return text.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+}
+function toCommaString(value) {
+  if (Array.isArray(value)) return value.map((v) => String(v)).join(",");
+  if (typeof value == "string" && value.length > 0) return value;
+}
+function strField(value) {
+  return typeof value == "string" && value.length > 0 ? value : void 0;
+}
+function dateField(value) {
+  if (typeof value == "string" && value.length > 0) return value;
+  if (value instanceof Date)
+    return Number.isNaN(value.getTime()) ? void 0 : value.toISOString();
+}
+function deriveTitle(relPath) {
+  return (relPath.split("/").pop() ?? relPath).replace(/\.md$/i, "").replace(/[-_]/g, " ");
+}
+function deriveType(relPath, fmType) {
+  if (typeof fmType == "string" && fmType.length > 0) return fmType;
+  let base = relPath.split("/").pop() ?? "";
+  return base === "_index.md" ? "summary" : base === "context.md" ? "context" : "topic";
+}
+function relPathToTopicPath(relPath) {
+  let segments = relPath.replaceAll("\\", "/").replace(/\.md$/i, "").split("/").filter((s) => s.length > 0);
+  for (let segment of segments)
+    if (segment === "." || segment === "..")
+      throw new Error(`unsafe path segment "${segment}" in ${relPath}`);
+  return segments.join("/");
+}
+function convertMarkdownTopicToHtml(input) {
+  let { markdown, relPath } = input, warnings = [], topicPath;
+  try {
+    topicPath = relPathToTopicPath(relPath);
+  } catch (err) {
+    return {
+      html: "",
+      warnings: [`unsafe-topic-path: ${err instanceof Error ? err.message : String(err)}`]
+    };
+  }
+  let { data, body, parseError } = parseFrontmatter(markdown);
+  parseError && warnings.push("Frontmatter YAML failed to parse; kept the whole file as body.");
+  let fallbackNow = input.now && input.now.length > 0 ? input.now : void 0, createdat = dateField(data.createdAt) ?? dateField(data.createdat) ?? fallbackNow, updatedat = dateField(data.updatedAt) ?? dateField(data.updatedat) ?? fallbackNow, attrs = [
+    `path="${escapeHtmlAttributeValue(topicPath)}"`,
+    `title="${escapeHtmlAttributeValue(strField(data.title) ?? extractH1Title(body) ?? deriveTitle(relPath))}"`,
+    `type="${escapeHtmlAttributeValue(deriveType(relPath, data.type))}"`
+  ];
+  pushAttr(attrs, "summary", strField(data.summary) ?? strField(data.short_description)), pushAttr(attrs, "tags", toCommaString(data.tags)), pushAttr(attrs, "keywords", toCommaString(data.keywords)), pushAttr(attrs, "related", rewriteRelated(toCommaString(data.related) ?? toCommaString(data.relateds))), pushAttr(attrs, "createdat", createdat), pushAttr(attrs, "updatedat", updatedat);
+  let parts = renderBody(body, warnings);
+  if (parts.length === 0) {
+    let trimmed = body.trim();
+    trimmed.length > 0 ? parts.push(`<bv-fact>${escapeText(trimmed)}</bv-fact>`) : warnings.push("Topic body is empty after frontmatter.");
+  }
+  let inner = parts.join("");
+  return { html: `<bv-topic ${attrs.join(" ")}>${inner}</bv-topic>`, warnings };
+}
+function pushAttr(attrs, name, value) {
+  value !== void 0 && value.length > 0 && attrs.push(`${name}="${escapeHtmlAttributeValue(value)}"`);
+}
+function rewriteRelated(csv) {
+  if (csv === void 0) return;
+  let rewritten = csv.split(",").map((s) => s.trim()).filter((s) => s.length > 0).map((s) => s.endsWith(".md") ? `${s.slice(0, -3)}.html` : s);
+  return rewritten.length > 0 ? rewritten.join(",") : void 0;
+}
+function parseFrontmatter(markdown) {
+  let match = FRONTMATTER_RE.exec(markdown);
+  if (!match) return { body: markdown, data: {}, parseError: !1 };
+  try {
+    let data = jsYaml.load(match[1] ?? "") ?? {};
+    return { body: match[2] ?? "", data, parseError: !1 };
+  } catch {
+    return { body: markdown, data: {}, parseError: !0 };
+  }
+}
+function extractH1Title(body) {
+  for (let line of body.split(`
+`)) {
+    let m = /^#\s+(.+?)\s*$/.exec(line);
+    if (m && m[1]) return m[1].trim();
+  }
+}
+function renderBody(body, warnings) {
+  let parts = [], ruleIds = /* @__PURE__ */ new Set(), { preamble, sections } = splitSections(body);
+  for (let section of sections) {
+    let heading = section.heading.trim(), lower = heading.toLowerCase();
+    lower === "reason" ? pushText(parts, "bv-reason", section.body) : lower === "facts" ? emitFacts(parts, section.body, warnings, "Facts") : lower === "raw concept" ? emitRawConcept(parts, section.body, warnings) : lower === "narrative" ? emitNarrative(parts, section.body, ruleIds, warnings) : lower === "relations" ? section.body.trim().length > 0 && warnings.push(
+      "dropped-relations-section: related links are taken from the frontmatter related= attribute"
+    ) : emitOrphan(parts, heading, section.body, ruleIds, warnings);
+  }
+  if (parts.length > 0) {
+    let pre = preambleAfterTitle(preamble);
+    pre.length > 0 && (parts.unshift(`<bv-fact>${escapeText(pre)}</bv-fact>`), warnings.push(
+      `preserved-preamble: ${[...pre].length} chars before the first section kept as <bv-fact>`
+    ));
+  }
+  return parts;
+}
+function preambleAfterTitle(preamble) {
+  let lines = preamble.split(`
+`), h1 = lines.findIndex((l) => /^#\s+/.test(l));
+  return h1 !== -1 && lines.splice(h1, 1), lines.join(`
+`).trim();
+}
+function splitSections(body) {
+  let sections = [], preambleLines = [], current, fence;
+  for (let line of body.split(`
+`)) {
+    let trimmed = line.trimStart(), fenceMatch = /^(```|~~~)/.exec(trimmed);
+    if (fenceMatch) {
+      let marker = fenceMatch[1];
+      fence === void 0 ? fence = marker : trimmed.startsWith(fence) && (fence = void 0);
+    }
+    if (fence === void 0) {
+      let headingMatch = /^##\s+(.+?)\s*$/.exec(line);
+      if (headingMatch && headingMatch[1] !== void 0) {
+        current && sections.push({ body: current.lines.join(`
+`), heading: current.heading }), current = { heading: headingMatch[1], lines: [] };
+        continue;
+      }
+    }
+    current ? current.lines.push(line) : preambleLines.push(line);
+  }
+  return current && sections.push({ body: current.lines.join(`
+`), heading: current.heading }), { preamble: preambleLines.join(`
+`), sections };
+}
+function splitSubsections(body) {
+  let preambleLines = [], subsections = [], current, fence;
+  for (let line of body.split(`
+`)) {
+    let trimmed = line.trimStart(), fenceMatch = /^(```|~~~)/.exec(trimmed);
+    if (fenceMatch) {
+      let marker = fenceMatch[1];
+      fence === void 0 ? fence = marker : trimmed.startsWith(fence) && (fence = void 0);
+    }
+    if (fence === void 0) {
+      let headingMatch = /^###\s+(.+?)\s*$/.exec(line);
+      if (headingMatch && headingMatch[1] !== void 0) {
+        current && subsections.push({ body: current.lines.join(`
+`), heading: current.heading }), current = { heading: headingMatch[1], lines: [] };
+        continue;
+      }
+    }
+    current ? current.lines.push(line) : preambleLines.push(line);
+  }
+  return current && subsections.push({ body: current.lines.join(`
+`), heading: current.heading }), { preamble: preambleLines.join(`
+`), subsections };
+}
+function pushText(parts, tag, text) {
+  let trimmed = text.trim();
+  trimmed.length > 0 && parts.push(`<${tag}>${escapeText(trimmed)}</${tag}>`);
+}
+function stripBullet(line) {
+  let m = /^\s*(?:[-*+]|\d+\.)\s+(.*)$/.exec(line);
+  return m ? m[1] ?? "" : void 0;
+}
+function bulletItems(body) {
+  let items = [];
+  for (let line of body.split(`
+`)) {
+    let content = stripBullet(line);
+    if (content === void 0) continue;
+    let trimmed = content.trim();
+    trimmed.length > 0 && items.push(trimmed);
+  }
+  return items;
+}
+function nonBulletProse(body) {
+  return body.split(`
+`).filter((l) => l.trim().length > 0 && stripBullet(l) === void 0).join(`
+`).trim();
+}
+function preserveStrayProse(parts, body, warnings, label) {
+  let prose = nonBulletProse(body);
+  prose.length > 0 && (parts.push(`<bv-fact>${escapeText(prose)}</bv-fact>`), warnings.push(
+    `preserved-non-bullet-prose:${label} (${[...prose].length} chars kept as <bv-fact>)`
+  ));
+}
+function emitFacts(parts, body, warnings, label) {
+  for (let item of bulletItems(body)) {
+    let structured = /^\*\*(.+?)\*\*\s*:\s*(.+?)(?:\s*\[(\w+)\])?$/.exec(item);
+    if (structured) {
+      let subject = (structured[1] ?? "").trim(), statement = (structured[2] ?? "").trim(), category = normalizeCategory(structured[3]);
+      parts.push(factElement(statement, subject, category));
+      continue;
+    }
+    let plain = /^(.+?)(?:\s*\[(\w+)\])?$/.exec(item);
+    plain && parts.push(factElement((plain[1] ?? "").trim(), void 0, normalizeCategory(plain[2])));
+  }
+  preserveStrayProse(parts, body, warnings, label);
+}
+function factElement(statement, subject, category) {
+  let attrParts = [];
+  return subject && subject.length > 0 && attrParts.push(` subject="${escapeHtmlAttributeValue(subject)}"`), category && attrParts.push(` category="${category}"`), `<bv-fact${attrParts.join("")}>${escapeText(statement)}</bv-fact>`;
+}
+function normalizeCategory(raw) {
+  if (raw === void 0) return;
+  let lower = raw.toLowerCase();
+  return FACT_CATEGORIES.has(lower) ? lower : "other";
+}
+function emitRawConcept(parts, body, warnings) {
+  let { fields, preamble } = splitLabeledFields(body), pre = preamble.trim();
+  pre.length > 0 && parts.push(`<bv-fact>${escapeText(pre)}</bv-fact>`);
+  for (let field of fields) {
+    let key = RAW_CONCEPT_LABELS.get(field.label.toLowerCase());
+    if (key === void 0) {
+      let text = field.body.trim(), combined = text.length > 0 ? `${field.label}: ${text}` : field.label;
+      parts.push(`<bv-fact>${escapeText(combined)}</bv-fact>`), warnings.push(`dropped-raw-concept-label:${field.label} (preserved as <bv-fact>)`);
+      continue;
+    }
+    switch (key) {
+      case "author": {
+        pushText(parts, "bv-author", field.body);
+        break;
+      }
+      case "changes": {
+        emitList(parts, "bv-changes", field.body, warnings);
+        break;
+      }
+      case "files": {
+        emitList(parts, "bv-files", field.body, warnings);
+        break;
+      }
+      case "flow": {
+        pushText(parts, "bv-flow", field.body);
+        break;
+      }
+      case "patterns": {
+        emitPatterns(parts, field.body, warnings);
+        break;
+      }
+      case "task": {
+        pushText(parts, "bv-task", field.body);
+        break;
+      }
+      case "timestamp": {
+        pushText(parts, "bv-timestamp", field.body);
+        break;
+      }
+      default:
+        break;
+    }
+  }
+}
+function splitLabeledFields(body) {
+  let fields = [], preambleLines = [], current;
+  for (let line of body.split(`
+`)) {
+    let m = /^\s*\*\*(.+?)\s*:\s*\*\*\s*(.*)$/.exec(line);
+    if (m && m[1] !== void 0) {
+      current && fields.push({ body: current.lines.join(`
+`), label: current.label }), current = { label: m[1].trim(), lines: [] };
+      let rest = (m[2] ?? "").trim();
+      rest.length > 0 && current.lines.push(rest);
+      continue;
+    }
+    current ? current.lines.push(line) : preambleLines.push(line);
+  }
+  return current && fields.push({ body: current.lines.join(`
+`), label: current.label }), { fields, preamble: preambleLines.join(`
+`) };
+}
+function emitList(parts, tag, body, warnings) {
+  let items = bulletItems(body);
+  if (items.length === 0) {
+    pushText(parts, tag, body);
+    return;
+  }
+  let lis = items.map((i) => `<li>${escapeText(i)}</li>`).join("");
+  parts.push(`<${tag}>${lis}</${tag}>`), preserveStrayProse(parts, body, warnings, tag);
+}
+function emitPatterns(parts, body, warnings) {
+  for (let item of bulletItems(body)) {
+    let m = /^`(.+?)`(?:\s*\(flags:\s*([^)]*)\))?(?:\s*-\s*(.+))?$/.exec(item);
+    if (m && m[1] !== void 0) {
+      let attrParts = [], flags = (m[2] ?? "").trim(), desc = (m[3] ?? "").trim();
+      flags.length > 0 && attrParts.push(` flags="${escapeHtmlAttributeValue(flags)}"`), desc.length > 0 && attrParts.push(` description="${escapeHtmlAttributeValue(desc)}"`), parts.push(`<bv-pattern${attrParts.join("")}>${escapeText(m[1])}</bv-pattern>`);
+    } else
+      parts.push(`<bv-pattern>${escapeText(item)}</bv-pattern>`);
+  }
+  preserveStrayProse(parts, body, warnings, "Patterns");
+}
+function emitNarrative(parts, body, ruleIds, warnings) {
+  let { preamble, subsections } = splitSubsections(body), pre = preamble.trim();
+  pre.length > 0 && (pushText(parts, "bv-structure", pre), warnings.push(
+    `preserved-narrative-preamble: ${[...pre].length} chars kept as <bv-structure>`
+  ));
+  for (let sub of subsections)
+    switch (sub.heading.trim().toLowerCase()) {
+      case "dependencies": {
+        pushText(parts, "bv-dependencies", sub.body);
+        break;
+      }
+      case "diagrams": {
+        emitDiagrams(parts, sub.body, warnings);
+        break;
+      }
+      case "examples": {
+        pushText(parts, "bv-examples", sub.body);
+        break;
+      }
+      case "features":
+      case "highlights": {
+        pushText(parts, "bv-highlights", sub.body);
+        break;
+      }
+      case "overview":
+      case "structure": {
+        pushText(parts, "bv-structure", sub.body);
+        break;
+      }
+      case "rules": {
+        emitRules(parts, sub.body, ruleIds, warnings);
+        break;
+      }
+      default: {
+        pushText(parts, "bv-structure", sub.body);
+        break;
+      }
+    }
+}
+function emitRules(parts, body, ruleIds, warnings) {
+  for (let item of bulletItems(body)) {
+    let severity = inferSeverity(item), id = uniqueId(slugifyRule(item), ruleIds);
+    parts.push(
+      `<bv-rule severity="${severity}" id="${escapeHtmlAttributeValue(id)}">${escapeText(item)}</bv-rule>`
+    );
+  }
+  preserveStrayProse(parts, body, warnings, "Rules");
+}
+function inferSeverity(text) {
+  return /\b(MUST|SHALL)\b/.test(text) ? "must" : /\bSHOULD\b/.test(text) ? "should" : "info";
+}
+function slugifyRule(text) {
+  let slug = text.replace(/\b(MUST|SHALL|SHOULD|MAY|INFO)\b/gi, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 48);
+  return slug.length > 0 ? slug : "rule";
+}
+function uniqueId(base, seen) {
+  if (!seen.has(base))
+    return seen.add(base), base;
+  for (let n = 2; ; n++) {
+    let candidate = `${base}-${n}`;
+    if (!seen.has(candidate))
+      return seen.add(candidate), candidate;
+  }
+}
+function emitDiagrams(parts, body, warnings) {
+  let fenceRe = /(```|~~~)(\w*)\n([\s\S]*?)\1/g, m, any = !1;
+  for (; (m = fenceRe.exec(body)) !== null; ) {
+    any = !0;
+    let lang = (m[2] ?? "").toLowerCase(), type2 = DIAGRAM_TYPES.has(lang) ? lang : "other", content = (m[3] ?? "").replace(/\s+$/, "");
+    parts.push(`<bv-diagram type="${type2}">${escapeText(content)}</bv-diagram>`);
+  }
+  if (!any) {
+    pushText(parts, "bv-diagram", body);
+    return;
+  }
+  let outside = body.replace(/(```|~~~)(\w*)\n[\s\S]*?\1/g, "").trim();
+  outside.length > 0 && (pushText(parts, "bv-examples", outside), warnings.push(
+    `preserved-diagram-prose: ${[...outside].length} chars outside fences kept as <bv-examples>`
+  ));
+}
+function emitDecisions(parts, body, warnings) {
+  for (let item of bulletItems(body))
+    parts.push(`<bv-decision>${escapeText(item)}</bv-decision>`);
+  preserveStrayProse(parts, body, warnings, "Decisions");
+}
+function emitOrphan(parts, heading, body, ruleIds, warnings) {
+  let strategy = ORPHAN_H2.get(heading.toLowerCase()), trimmed = body.trim();
+  if (strategy === void 0) {
+    trimmed.length > 0 && (parts.push(`<bv-fact>${escapeText(trimmed)}</bv-fact>`), warnings.push(
+      `dropped-orphan-section:${heading} (${[...trimmed].length} chars preserved as <bv-fact>)`
+    ));
+    return;
+  }
+  switch (strategy) {
+    case "decisions": {
+      emitDecisions(parts, body, warnings);
+      break;
+    }
+    case "dependencies": {
+      pushText(parts, "bv-dependencies", body);
+      break;
+    }
+    case "examples": {
+      pushText(parts, "bv-examples", body);
+      break;
+    }
+    case "facts": {
+      emitFacts(parts, body, warnings, heading);
+      break;
+    }
+    case "highlights": {
+      pushText(parts, "bv-highlights", body);
+      break;
+    }
+    case "patterns": {
+      for (let item of bulletItems(body))
+        parts.push(`<bv-pattern>${escapeText(item)}</bv-pattern>`);
+      preserveStrayProse(parts, body, warnings, "Patterns");
+      break;
+    }
+    case "reason": {
+      pushText(parts, "bv-reason", body);
+      break;
+    }
+    case "rules": {
+      emitRules(parts, body, ruleIds, warnings);
+      break;
+    }
+    case "structure": {
+      pushText(parts, "bv-structure", body);
+      break;
+    }
+    case "summary": {
+      pushText(parts, "bv-fact", body);
+      break;
+    }
+    default:
+      break;
+  }
+}
 
 // ../../packages/core/src/migrate/manifest-schema.ts
 var MigrationMoveEntrySchema = external_exports.object({
@@ -5233,6 +5842,316 @@ var MigrationMoveEntrySchema = external_exports.object({
   startedAt: external_exports.string(),
   version: external_exports.number()
 });
+
+// ../../packages/core/src/migrate/materialize-space.ts
+import { createHash } from "node:crypto";
+import { existsSync } from "node:fs";
+import { mkdir as mkdir3, readFile as readFile3, rename as rename4, rm as rm4, writeFile as writeFile3 } from "node:fs/promises";
+import { dirname as dirname2, join as join4 } from "node:path";
+
+// ../../packages/core/src/tree/bindings-registry.ts
+import { randomBytes } from "node:crypto";
+import {
+  chmod as chmod2,
+  lstat,
+  mkdir as mkdir2,
+  open,
+  readFile,
+  rename as rename2,
+  rm as rm2
+} from "node:fs/promises";
+import { join as join2, resolve as resolve2, sep as sep2 } from "node:path";
+var BINDINGS_FILENAME = "bindings.json";
+function bindingsDir() {
+  return getGlobalDataDir();
+}
+function bindingsPath() {
+  return join2(bindingsDir(), BINDINGS_FILENAME);
+}
+var LOCK_STALE_MS = 3e4, LOCK_RETRY_MS = 20, MalformedRegistryError = class extends Error {
+  constructor(message) {
+    super(message), this.name = "MalformedRegistryError";
+  }
+};
+function emptyRegistryDocument() {
+  return { bindings: [], deletedSpaces: [] };
+}
+function emptyRegistry() {
+  return { bindings: [], deletedSpaces: [] };
+}
+function isBinding(value) {
+  if (typeof value != "object" || value === null) return !1;
+  let v = value;
+  return typeof v.folder == "string" && isUuid(v.space_id) && typeof v.addedAt == "string" && (v.removedAt === void 0 || typeof v.removedAt == "string");
+}
+function isDeletedSpace(value) {
+  if (typeof value != "object" || value === null) return !1;
+  let v = value;
+  return isUuid(v.space_id) && typeof v.deletedAt == "string" && typeof v.hard == "boolean";
+}
+function normalizeRegistryDocument(obj) {
+  let bindings = Array.isArray(obj.bindings) ? obj.bindings.filter((v) => isBinding(v)) : [], deletedSpaces = Array.isArray(obj.deletedSpaces) ? obj.deletedSpaces.filter((v) => isDeletedSpace(v)) : [], doc = { ...obj, bindings, deletedSpaces };
+  return isUuid(obj.defaultSpaceId) ? doc.defaultSpaceId = obj.defaultSpaceId : delete doc.defaultSpaceId, doc;
+}
+function assertRegistryDocumentForMutation(obj) {
+  if (obj.bindings !== void 0 && !Array.isArray(obj.bindings))
+    throw new MalformedRegistryError("bindings registry is malformed");
+  if (obj.deletedSpaces !== void 0 && !Array.isArray(obj.deletedSpaces))
+    throw new MalformedRegistryError("bindings registry is malformed");
+  if (obj.defaultSpaceId !== void 0 && !isUuid(obj.defaultSpaceId))
+    throw new MalformedRegistryError("bindings registry is malformed");
+  if (Array.isArray(obj.bindings) && !obj.bindings.every(isBinding))
+    throw new MalformedRegistryError("bindings registry is malformed");
+  if (Array.isArray(obj.deletedSpaces) && !obj.deletedSpaces.every(isDeletedSpace))
+    throw new MalformedRegistryError("bindings registry is malformed");
+}
+async function readRegistryDocumentForMutation() {
+  let raw;
+  try {
+    raw = await readFile(bindingsPath(), "utf8");
+  } catch (err) {
+    if (isErrnoCode(err, "ENOENT")) return emptyRegistryDocument();
+    throw err;
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (err) {
+    throw new MalformedRegistryError(
+      `bindings registry is malformed: ${err.message}`
+    );
+  }
+  if (typeof parsed != "object" || parsed === null || Array.isArray(parsed))
+    throw new MalformedRegistryError("bindings registry is malformed");
+  return assertRegistryDocumentForMutation(parsed), normalizeRegistryDocument(parsed);
+}
+async function ensurePrivateBindingsDir() {
+  await mkdir2(bindingsDir(), { recursive: !0, mode: 448 }), await chmod2(bindingsDir(), 448);
+}
+function lockPath() {
+  return join2(bindingsDir(), `${BINDINGS_FILENAME}.lock`);
+}
+function tempPath() {
+  return join2(
+    bindingsDir(),
+    `${BINDINGS_FILENAME}.tmp.${process.pid}.${randomBytes(8).toString("hex")}`
+  );
+}
+async function delay(ms) {
+  await new Promise((resolve3) => setTimeout(resolve3, ms));
+}
+async function withRegistryLock(fn) {
+  await ensurePrivateBindingsDir();
+  let lock = lockPath();
+  for (; ; )
+    try {
+      let handle = await open(lock, "wx", 384);
+      await handle.writeFile(
+        JSON.stringify({ pid: process.pid, createdAt: Date.now() })
+      ), await handle.close();
+      break;
+    } catch (err) {
+      if (!isErrnoCode(err, "EEXIST")) throw err;
+      let stat4 = await lstat(lock).catch(() => null);
+      if (stat4 && Date.now() - stat4.mtimeMs > LOCK_STALE_MS) {
+        await rm2(lock, { force: !0 });
+        continue;
+      }
+      await delay(LOCK_RETRY_MS);
+    }
+  try {
+    return await fn();
+  } finally {
+    await rm2(lock, { force: !0 });
+  }
+}
+async function writeRegistryAtomic(reg) {
+  await ensurePrivateBindingsDir();
+  let target = bindingsPath(), tmp = tempPath(), serialized = JSON.stringify(reg, null, 2) + `
+`, handle;
+  try {
+    handle = await open(tmp, "wx", 384), await handle.writeFile(serialized, "utf8"), await handle.sync(), await handle.close(), handle = void 0, await rename2(tmp, target);
+  } catch (err) {
+    throw await handle?.close().catch(() => {
+    }), await rm2(tmp, { force: !0 }).catch(() => {
+    }), err;
+  }
+}
+async function mutateRegistry(mutate) {
+  await withRegistryLock(async () => {
+    let reg = await readRegistryDocumentForMutation();
+    await mutate(reg), await writeRegistryAtomic(reg);
+  });
+}
+async function readRegistry() {
+  let raw;
+  try {
+    raw = await readFile(bindingsPath(), "utf8");
+  } catch (err) {
+    return isErrnoCode(err, "ENOENT") || console.warn(
+      `[byterover] Could not read ${bindingsPath()}: ${describeErr(err)}`
+    ), emptyRegistry();
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (err) {
+    return console.warn(
+      `[byterover] Could not parse ${bindingsPath()}: ${err.message}`
+    ), emptyRegistry();
+  }
+  return typeof parsed != "object" || parsed === null || Array.isArray(parsed) ? (console.warn(
+    `[byterover] Expected object root in ${bindingsPath()}, got ${parsed === null ? "null" : Array.isArray(parsed) ? "array" : typeof parsed}`
+  ), emptyRegistry()) : normalizeRegistryDocument(parsed);
+}
+async function addBinding(folder, space_id) {
+  if (!isUuid(space_id))
+    throw new Error("addBinding: space_id must be a UUID string");
+  let canonicalFolder = resolve2(folder);
+  await mutateRegistry((reg) => {
+    let now = (/* @__PURE__ */ new Date()).toISOString(), activeIdx = reg.bindings.findIndex(
+      (b) => b.folder === canonicalFolder && b.removedAt === void 0
+    );
+    if (activeIdx >= 0) {
+      let existing = reg.bindings[activeIdx];
+      if (existing && existing.space_id === space_id) return;
+      existing && (existing.space_id = space_id, existing.addedAt = now);
+    } else
+      reg.bindings.push({
+        folder: canonicalFolder,
+        space_id,
+        addedAt: now
+      });
+  });
+}
+async function getDefaultSpaceId() {
+  return (await readRegistry()).defaultSpaceId ?? null;
+}
+async function setDefaultSpaceId(space_id) {
+  if (!isUuid(space_id))
+    throw new Error("setDefaultSpaceId: space_id must be a UUID string");
+  await mutateRegistry((reg) => {
+    reg.defaultSpaceId = space_id;
+  });
+}
+function isErrnoCode(err, code) {
+  return typeof err == "object" && err !== null && "code" in err && err.code === code;
+}
+function describeErr(err) {
+  return err instanceof Error ? err.message : String(err);
+}
+
+// ../../packages/core/src/tree/space-metadata.ts
+import { randomBytes as randomBytes2 } from "node:crypto";
+import { readFile as readFile2, rename as rename3, rm as rm3, writeFile as writeFile2 } from "node:fs/promises";
+import { join as join3 } from "node:path";
+var SPACE_METADATA_FILENAME = "metadata.json", InvalidSpaceMetadataError = class extends Error {
+  constructor(reason) {
+    super(`Invalid metadata.json: ${reason}`);
+    this.reason = reason;
+    this.name = "InvalidSpaceMetadataError";
+  }
+};
+function validateFields(space_id, space_name, team_id, created_at, team_name) {
+  if (!isUuid(space_id))
+    throw new InvalidSpaceMetadataError(
+      "'space_id' must be a UUID string"
+    );
+  if (typeof space_name != "string" || space_name.length === 0)
+    throw new InvalidSpaceMetadataError(
+      "'space_name' must be a non-empty string"
+    );
+  if (team_id !== null && !isUuid(team_id))
+    throw new InvalidSpaceMetadataError(
+      "'team_id' must be a UUID string or null"
+    );
+  if (typeof created_at != "string" || created_at.length === 0)
+    throw new InvalidSpaceMetadataError(
+      "'created_at' must be an ISO 8601 string"
+    );
+  if (team_name != null && typeof team_name != "string")
+    throw new InvalidSpaceMetadataError(
+      "'team_name' must be a string, null, or omitted"
+    );
+  return {
+    created_at,
+    space_id,
+    space_name,
+    team_id,
+    ...typeof team_name == "string" ? { team_name } : {}
+  };
+}
+async function writeSpaceMetadata(spaceDir, metadata) {
+  validateFields(
+    metadata.space_id,
+    metadata.space_name,
+    metadata.team_id,
+    metadata.created_at,
+    metadata.team_name
+  );
+  let target = join3(spaceDir, SPACE_METADATA_FILENAME), tmp = `${target}.tmp.${randomBytes2(6).toString("hex")}`, serialized = `${JSON.stringify(metadata, null, 2)}
+`;
+  try {
+    await writeFile2(tmp, serialized, "utf8"), await rename3(tmp, target);
+  } catch (err) {
+    throw await rm3(tmp, { force: !0 }).catch(() => {
+    }), err;
+  }
+}
+
+// ../../packages/core/src/migrate/materialize-space.ts
+async function materializeMarkdownSpace(opts2) {
+  let { spaceId, spaceName, sources } = opts2, teamId = opts2.teamId ?? null, now = opts2.now ?? (/* @__PURE__ */ new Date()).toISOString(), mode = opts2.mode ?? "replace";
+  if (!isUuid(spaceId))
+    throw new Error(`materializeMarkdownSpace: spaceId must be a UUID (got "${spaceId}")`);
+  let treeDir = spaceContextTreePath(spaceId), spaceDir = dirname2(treeDir);
+  mode === "replace" ? (await rm4(treeDir, { recursive: !0, force: !0 }), await mkdir3(treeDir, { recursive: !0 }), await writeSpaceMetadata(spaceDir, {
+    space_id: spaceId,
+    space_name: spaceName,
+    team_id: teamId,
+    created_at: now
+  })) : (await mkdir3(treeDir, { recursive: !0 }), existsSync(join4(spaceDir, SPACE_METADATA_FILENAME)) || await writeSpaceMetadata(spaceDir, {
+    space_id: spaceId,
+    space_name: spaceName,
+    team_id: teamId,
+    created_at: now
+  }));
+  let failures = [], converted = 0, skipped = 0;
+  for (let src of sources)
+    try {
+      let htmlRel = src.relPath.replace(/\.md$/i, ".html"), target = resolveWithinTree(treeDir, htmlRel);
+      if (mode === "merge" && existsSync(target)) {
+        skipped += 1;
+        continue;
+      }
+      let markdown = await readFile3(src.absPath, "utf8"), { html } = convertMarkdownTopicToHtml({ markdown, relPath: src.relPath, now }), identifiedHtml = ensureTopicId(
+        html,
+        () => migratedTopicId(spaceId, htmlRel)
+      ).html;
+      if (await mkdir3(dirname2(target), { recursive: !0 }), mode === "merge") {
+        let tmp = `${target}.brvtmp-${process.pid}`;
+        await writeFile3(tmp, identifiedHtml, "utf8"), await rename4(tmp, target);
+      } else
+        await writeFile3(target, identifiedHtml, "utf8");
+      converted += 1;
+    } catch (err) {
+      failures.push({ relPath: src.relPath, reason: err instanceof Error ? err.message : String(err) });
+    }
+  if ((opts2.registerBinding ?? !0) && opts2.originalFolder)
+    try {
+      await addBinding(opts2.originalFolder, spaceId);
+    } catch {
+    }
+  if (opts2.setDefaultIfUnset ?? !0)
+    try {
+      await getDefaultSpaceId() || await setDefaultSpaceId(spaceId);
+    } catch {
+    }
+  return { spaceId, destDir: treeDir, converted, skipped, failures };
+}
+function migratedTopicId(spaceId, relPath) {
+  return `tpc_${createHash("sha256").update(spaceId).update("\0").update(relPath).digest("hex").slice(0, 32)}`;
+}
 
 // ../../packages/core/src/dream/candidates.ts
 var STALE_DAYS = {
@@ -5491,8 +6410,273 @@ var ALL_EVENT_SCHEMAS = {
   [AnalyticsEventNames.MIGRATION_RUN_COMPLETED]: MigrationRunCompletedSchema
 };
 
+// ../../packages/core/src/analytics/pending-producer.ts
+import { randomUUID as randomUUID4 } from "node:crypto";
+import { join as join7 } from "node:path";
+
+// ../../packages/core/src/analytics/identity.ts
+import { randomUUID as randomUUID3 } from "node:crypto";
+import { mkdir as mkdir4, open as open2, readFile as readFile4, rm as rm5, stat, writeFile as writeFile4 } from "node:fs/promises";
+import { join as join5 } from "node:path";
+var CONFIG_FILENAME = "config.json", CONFIG_VERSION = 1;
+var MACHINE_ID_KEY = "machine_id";
+function configDir() {
+  return getGlobalDataDir();
+}
+function configPath() {
+  return join5(configDir(), CONFIG_FILENAME);
+}
+function isNonEmptyString(value) {
+  return typeof value == "string" && value.trim().length > 0;
+}
+function isPlainObject(value) {
+  return typeof value == "object" && value !== null && !Array.isArray(value);
+}
+async function getOrCreateMachineId() {
+  return getOrCreateConfigId(MACHINE_ID_KEY);
+}
+async function getOrCreateConfigId(key) {
+  let existing = await readConfigId(key);
+  if (existing !== void 0) return existing;
+  try {
+    return await withConfigLock(async () => {
+      let reread = await readConfigId(key);
+      if (reread !== void 0) return reread;
+      let minted = randomUUID3();
+      return await writeConfigId(key, minted), minted;
+    });
+  } catch (err) {
+    if (!(err instanceof ConfigLockError)) throw err;
+    let reread = await readConfigId(key);
+    if (reread !== void 0) return reread;
+    throw err;
+  }
+}
+var LOCK_STALE_MS2 = 3e4, LOCK_MAX_WAIT_MS = 3e3, ConfigLockError = class extends Error {
+  constructor() {
+    super("could not acquire config.json lock within the deadline"), this.name = "ConfigLockError";
+  }
+};
+function delay2(ms) {
+  return new Promise((resolve3) => setTimeout(resolve3, ms));
+}
+async function withConfigLock(fn) {
+  await mkdir4(configDir(), { recursive: !0 });
+  let lockPath2 = `${configPath()}.lock`, ownerId = randomUUID3(), lock, deadline = Date.now() + LOCK_MAX_WAIT_MS;
+  for (; ; ) {
+    try {
+      lock = await open2(lockPath2, "wx");
+      break;
+    } catch (err) {
+      if (!isErrnoCode2(err, "EEXIST")) throw err;
+    }
+    try {
+      let st = await stat(lockPath2);
+      if (Date.now() - st.mtimeMs > LOCK_STALE_MS2) {
+        await rm5(lockPath2, { force: !0 });
+        continue;
+      }
+    } catch {
+      continue;
+    }
+    if (Date.now() >= deadline) throw new ConfigLockError();
+    await delay2(25);
+  }
+  if (!lock) throw new ConfigLockError();
+  await lock.writeFile(ownerId, "utf8").catch(() => {
+  });
+  try {
+    return await fn();
+  } finally {
+    await lock.close().catch(() => {
+    });
+    let current;
+    try {
+      current = await readFile4(lockPath2, "utf8");
+    } catch {
+      current = void 0;
+    }
+    current === ownerId && await rm5(lockPath2, { force: !0 }).catch(() => {
+    });
+  }
+}
+async function readConfigId(key) {
+  let raw;
+  try {
+    raw = await readFile4(configPath(), "utf8");
+  } catch (err) {
+    if (isErrnoCode2(err, "ENOENT")) return;
+    console.warn(
+      `[byterover] Could not read ${configPath()}: ${describeErr2(err)}`
+    );
+    return;
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    console.warn(
+      `[byterover] ${configPath()} is malformed JSON; treating as missing`
+    );
+    return;
+  }
+  if (!isPlainObject(parsed)) {
+    console.warn(
+      `[byterover] ${configPath()} is not a JSON object; treating as missing`
+    );
+    return;
+  }
+  let value = parsed[key];
+  return isNonEmptyString(value) ? value : void 0;
+}
+async function writeConfigId(key, value) {
+  await mkdir4(configDir(), { recursive: !0 });
+  let document = {};
+  try {
+    let raw = await readFile4(configPath(), "utf8"), parsed = JSON.parse(raw);
+    isPlainObject(parsed) && (document = parsed);
+  } catch {
+  }
+  let next = {
+    ...document,
+    [key]: value
+  };
+  isNonEmptyString(next.createdAt) || (next.createdAt = (/* @__PURE__ */ new Date()).toISOString()), typeof next.version != "number" && typeof next.version != "string" && (next.version = CONFIG_VERSION);
+  let serialized = JSON.stringify(next, null, 2) + `
+`, target = configPath(), tmp = `${target}.${randomUUID3()}.tmp`;
+  try {
+    await writeFile4(tmp, serialized, "utf8"), await renameWithRetry(tmp, target);
+  } catch (err) {
+    throw await rm5(tmp, { force: !0 }).catch(() => {
+    }), err;
+  }
+}
+function isErrnoCode2(err, code) {
+  return typeof err == "object" && err !== null && "code" in err && err.code === code;
+}
+function describeErr2(err) {
+  return err instanceof Error ? err.message : String(err);
+}
+
 // ../../packages/core/src/analytics/bounded-append.ts
-var MAX_ANALYTICS_BYTES = 50 * 1024 * 1024;
+import { appendFile, mkdir as mkdir5, readFile as readFile5, rm as rm6, stat as stat2, writeFile as writeFile5 } from "node:fs/promises";
+import { dirname as dirname3 } from "node:path";
+var MAX_ANALYTICS_BYTES = 50 * 1024 * 1024, COMPACT_TARGET_RATIO = 0.5, compactionChains = /* @__PURE__ */ new Map();
+function serializeCompaction(path2, run2) {
+  let result = (compactionChains.get(path2) ?? Promise.resolve()).then(run2, run2), tail = result.then(
+    () => {
+    },
+    () => {
+    }
+  );
+  return compactionChains.set(path2, tail), tail.then(() => {
+    compactionChains.get(path2) === tail && compactionChains.delete(path2);
+  }), result;
+}
+async function boundedAppendLine(path2, jsonLine, opts2) {
+  let maxBytes = opts2?.maxBytes ?? MAX_ANALYTICS_BYTES, line = jsonLine.endsWith(`
+`) ? jsonLine : jsonLine + `
+`, lineBytes = Buffer.byteLength(line, "utf8");
+  try {
+    await mkdir5(dirname3(path2), { recursive: !0 });
+    let dropped = 0, currentSize = 0;
+    try {
+      currentSize = (await stat2(path2)).size;
+    } catch {
+      currentSize = 0;
+    }
+    if (currentSize + lineBytes > maxBytes) {
+      let target = Math.min(
+        maxBytes - lineBytes,
+        Math.floor(maxBytes * COMPACT_TARGET_RATIO)
+      );
+      dropped = await serializeCompaction(
+        path2,
+        () => compactToFit(path2, Math.max(0, target))
+      );
+    }
+    return await appendFile(path2, line, "utf8"), dropped;
+  } catch {
+    return 0;
+  }
+}
+async function compactToFit(path2, budgetBytes) {
+  let raw;
+  try {
+    raw = await readFile5(path2, "utf8");
+  } catch {
+    return 0;
+  }
+  let lines = raw.split(`
+`).filter((l) => l.length > 0);
+  if (lines.length === 0) return 0;
+  let keptReversed = [], used = 0;
+  for (let i = lines.length - 1; i >= 0; i--) {
+    let l = lines[i], b = Buffer.byteLength(l + `
+`, "utf8");
+    if (used + b > budgetBytes) break;
+    used += b, keptReversed.push(l);
+  }
+  let kept = keptReversed.reverse(), dropped = lines.length - kept.length;
+  if (dropped === 0) return 0;
+  let body = kept.length > 0 ? kept.map((l) => l + `
+`).join("") : "", tmp = `${path2}.${process.pid}.compact.tmp`;
+  try {
+    await writeFile5(tmp, body, "utf8"), await renameWithRetry(tmp, path2);
+  } catch {
+    return await rm6(tmp, { force: !0 }).catch(() => {
+    }), 0;
+  }
+  return dropped;
+}
+
+// ../../packages/core/src/analytics/shared-state.ts
+import { mkdir as mkdir6, readFile as readFile6, rm as rm7, writeFile as writeFile6 } from "node:fs/promises";
+import { dirname as dirname4, join as join6 } from "node:path";
+var IDENTITY_CURRENT_FILE = "analytics-identity-current.json";
+function identityCurrentPath() {
+  return join6(getGlobalDataDir(), IDENTITY_CURRENT_FILE);
+}
+function isRecord(value) {
+  return typeof value == "object" && value !== null && !Array.isArray(value);
+}
+function isNonEmptyString2(value) {
+  return typeof value == "string" && value.trim().length > 0;
+}
+async function readIdentityCurrent(path2 = identityCurrentPath()) {
+  let parsed;
+  try {
+    parsed = JSON.parse(await readFile6(path2, "utf8"));
+  } catch {
+    return;
+  }
+  if (isRecord(parsed) && parsed.schemaVersion === 1 && parsed.source === "desktop_web_sdk" && isNonEmptyString2(parsed.activeDeviceId))
+    return {
+      activeDeviceId: parsed.activeDeviceId,
+      source: "desktop_web_sdk",
+      ...isNonEmptyString2(parsed.userId) ? { userId: parsed.userId } : {},
+      ...isNonEmptyString2(parsed.deviceIdPublishedAt) ? { deviceIdPublishedAt: parsed.deviceIdPublishedAt } : {},
+      ...isNonEmptyString2(parsed.desktopHeartbeatAt) ? { desktopHeartbeatAt: parsed.desktopHeartbeatAt } : {}
+    };
+}
+var SHARED_STATE_SCHEMA_VERSION = 1;
+var DAEMON_IDENTITY_FILE = "analytics-daemon-identity.json";
+function daemonIdentityPath() {
+  return join6(getGlobalDataDir(), DAEMON_IDENTITY_FILE);
+}
+async function readDaemonIdentity(path2 = daemonIdentityPath()) {
+  let parsed;
+  try {
+    parsed = JSON.parse(await readFile6(path2, "utf8"));
+  } catch {
+    return;
+  }
+  if (isRecord(parsed) && parsed.schemaVersion === SHARED_STATE_SCHEMA_VERSION && isNonEmptyString2(parsed.userId))
+    return {
+      userId: parsed.userId,
+      ...isNonEmptyString2(parsed.publishedAt) ? { publishedAt: parsed.publishedAt } : {}
+    };
+}
 
 // ../../packages/core/src/analytics/two-stage-schema.ts
 var nonEmpty = (msg) => external_exports.string().refine((s) => s.trim().length > 0, { message: msg }), DeviceIdSourceSchema = external_exports.enum([
@@ -5554,6 +6738,96 @@ var nonEmpty = (msg) => external_exports.string().refine((s) => s.trim().length 
   });
 });
 
+// ../../packages/core/src/analytics/pending-producer.ts
+var PENDING_FILENAME = "analytics-pending-identity.jsonl";
+function pendingFilePath() {
+  return join7(getGlobalDataDir(), PENDING_FILENAME);
+}
+async function captureAnalyticsEvent(input) {
+  try {
+    let occurredAt = (input.occurredAt ?? /* @__PURE__ */ new Date()).toISOString(), machineId = await getOrCreateMachineId(), current = await (input.readCurrentIdentity ?? (async () => {
+      let cur = await readIdentityCurrent();
+      return cur ? {
+        activeDeviceId: cur.activeDeviceId,
+        ...cur.userId !== void 0 ? { userId: cur.userId } : {},
+        ...cur.deviceIdPublishedAt !== void 0 ? { publishedAt: cur.deviceIdPublishedAt } : {}
+      } : void 0;
+    }))(), daemonId = await (input.readDaemonIdentity ?? (() => readDaemonIdentity()))(), auth = input.auth, isAuthed = auth?.status === "authenticated" && auth.userId !== void 0, isExplicitlyUnauthed = auth?.status === "unauthenticated", observedIdentity, observedAuthState;
+    if (isExplicitlyUnauthed)
+      observedAuthState = {
+        status: "unauthenticated",
+        ...auth?.updatedAt !== void 0 ? { updated_at: auth.updatedAt } : {},
+        ...auth?.source !== void 0 ? { source: auth.source } : {}
+      };
+    else {
+      let devicePart = current !== void 0 ? {
+        device_id: current.activeDeviceId,
+        device_id_source: "desktop_web_sdk"
+      } : {}, authPart = {};
+      isAuthed ? authPart = {
+        user_id: auth.userId,
+        ...auth.authContext !== void 0 ? { auth_context: auth.authContext } : {}
+      } : current?.userId !== void 0 ? authPart = {
+        user_id: current.userId,
+        auth_context: {
+          type: "jwt",
+          source: "desktop_auth",
+          ...current.publishedAt !== void 0 ? { auth_state_updated_at: current.publishedAt } : {}
+        }
+      } : daemonId?.userId !== void 0 && (authPart = {
+        user_id: daemonId.userId,
+        auth_context: { type: "jwt", source: "daemon_auth" }
+      });
+      let merged = { ...devicePart, ...authPart };
+      Object.keys(merged).length > 0 && (observedIdentity = merged);
+    }
+    let properties = {
+      ...input.properties ?? {},
+      machine_id: machineId,
+      source: input.source
+    }, row = {
+      id: randomUUID4(),
+      name: input.name,
+      occurred_at: occurredAt,
+      ...observedIdentity !== void 0 ? { observed_identity: observedIdentity } : {},
+      ...observedAuthState !== void 0 ? { observed_auth_state: observedAuthState } : {},
+      properties
+    };
+    return PendingRowSchema.parse(row), await boundedAppendLine(pendingFilePath(), JSON.stringify(row), input.bounds), row;
+  } catch (err) {
+    console.warn(
+      `[analytics] dropped pending ${String(input.name)}: ${describeErr3(err)}`
+    );
+    return;
+  }
+}
+function describeErr3(err) {
+  return err instanceof Error ? err.message : String(err);
+}
+
+// ../../packages/core/src/analytics/append.ts
+var EVENT_NAME_PREFIX = "v4:", SKILL_EVENT_RESOURCE = "skill";
+function toFinalSkillEventName(rawName) {
+  return rawName.startsWith(EVENT_NAME_PREFIX) ? rawName : `${EVENT_NAME_PREFIX}${SKILL_EVENT_RESOURCE}:${rawName}`;
+}
+async function appendAnalyticsRecord(input) {
+  try {
+    let validatedProps = ALL_EVENT_SCHEMAS[input.name].parse(input.properties);
+    await captureAnalyticsEvent({
+      name: toFinalSkillEventName(input.name),
+      source: input.source ?? "skill",
+      properties: validatedProps
+    });
+  } catch (err) {
+    console.warn(
+      `[analytics] dropped ${String(input.name)}: ${describeErr4(err)}`
+    );
+  }
+}
+function describeErr4(err) {
+  return err instanceof Error ? err.message : String(err);
+}
+
 // ../../packages/core/src/analytics/daemon-events.ts
 var DAEMON_EVENT_ACTION = {
   started: "started",
@@ -5595,61 +6869,26 @@ var DAEMON_EVENT_ACTION = {
   error_code: external_exports.string().max(120).optional()
 }).strict();
 
-// ../../packages/sync/src/daemon-auth-store.ts
-import { createHash } from "node:crypto";
-import { chmod, mkdir, readFile, rename, writeFile, rm } from "node:fs/promises";
-import { dirname as dirname2, join as join2 } from "node:path";
-function daemonAuthPath(projectsRoot) {
-  return join2(projectsRoot, ".daemon", "auth.json");
+// src/agent-resolver.ts
+function resolveAgent(env = process.env) {
+  let explicit = env.BRV_AGENT;
+  if (typeof explicit == "string" && explicit.length > 0 && AGENT_SLUG_REGEX.test(explicit))
+    return explicit;
+  for (let { slug, isSet } of HOST_FINGERPRINTS)
+    if (isSet(env)) return slug;
 }
-function createTokenFingerprint(token) {
-  return createHash("sha256").update(token).digest("hex").slice(0, 16);
-}
-async function readDaemonAuth(path) {
-  try {
-    let raw = await readFile(path, "utf8");
-    return JSON.parse(raw);
-  } catch {
-    return null;
-  }
-}
-async function writeDaemonAuth(path, record) {
-  await mkdir(dirname2(path), { recursive: !0 });
-  let tmp = `${path}.tmp-${process.pid}-${Date.now()}`;
-  await writeFile(tmp, JSON.stringify(record, null, 2) + `
-`, { mode: 384 }), await chmod(tmp, 384), await rename(tmp, path);
-}
-
-// ../../packages/sync/src/daemon-auth-identity.ts
-function isNonEmptyString(value) {
-  return typeof value == "string" && value.trim().length > 0;
-}
-function parseDaemonAuthIdentity(raw) {
-  if (raw == null)
-    return { ok: !0, identity: { providerKind: "none" } };
-  if (!raw || typeof raw != "object" || Array.isArray(raw))
-    return { ok: !1, reason: "malformed-auth" };
-  let record = raw;
-  return record.provider === "daemon-device-session" ? isNonEmptyString(record.sessionId) ? {
-    ok: !0,
-    identity: {
-      providerKind: "daemon-device-session",
-      sessionId: record.sessionId
-    }
-  } : { ok: !1, reason: "malformed-auth" } : record.provider === "api-key" ? isNonEmptyString(record.tokenFingerprint) ? {
-    ok: !0,
-    identity: {
-      providerKind: "api-key",
-      tokenFingerprint: record.tokenFingerprint
-    }
-  } : { ok: !1, reason: "malformed-auth" } : { ok: !1, reason: "malformed-auth" };
-}
-function parseDaemonAuthMarkerIdentity(raw) {
-  if (!raw || typeof raw != "object" || Array.isArray(raw))
-    return { ok: !1, reason: "malformed-marker-identity" };
-  let record = raw, providerKind = record.providerKind, identityDigest = record.identityDigest;
-  return providerKind !== "daemon-device-session" && providerKind !== "api-key" && providerKind !== "none" ? { ok: !1, reason: "malformed-marker-identity" } : typeof identityDigest != "string" || !/^v1:[a-f0-9]{64}$/.test(identityDigest) ? { ok: !1, reason: "malformed-marker-identity" } : { ok: !0, identity: { providerKind, identityDigest } };
-}
+var HOST_FINGERPRINTS = [
+  {
+    isSet: (env) => env.CLAUDECODE === "1" || typeof env.CLAUDE_CODE_ENTRYPOINT == "string",
+    slug: "claude"
+  },
+  {
+    isSet: (env) => typeof env.CODEX_SANDBOX == "string" || typeof env.CODEX_SANDBOX_NETWORK_DISABLED == "string",
+    slug: "codex"
+  },
+  { isSet: (env) => env.CURSOR_AGENT === "1", slug: "cursor" },
+  { isSet: (env) => env.GEMINI_CLI === "1", slug: "gemini" }
+];
 
 // src/config.ts
 var AUTH_URL = "https://v4-app.byterover.dev";
@@ -5657,637 +6896,388 @@ var ANALYTICS_TELEMETRY_URL = "https://v4-telemetry.byterover.dev", ANALYTICS_EN
   rawCapabilityRefresh.trim().toLowerCase()
 );
 
-// src/sync/device-flow.ts
-import { hostname } from "node:os";
-import { chmod as chmod3, mkdir as mkdir3, readFile as readFile3, rename as rename2, rm as rm3, writeFile as writeFile2 } from "node:fs/promises";
-import { dirname as dirname4, join as join7 } from "node:path";
-
-// src/sync/pidfile.ts
-import { chmod as chmod2, mkdir as mkdir2, open, readFile as readFile2, rm as rm2 } from "node:fs/promises";
-import { join as join3 } from "node:path";
-var FILE = "daemon.pid";
-async function readPid(daemonDir2) {
-  try {
-    let data = JSON.parse(await readFile2(join3(daemonDir2, FILE), "utf8"));
-    if (typeof data.pid != "number" || data.script !== "sync-daemon" || typeof data.projectsRoot != "string")
-      return null;
-    let authIdentityResult = data.authIdentity === void 0 ? null : parseDaemonAuthMarkerIdentity(data.authIdentity), authIdentity = authIdentityResult?.ok === !0 ? authIdentityResult.identity : void 0;
-    return {
-      pid: data.pid,
-      script: "sync-daemon",
-      projectsRoot: data.projectsRoot,
-      startedAt: typeof data.startedAt == "string" ? data.startedAt : "",
-      nonce: typeof data.nonce == "string" ? data.nonce : "",
-      version: typeof data.version == "string" ? data.version : "0.0.0",
-      codeHash: typeof data.codeHash == "string" ? data.codeHash : "",
-      ...authIdentity ? { authIdentity } : {}
-    };
-  } catch {
-    return null;
-  }
-}
-async function removePid(daemonDir2) {
-  await rm2(join3(daemonDir2, FILE), { force: !0 });
-}
-function isAlive(pid) {
-  try {
-    return process.kill(pid, 0), !0;
-  } catch (err) {
-    return err.code === "EPERM";
-  }
-}
-function isOwnedDaemon(record, projectsRoot) {
-  return !!(record && record.script === "sync-daemon" && record.projectsRoot === projectsRoot);
-}
-
-// src/sync/spawn-daemon.ts
-import { spawn } from "node:child_process";
-import { closeSync as closeSync2 } from "node:fs";
-import { dirname as dirname3, join as join5 } from "node:path";
-import { fileURLToPath } from "node:url";
-
-// src/sync/daemon-log.ts
-import {
-  chmodSync,
-  closeSync,
-  existsSync,
-  mkdirSync,
-  openSync,
-  readdirSync,
-  renameSync,
-  rmSync,
-  statSync
-} from "node:fs";
-import { join as join4 } from "node:path";
-var DAEMON_LOG_FILE = "daemon.log", ROTATED_DAEMON_LOG_PREFIX = "daemon-", MAX_ACTIVE_DAEMON_LOG_BYTES = 150 * 1024 * 1024, ROTATED_DAEMON_LOG_RETENTION_MS = 10080 * 60 * 1e3;
-function daemonDir(projectsRoot) {
-  return join4(projectsRoot, ".daemon");
-}
-function daemonLogPath(projectsRoot) {
-  return join4(daemonDir(projectsRoot), DAEMON_LOG_FILE);
-}
-function localDateKey(date) {
-  let year = date.getFullYear(), month = String(date.getMonth() + 1).padStart(2, "0"), day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-function timestampKey(date) {
-  let year = date.getFullYear(), month = String(date.getMonth() + 1).padStart(2, "0"), day = String(date.getDate()).padStart(2, "0"), hour = String(date.getHours()).padStart(2, "0"), minute = String(date.getMinutes()).padStart(2, "0"), second = String(date.getSeconds()).padStart(2, "0");
-  return `${year}-${month}-${day}-${hour}${minute}${second}`;
-}
-function rotatedLogPath(dir, now, suffix) {
-  let base = `${ROTATED_DAEMON_LOG_PREFIX}${timestampKey(now)}`, suffixPart = suffix === 0 ? "" : `-${suffix}`;
-  return join4(dir, `${base}${suffixPart}.log`);
-}
-function isCollisionError(err) {
-  return isNodeError(err) && (err.code === "EEXIST" || err.code === "ENOTEMPTY");
-}
-function rotateActiveLog(logPath, dir, now, fs) {
-  for (let suffix = 0; ; suffix++) {
-    let candidate = rotatedLogPath(dir, now, suffix);
-    if (!fs.existsSync(candidate))
-      try {
-        fs.renameSync(logPath, candidate);
-        try {
-          fs.chmodSync(candidate, 384);
-        } catch {
-        }
-        return candidate;
-      } catch (err) {
-        if (isCollisionError(err)) continue;
-        throw err;
-      }
-  }
-}
-function isRotatedDaemonLog(name) {
-  return name.startsWith(ROTATED_DAEMON_LOG_PREFIX) && name.endsWith(".log") && name !== DAEMON_LOG_FILE;
-}
-function withFs(overrides = {}) {
+// src/migrate-v3.ts
+function parseFlags(argv) {
+  let get = (n) => {
+    let i = argv.indexOf(n);
+    return i >= 0 ? argv[i + 1] : void 0;
+  }, has = (n) => argv.includes(n), all = (n) => {
+    let out = [];
+    for (let i = 0; i < argv.length; i++)
+      argv[i] === n && argv[i + 1] && out.push(argv[i + 1]);
+    return out;
+  }, cmd = argv.find((a) => !a.startsWith("--")) ?? "help", roots = all("--scan-root");
   return {
-    chmodSync,
-    closeSync,
-    existsSync,
-    mkdirSync,
-    openSync,
-    readdirSync,
-    renameSync,
-    rmSync,
-    statSync,
-    ...overrides
+    command: ["detect", "run", "verify", "cleanup", "help"].includes(cmd) ? cmd : "help",
+    roots: roots.length ? roots : [homedir2()],
+    projects: all("--project"),
+    team: get("--team") ?? null,
+    spaceType: get("--space-type") === "personal" ? "personal" : "team",
+    apiKey: get("--api-key") ?? null,
+    apiKeyFile: get("--api-key-file") ?? null,
+    dryRun: has("--dry-run"),
+    yes: has("--yes"),
+    backupDir: get("--backup-dir") ?? null,
+    authUrl: get("--auth-url") ?? AUTH_URL,
+    maxDepth: Number(get("--max-depth") ?? "8") || 8
   };
 }
-function ensureActiveLog(path, fs) {
-  let fd = fs.openSync(path, "a", 384);
-  fs.closeSync(fd);
-  try {
-    fs.chmodSync(path, 384);
-  } catch {
-  }
-}
-function pruneRotatedLogs(dir, now, retentionMs, fs) {
-  let names;
-  try {
-    names = fs.readdirSync(dir);
-  } catch {
-    return;
-  }
-  let cutoff = now.getTime() - retentionMs;
-  for (let name of names) {
-    if (!isRotatedDaemonLog(name)) continue;
-    let path = join4(dir, name);
-    try {
-      fs.statSync(path).mtimeMs < cutoff && fs.rmSync(path, { force: !0 });
-    } catch {
-    }
-  }
-}
-function maintainDaemonLog(projectsRoot, options = {}) {
-  let fs = withFs(options.fs), now = options.now ?? /* @__PURE__ */ new Date(), maxActiveBytes = options.maxActiveBytes ?? MAX_ACTIVE_DAEMON_LOG_BYTES, retentionMs = options.retentionMs ?? ROTATED_DAEMON_LOG_RETENTION_MS, dir = daemonDir(projectsRoot), logPath = daemonLogPath(projectsRoot);
-  fs.mkdirSync(dir, { recursive: !0 });
-  let rotatedPath = null;
-  try {
-    let active = fs.statSync(logPath), rotateForSize = active.size >= maxActiveBytes, rotateForDay = localDateKey(active.mtime) < localDateKey(now);
-    (rotateForSize || rotateForDay) && (rotatedPath = rotateActiveLog(logPath, dir, now, fs));
-  } catch (err) {
-    if (!isNodeError(err) || err.code !== "ENOENT")
-      throw err;
-  }
-  return pruneRotatedLogs(dir, now, retentionMs, fs), ensureActiveLog(logPath, fs), { logPath, rotatedPath };
-}
-function prepareDaemonLog(projectsRoot, options = {}) {
-  let logPath = daemonLogPath(projectsRoot);
-  try {
-    maintainDaemonLog(projectsRoot, options);
-  } catch {
-  }
-  return logPath;
-}
-function openDaemonLogForSpawn(projectsRoot, options = {}) {
-  let fs = withFs(options.fs);
-  try {
-    let logPath = prepareDaemonLog(projectsRoot, options), fd = fs.openSync(logPath, "a", 384);
-    try {
-      fs.chmodSync(logPath, 384);
-    } catch {
-    }
-    return fd;
-  } catch {
-    return "ignore";
-  }
-}
-function isNodeError(error) {
-  return typeof error == "object" && error !== null && "code" in error;
-}
-
-// src/sync/spawn-daemon.ts
-function spawnDetachedEntry(projectsRoot, entryFile, args2) {
-  let entry = join5(dirname3(fileURLToPath(import.meta.url)), entryFile), logTarget = openDaemonLogForSpawn(projectsRoot), child = spawn(process.execPath, [entry, ...args2], {
-    detached: !0,
-    stdio: ["ignore", logTarget, logTarget],
-    cwd: process.cwd(),
-    // eslint-disable-next-line no-restricted-properties -- forward the full environment to the spawned detached process
-    env: process.env
-  });
-  return child.unref(), typeof logTarget == "number" && closeSync2(logTarget), child.pid ?? null;
-}
-function spawnDaemonProcess(projectsRoot) {
-  spawnDetachedEntry(projectsRoot, "sync-daemon.mjs", [projectsRoot]);
-}
-
-// src/sync/spawn-device-poller.ts
-function spawnDevicePollerProcess(projectsRoot) {
-  return spawnDetachedEntry(projectsRoot, "auth.mjs", ["__poll", projectsRoot]);
-}
-
-// src/sync/stop-daemon.ts
-import { join as join6 } from "node:path";
-var STOP_POLL_INTERVAL_MS = 100;
-async function stopOwnedDaemon(projectsRoot, deps = {}) {
-  let daemonDir2 = join6(projectsRoot, ".daemon"), isAlive2 = deps.isAlive ?? isAlive, readPid2 = deps.readPid ?? readPid, kill = deps.kill ?? ((pid, signal) => process.kill(pid, signal)), sleep = deps.sleep ?? ((ms) => new Promise((r) => setTimeout(r, ms))), initial = await readPid2(daemonDir2);
-  if (!isOwnedDaemon(initial, projectsRoot) || !isAlive2(initial.pid))
-    return await removePid(daemonDir2), { stopped: !0, reason: "not-running" };
-  let beforeTerm = await readPid2(daemonDir2);
-  if (!beforeTerm || beforeTerm.pid !== initial.pid || beforeTerm.nonce !== initial.nonce)
-    return { stopped: !1, reason: "pidfile-changed" };
-  try {
-    await kill(initial.pid, "SIGTERM");
-  } catch {
-    let afterFail = await readPid2(daemonDir2);
-    return afterFail && afterFail.pid === initial.pid && afterFail.nonce === initial.nonce && !isAlive2(initial.pid) ? (await removePid(daemonDir2), { stopped: !0, reason: "stopped" }) : { stopped: !1, reason: "signal-failed" };
-  }
-  let termPolls = Math.ceil(8e3 / STOP_POLL_INTERVAL_MS);
-  for (let i = 0; i < termPolls && isAlive2(initial.pid); i++)
-    await sleep(STOP_POLL_INTERVAL_MS);
-  let beforeKill = await readPid2(daemonDir2);
-  if (beforeKill !== null && (beforeKill.pid !== initial.pid || beforeKill.nonce !== initial.nonce))
-    return { stopped: !1, reason: "pidfile-changed" };
-  if (isAlive2(initial.pid)) {
-    try {
-      await kill(initial.pid, "SIGKILL");
-    } catch {
-    }
-    let killPolls = Math.ceil(2e3 / STOP_POLL_INTERVAL_MS);
-    for (let i = 0; i < killPolls && isAlive2(initial.pid); i++)
-      await sleep(STOP_POLL_INTERVAL_MS);
-  }
-  if (!!isAlive2(initial.pid))
-    return { stopped: !1, reason: "timeout" };
-  let finalRecord = await readPid2(daemonDir2);
-  return finalRecord && finalRecord.pid === initial.pid && finalRecord.nonce === initial.nonce && await removePid(daemonDir2), { stopped: !0, reason: "stopped" };
-}
-
-// src/sync/device-flow.ts
-function deviceFlowStatePath(projectsRoot) {
-  return join7(projectsRoot, ".daemon", "device-flow.json");
-}
-async function readPendingDeviceFlow(path) {
-  try {
-    let raw = await readFile3(path, "utf8");
-    return JSON.parse(raw);
-  } catch {
-    return null;
-  }
-}
-async function writePendingDeviceFlow(path, record) {
-  await mkdir3(dirname4(path), { recursive: !0 });
-  let tmp = `${path}.tmp-${process.pid}-${Date.now()}`;
-  await writeFile2(tmp, JSON.stringify(record, null, 2) + `
-`, { mode: 384 }), await chmod3(tmp, 384), await rename2(tmp, path);
-}
-async function clearPendingDeviceFlow(path, deviceCode) {
-  let current = await readPendingDeviceFlow(path);
-  current && current.deviceCode !== deviceCode || await rm3(path, { force: !0 });
-}
-async function abortPendingDeviceFlow(projectsRoot) {
-  await rm3(deviceFlowStatePath(projectsRoot), { force: !0 });
-}
-function devicePlatform() {
-  let p = process.platform;
-  return p === "darwin" || p === "win32" || p === "linux" ? p : "unknown";
-}
-function deviceLabel() {
-  try {
-    return hostname() || "ByteRover Agent";
-  } catch {
-    return "ByteRover Agent";
-  }
-}
-async function requestDeviceAuthorize(authUrl, f) {
-  try {
-    let res = await f(`${authUrl}/api/device/authorize`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        deviceName: deviceLabel(),
-        platform: devicePlatform()
-      })
-    });
-    if (!res.ok) return null;
-    let authz = await res.json();
-    return authz?.device_code && authz?.user_code ? authz : null;
-  } catch {
-    return null;
-  }
-}
-async function pollDeviceTokenOnce(authUrl, deviceCode, f) {
-  let body;
-  try {
-    body = await (await f(`${authUrl}/api/device/token`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ device_code: deviceCode })
-    })).json().catch(() => ({}));
-  } catch {
-    return { state: "network_error" };
-  }
-  return body.error === "authorization_pending" ? { state: "pending" } : body.error === "slow_down" || body.error === "rate_limited" ? { state: "slow_down" } : body.error === "access_denied" ? { state: "denied" } : body.error === "expired_token" ? { state: "expired" } : body.provider === "daemon-device-session" && body.refreshToken && body.refreshExpiresAt && body.refreshAbsoluteExpiresAt && body.sessionId && body.deviceId ? {
-    state: "approved",
-    session: {
-      refreshToken: body.refreshToken,
-      refreshExpiresAt: body.refreshExpiresAt,
-      refreshAbsoluteExpiresAt: body.refreshAbsoluteExpiresAt,
-      sessionId: body.sessionId,
-      deviceId: body.deviceId
-    }
-  } : body.error ? { state: "error" } : { state: "pending" };
-}
-async function completeDeviceFlow(session, deviceCode, deps = {}) {
-  let projectsRoot = await (deps.resolveProjectsRoot ?? getProjectsDir)();
-  return (await (deps.stopDaemon ?? stopOwnedDaemon)(projectsRoot, deps)).stopped ? (await writeDaemonAuth(daemonAuthPath(projectsRoot), {
-    schemaVersion: 1,
-    provider: "daemon-device-session",
-    refreshToken: session.refreshToken,
-    refreshExpiresAt: session.refreshExpiresAt,
-    refreshAbsoluteExpiresAt: session.refreshAbsoluteExpiresAt,
-    deviceId: session.deviceId,
-    sessionId: session.sessionId,
-    tokenFingerprint: createTokenFingerprint(session.refreshToken)
-  }), (deps.spawnDaemon ?? spawnDaemonProcess)(projectsRoot), deviceCode && await clearPendingDeviceFlow(deviceFlowStatePath(projectsRoot), deviceCode), { ok: !0 }) : { ok: !1, error: "daemon_stop_failed" };
-}
-function expiresInS(expiresAt, now) {
-  return Math.max(0, Math.ceil((Date.parse(expiresAt) - now) / 1e3));
-}
-var REUSE_MIN_REMAINING_S = 30;
-async function startDeviceFlow(deps = {}) {
-  let authUrl = deps.authUrl ?? AUTH_URL, f = deps.fetchImpl ?? fetch, now = deps.now ?? Date.now, isAlive2 = deps.isAlive ?? isAlive, spawnPoller = deps.spawnPoller ?? spawnDevicePollerProcess, projectsRoot = await (deps.resolveProjectsRoot ?? getProjectsDir)(), statePath = deviceFlowStatePath(projectsRoot), existing = await readPendingDeviceFlow(statePath);
-  if (existing && expiresInS(existing.expiresAt, now()) > REUSE_MIN_REMAINING_S) {
-    if (!existing.pollerPid || !isAlive2(existing.pollerPid)) {
-      let pid2 = spawnPoller(projectsRoot);
-      await writePendingDeviceFlow(statePath, {
-        ...existing,
-        pollerPid: pid2 ?? void 0
-      });
-    }
-    return {
-      ok: !0,
-      pending: !0,
-      reused: !0,
-      verifyUrl: existing.verificationUriComplete ?? existing.verificationUri,
-      userCode: existing.userCode,
-      expiresAt: existing.expiresAt,
-      expiresInS: expiresInS(existing.expiresAt, now())
-    };
-  }
-  let authz = await requestDeviceAuthorize(authUrl, f);
-  if (!authz) return { ok: !1, error: "auth_unavailable" };
-  let expiresAt = new Date(
-    now() + Math.max(1, authz.expires_in) * 1e3
-  ).toISOString(), pending = {
-    schemaVersion: 1,
-    deviceCode: authz.device_code,
-    userCode: authz.user_code,
-    verificationUri: authz.verification_uri,
-    verificationUriComplete: authz.verification_uri_complete,
-    intervalS: Math.max(1, authz.interval),
-    expiresAt,
-    createdAt: new Date(now()).toISOString()
-  };
-  await writePendingDeviceFlow(statePath, pending);
-  let pid = spawnPoller(projectsRoot);
-  return pid && await writePendingDeviceFlow(statePath, { ...pending, pollerPid: pid }), {
-    ok: !0,
-    pending: !0,
-    reused: !1,
-    verifyUrl: authz.verification_uri_complete ?? authz.verification_uri,
-    userCode: authz.user_code,
-    expiresAt,
-    expiresInS: expiresInS(expiresAt, now())
-  };
-}
-async function deviceFlowStatus(deps = {}) {
-  let authUrl = deps.authUrl ?? AUTH_URL, f = deps.fetchImpl ?? fetch, now = deps.now ?? Date.now, projectsRoot = await (deps.resolveProjectsRoot ?? getProjectsDir)(), statePath = deviceFlowStatePath(projectsRoot), pending = await readPendingDeviceFlow(statePath);
-  if (!pending)
-    return await readDaemonAuth(daemonAuthPath(projectsRoot)) ? { ok: !0, state: "approved" } : { ok: !0, state: "none" };
-  if (expiresInS(pending.expiresAt, now()) <= 0)
-    return await clearPendingDeviceFlow(statePath, pending.deviceCode), { ok: !0, state: "expired" };
-  let authBefore = await readDaemonAuth(daemonAuthPath(projectsRoot)), poll = await pollDeviceTokenOnce(authUrl, pending.deviceCode, f);
-  if (poll.state === "approved") {
-    let owner = await readPendingDeviceFlow(statePath);
-    return !owner || owner.deviceCode !== pending.deviceCode ? await readDaemonAuth(daemonAuthPath(projectsRoot)) ? { ok: !0, state: "approved" } : { ok: !0, state: "none" } : (await completeDeviceFlow(
-      poll.session,
-      pending.deviceCode,
-      deps
-    )).ok ? { ok: !0, state: "approved" } : { ok: !1, error: "auth_unavailable" };
-  }
-  if (poll.state === "pending" || poll.state === "slow_down")
-    return {
-      ok: !0,
-      state: "pending",
-      verifyUrl: pending.verificationUriComplete ?? pending.verificationUri,
-      userCode: pending.userCode,
-      expiresInS: expiresInS(pending.expiresAt, now())
-    };
-  let authAfter = await readDaemonAuth(daemonAuthPath(projectsRoot));
-  return authAfter && authAfter.tokenFingerprint !== authBefore?.tokenFingerprint ? { ok: !0, state: "approved" } : poll.state === "denied" ? (await clearPendingDeviceFlow(statePath, pending.deviceCode), { ok: !0, state: "denied" }) : poll.state === "expired" ? (await clearPendingDeviceFlow(statePath, pending.deviceCode), { ok: !0, state: "expired" }) : { ok: !1, error: "auth_unavailable" };
-}
-var SLOW_DOWN_BUMP_MS = 5e3;
-async function runDeviceFlowPoller(deps = {}) {
-  let authUrl = deps.authUrl ?? AUTH_URL, f = deps.fetchImpl ?? fetch, now = deps.now ?? Date.now, sleep = deps.sleep ?? ((ms) => new Promise((r) => setTimeout(r, ms))), projectsRoot = await (deps.resolveProjectsRoot ?? getProjectsDir)(), statePath = deviceFlowStatePath(projectsRoot), pending = await readPendingDeviceFlow(statePath);
-  if (!pending) return;
-  let intervalMs = pending.intervalS * 1e3;
-  for (; expiresInS(pending.expiresAt, now()) > 0; ) {
-    await sleep(intervalMs);
-    let current = await readPendingDeviceFlow(statePath);
-    if (!current || current.deviceCode !== pending.deviceCode) return;
-    let poll = await pollDeviceTokenOnce(authUrl, pending.deviceCode, f);
-    if (poll.state === "approved") {
-      let owner = await readPendingDeviceFlow(statePath);
-      if (!owner || owner.deviceCode !== pending.deviceCode) return;
-      await completeDeviceFlow(poll.session, pending.deviceCode, deps);
-      return;
-    }
-    if (poll.state === "slow_down") {
-      intervalMs += SLOW_DOWN_BUMP_MS;
-      continue;
-    }
-    if (poll.state === "denied" || poll.state === "expired" || poll.state === "error") {
-      await clearPendingDeviceFlow(statePath, pending.deviceCode);
-      return;
-    }
-  }
-  await clearPendingDeviceFlow(statePath, pending.deviceCode);
-}
-
-// src/sync/default-space.ts
-function parseDefaultSpaceField(value) {
-  if (!Object.prototype.hasOwnProperty.call(value, "defaultSpaceId"))
-    return { kind: "omitted" };
-  if (value.defaultSpaceId === null) return { kind: "clear" };
-  if (typeof value.defaultSpaceId == "string" && isUuid(value.defaultSpaceId))
-    return { kind: "set", spaceId: value.defaultSpaceId };
-  throw new Error("invalid defaultSpaceId");
-}
-
-// src/sync/token-manager.ts
-var TokenMintError = class extends Error {
-  constructor(status, retryable, code) {
-    super(code ? `mint:${status}:${code}` : `mint:${status}`);
-    this.status = status;
-    this.retryable = retryable;
+var log = (line) => void process.stderr.write(`${line}
+`), MigrationError = class extends Error {
+  constructor(code, message) {
+    super(message);
     this.code = code;
   }
-}, UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-function isValidSpace(space) {
-  if (typeof space != "object" || space === null) return !1;
-  let s = space;
-  return !(typeof s.space_id != "string" || !UUID_RE.test(s.space_id) || typeof s.space_name != "string" || s.space_name.length === 0 || typeof s.team_id != "string" || !UUID_RE.test(s.team_id) || typeof s.team_name != "string" || s.team_slug !== null && typeof s.team_slug != "string" || s.space_slug !== null && typeof s.space_slug != "string" || typeof s.role != "string" || s.role.trim().length === 0 || !Array.isArray(s.scopes) || !s.scopes.every(
-    (sc) => sc === "space:read" || sc === "space:write"
-  ) || s.scopes.includes("space:write") && !s.scopes.includes("space:read") || s.sync_state !== "active" && s.sync_state !== "paused" || s.sync_state === "paused" && s.sync_disabled_reason === null || s.sync_state === "active" && s.sync_disabled_reason !== null);
-}
-async function mintToken(input) {
-  let f = input.fetchImpl ?? fetch, res;
+};
+async function resolveBearer(opts2) {
+  if (opts2.apiKeyFile) return (await readFile7(opts2.apiKeyFile, "utf8")).trim();
+  if (opts2.apiKey) return opts2.apiKey.trim();
   try {
-    res = await f(`${input.authUrl}/api/tokens/file-sync`, {
-      method: "POST",
-      headers: { authorization: `Bearer ${input.apiKey}` }
-    });
+    let authPath = path.join(getProjectsDir(), ".daemon", "auth.json"), stored = JSON.parse(await readFile7(authPath, "utf8"));
+    if (stored.provider === "api-key" && stored.apiKey) return stored.apiKey;
+    if (stored.provider === "daemon-device-session" && stored.refreshToken)
+      return stored.refreshToken;
   } catch {
-    throw new TokenMintError(0, !0);
   }
-  if (res.status === 200) {
-    let data = await res.json();
-    if (!Array.isArray(data.spaces))
-      throw new TokenMintError(200, !0);
-    if (!data.spaces.every(isValidSpace))
-      throw new TokenMintError(200, !0);
-    let spaces = data.spaces;
-    if (data.totalSpaces !== spaces.length)
-      throw new TokenMintError(200, !0);
-    if (data.complete !== !0)
-      throw new TokenMintError(200, !0);
-    if (!Number.isInteger(data.expiresIn) || data.expiresIn < 1 || data.expiresIn > 900)
-      throw new TokenMintError(200, !0);
-    if (spaces.some(
-      (s) => s.sync_state === "active" && s.scopes.includes("space:read")
-    )) {
-      if (typeof data.token != "string" || data.token.length === 0 || data.tokenType !== "Bearer")
-        throw new TokenMintError(200, !0, "active inventory requires token");
-    } else if (data.token !== null || data.tokenType !== null)
-      throw new TokenMintError(
-        200,
-        !0,
-        "paused inventory must not include token"
-      );
-    let defaultSpace;
-    try {
-      defaultSpace = parseDefaultSpaceField(data);
-    } catch {
-      throw new TokenMintError(200, !0, "invalid_default_space_id");
-    }
-    return {
-      token: data.token ?? null,
-      tokenType: data.tokenType ?? null,
-      expiresIn: data.expiresIn,
-      complete: !0,
-      totalSpaces: spaces.length,
-      spaces,
-      defaultSpace
-    };
-  }
-  if (res.status === 422) {
-    try {
-      if ((await res.json()).error === "too_many_syncable_spaces")
-        throw new TokenMintError(422, !1, "too_many_syncable_spaces");
-    } catch (err) {
-      if (err instanceof TokenMintError) throw err;
-    }
-    throw new TokenMintError(422, !1);
-  }
-  let retryable = res.status === 429 || res.status >= 500;
-  throw new TokenMintError(res.status, retryable);
+  throw new MigrationError(
+    "not_authenticated",
+    "Not signed in. Run `node scripts/auth.mjs` (device login) or `node scripts/auth.mjs --key-file key`, or pass `--api-key-file <path>`."
+  );
 }
-
-// src/sync/auth-actions.ts
-async function authByterover(apiKey, deps = {}) {
-  let key = apiKey?.trim();
-  if (!key) return { ok: !1, error: "missing_api_key" };
-  let authUrl = deps.authUrl ?? AUTH_URL, projectsRoot = await (deps.resolveProjectsRoot ?? getProjectsDir)();
-  await abortPendingDeviceFlow(projectsRoot);
+async function webRequest(opts2, apiKey, pathname, init = {}) {
+  let res;
   try {
-    await mintToken({ authUrl, apiKey: key, fetchImpl: deps.fetchImpl });
+    res = await fetch(`${opts2.authUrl}${pathname}`, {
+      ...init,
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${apiKey}`,
+        ...init.headers ?? {}
+      }
+    });
   } catch (err) {
-    return err instanceof TokenMintError && !err.retryable && (err.status === 400 || err.status === 401 || err.status === 403) ? { ok: !1, error: "invalid_api_key" } : { ok: !1, error: "auth_unavailable" };
-  }
-  return (await (deps.stopDaemon ?? stopOwnedDaemon)(projectsRoot, deps)).stopped ? (await writeDaemonAuth(daemonAuthPath(projectsRoot), {
-    schemaVersion: 1,
-    provider: "api-key",
-    apiKey: key,
-    tokenFingerprint: createTokenFingerprint(key),
-    createdAt: (/* @__PURE__ */ new Date()).toISOString()
-  }), (deps.spawnDaemon ?? spawnDaemonProcess)(projectsRoot), { ok: !0, spawned: !0 }) : { ok: !1, error: "daemon_stop_failed" };
-}
-var SLOW_DOWN_BUMP_MS2 = 5e3;
-async function authViaDeviceFlow(deps = {}) {
-  let authUrl = deps.authUrl ?? AUTH_URL, f = deps.fetchImpl ?? fetch, print2 = deps.print ?? ((line) => process.stderr.write(`${line}
-`)), sleep = deps.sleep ?? ((ms) => new Promise((r) => setTimeout(r, ms))), projectsRoot = await (deps.resolveProjectsRoot ?? getProjectsDir)();
-  await abortPendingDeviceFlow(projectsRoot);
-  let authz = await requestDeviceAuthorize(authUrl, f);
-  if (!authz) return { ok: !1, error: "auth_unavailable" };
-  print2(""), print2("To connect ByteRover, open this URL and enter the code:"), print2(`  ${authz.verification_uri}`), print2(`  code: ${authz.user_code}`), authz.verification_uri_complete && print2(`  (or open directly: ${authz.verification_uri_complete})`), print2("Waiting for approval\u2026");
-  let deadline = Date.now() + Math.max(1, authz.expires_in) * 1e3, intervalMs = Math.max(1, authz.interval) * 1e3;
-  for (; Date.now() < deadline; ) {
-    await sleep(intervalMs);
-    let poll = await pollDeviceTokenOnce(authUrl, authz.device_code, f);
-    if (poll.state === "approved")
-      return (await completeDeviceFlow(
-        poll.session,
-        authz.device_code,
-        deps
-      )).ok ? (print2("Connected \u2713"), { ok: !0, spawned: !0 }) : { ok: !1, error: "daemon_stop_failed" };
-    if (poll.state === "slow_down") {
-      intervalMs += SLOW_DOWN_BUMP_MS2;
-      continue;
-    }
-    if (poll.state === "denied") return { ok: !1, error: "device_denied" };
-    if (poll.state === "expired") return { ok: !1, error: "device_expired" };
-    if (poll.state === "error") return { ok: !1, error: "auth_unavailable" };
-  }
-  return { ok: !1, error: "device_timeout" };
-}
-
-// src/sync/daemon-auth-identity-reader.ts
-import { readFile as readFile4 } from "node:fs/promises";
-function buildWhoamiResult(read) {
-  if (!read.ok)
-    return { payload: { ok: !1, reason: read.reason }, exitCode: 1 };
-  let { providerKind } = read.identity;
-  return {
-    payload: { ok: !0, authed: providerKind !== "none", providerKind },
-    exitCode: 0
-  };
-}
-async function readCurrentDaemonAuthIdentity(projectsRoot) {
-  let path = daemonAuthPath(projectsRoot), raw;
-  try {
-    raw = JSON.parse(await readFile4(path, "utf8"));
-  } catch (err) {
-    if (err.code === "ENOENT")
-      raw = null;
-    else
-      return { ok: !1, reason: "malformed-auth" };
-  }
-  return parseDaemonAuthIdentity(raw);
-}
-
-// src/entries/auth.ts
-var args = process.argv.slice(2);
-function flagValue(name) {
-  let i = args.indexOf(name);
-  return i >= 0 ? args[i + 1] : void 0;
-}
-var print = (line) => process.stderr.write(`${line}
-`);
-if (args[0] === "__poll") {
-  let projectsRoot = args[1];
-  await runDeviceFlowPoller(
-    projectsRoot ? { resolveProjectsRoot: () => projectsRoot } : {}
-  ), process.exit(0);
-}
-if (args[0] === "status") {
-  let result = await deviceFlowStatus();
-  console.log(JSON.stringify(result)), process.exit(result.ok ? 0 : 1);
-}
-if (args[0] === "whoami") {
-  let read = await readCurrentDaemonAuthIdentity(getProjectsDir()), { payload, exitCode } = buildWhoamiResult(read);
-  console.log(JSON.stringify(payload)), process.exit(exitCode);
-}
-var keyFile = flagValue("--key-file"), positional = args.find((a) => !a.startsWith("--"));
-if (keyFile || positional) {
-  let result = keyFile ? await authByterover((await readFile5(keyFile, "utf8")).trim()) : await authByterover(positional);
-  console.log(JSON.stringify(result)), result.ok || process.exit(1);
-} else if (args.includes("--wait")) {
-  let result = await authViaDeviceFlow();
-  console.log(JSON.stringify(result)), result.ok || process.exit(1);
-} else {
-  let result = await startDeviceFlow();
-  if (result.ok) {
-    let minutes = Math.max(1, Math.round(result.expiresInS / 60));
-    print(""), print("To connect ByteRover, open this link in your browser:"), print(`  ${result.verifyUrl}`), print(
-      `  code: ${result.userCode} (expires in ${minutes} minute${minutes === 1 ? "" : "s"})`
-    ), print(""), print(
-      'Approve there, then come back and say "approved" \u2014 run `auth.mjs status` to finish.'
+    throw new MigrationError(
+      "network_error",
+      `Could not reach ${opts2.authUrl}${pathname} (${err instanceof Error ? err.message : String(err)}). Check the VPS network / --auth-url.`
     );
   }
-  console.log(JSON.stringify(result)), result.ok || process.exit(1);
+  if (res.status === 401)
+    throw new MigrationError(
+      "auth_rejected",
+      `Server rejected the API key (401) for ${pathname}. Re-run the auth step, or check the key has access.`
+    );
+  return res;
+}
+async function resolveTeamId(opts2, apiKey) {
+  if (opts2.team) return opts2.team;
+  let res = await webRequest(opts2, apiKey, "/api/teams");
+  if (!res.ok)
+    throw new MigrationError("teams_failed", `Could not list teams (${res.status}). Pass --team <id>.`);
+  let teams = (await res.json().catch(() => null))?.teams ?? [];
+  if (teams.length === 0)
+    throw new MigrationError(
+      "no_team",
+      "No team found for this account. Create one in the ByteRover desktop app, or pass --team <id>."
+    );
+  let pick = teams.find((t) => t.role === "OWNER" || t.role === "ADMIN") ?? teams[0];
+  if (!pick) throw new MigrationError("no_team", "No usable team. Pass --team <id>.");
+  return pick.id;
+}
+async function createSpace(opts2, apiKey, teamId, input) {
+  let res = await webRequest(opts2, apiKey, `/api/teams/${teamId}/spaces`, {
+    method: "POST",
+    body: JSON.stringify({ id: input.id, name: input.name, type: opts2.spaceType })
+  });
+  if (res.status === 403)
+    throw new MigrationError(
+      "space_forbidden",
+      `Not allowed to create a "${opts2.spaceType}" space in team ${teamId}. Try --space-type personal, or --team <a team you own>.`
+    );
+  if (!(res.status === 200 || res.status === 201)) {
+    let text = await res.text().catch(() => "");
+    throw new MigrationError(
+      "create_space_failed",
+      `createSpace failed (${res.status}) for "${input.name}": ${text.slice(0, 160)}`
+    );
+  }
+  let body = await res.json().catch(() => null);
+  if (!body?.id)
+    throw new MigrationError("create_space_failed", `createSpace returned no id for "${input.name}".`);
+  return body.id;
+}
+var SKIP_DIRS = /* @__PURE__ */ new Set([
+  ".git",
+  ".Trash",
+  ".cache",
+  "node_modules",
+  "dist",
+  "build",
+  "out",
+  "Library",
+  "Applications",
+  ".npm",
+  ".pnpm-store",
+  "venv",
+  ".venv"
+]);
+async function collectMarkdown(treeRoot, dir = treeRoot, out = []) {
+  let entries;
+  try {
+    entries = await readdir(dir, { withFileTypes: !0 });
+  } catch {
+    return out;
+  }
+  for (let e of entries) {
+    let abs = path.join(dir, e.name);
+    e.isDirectory() ? await collectMarkdown(treeRoot, abs, out) : e.isFile() && e.name.toLowerCase().endsWith(".md") && out.push({ relPath: path.relative(treeRoot, abs), absPath: abs });
+  }
+  return out;
+}
+async function isDir(p) {
+  try {
+    return (await stat3(p)).isDirectory();
+  } catch {
+    return !1;
+  }
+}
+async function asProject(projectRoot) {
+  let treeRoot = path.join(projectRoot, ".brv", "context-tree");
+  if (!await isDir(treeRoot)) return null;
+  let sources = await collectMarkdown(treeRoot);
+  return sources.length === 0 ? null : { projectRoot, contextTreeRoot: treeRoot, name: path.basename(projectRoot), sources };
+}
+async function scanV3Projects(opts2) {
+  if (opts2.projects.length)
+    return (await Promise.all(opts2.projects.map((p) => asProject(path.resolve(p))))).filter((p) => p !== null);
+  let seen = /* @__PURE__ */ new Set(), projects = [], walk = async (dir, depth) => {
+    if (depth > opts2.maxDepth || seen.has(dir)) return;
+    seen.add(dir);
+    let proj = await asProject(dir);
+    proj && projects.push(proj);
+    let entries;
+    try {
+      entries = await readdir(dir, { withFileTypes: !0 });
+    } catch {
+      return;
+    }
+    for (let e of entries)
+      e.isDirectory() && (e.name.startsWith(".") || SKIP_DIRS.has(e.name) || await walk(path.join(dir, e.name), depth + 1));
+  };
+  for (let root of opts2.roots) await walk(path.resolve(root), 0);
+  return projects;
+}
+var markerFile = () => path.join(getGlobalDataDir(), "desktop-migrations.json"), localKey = (teamId, projectRoot) => `local:${teamId}:${projectRoot}`;
+async function readMarkers() {
+  try {
+    let parsed = JSON.parse(await readFile7(markerFile(), "utf8"));
+    return parsed && typeof parsed == "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+async function setMarker(key, entry) {
+  let all = await readMarkers();
+  all[key] = entry;
+  let p = markerFile();
+  await mkdir7(path.dirname(p), { recursive: !0 }), await writeFile7(p, `${JSON.stringify(all, null, 2)}
+`, "utf8");
+}
+async function collectHtml(dir, out = []) {
+  let entries;
+  try {
+    entries = await readdir(dir, { withFileTypes: !0 });
+  } catch {
+    return out;
+  }
+  for (let e of entries) {
+    let abs = path.join(dir, e.name);
+    e.isDirectory() ? await collectHtml(abs, out) : e.isFile() && e.name.toLowerCase().endsWith(".html") && out.push(abs);
+  }
+  return out;
+}
+async function detect(opts2) {
+  log("\u2192 scanning for v3 projects (.brv/context-tree)\u2026");
+  let projects = await scanV3Projects(opts2);
+  return log(`  found ${projects.length} project(s)`), {
+    ok: !0,
+    command: "detect",
+    projects: projects.map((p) => ({
+      projectRoot: p.projectRoot,
+      name: p.name,
+      mdFiles: p.sources.length
+    }))
+  };
+}
+async function run(opts2) {
+  let now = (/* @__PURE__ */ new Date()).toISOString(), runStartMs = Date.now(), projects = await scanV3Projects(opts2);
+  if (log(`\u2192 ${projects.length} project(s) to migrate${opts2.dryRun ? " (dry-run)" : ""}`), opts2.dryRun) {
+    let plan = [];
+    for (let p of projects) {
+      let warnings = 0;
+      for (let s of p.sources)
+        try {
+          let md = await readFile7(s.absPath, "utf8");
+          warnings += convertMarkdownTopicToHtml({ markdown: md, relPath: s.relPath, now }).warnings.length;
+        } catch {
+        }
+      plan.push({ name: p.name, projectRoot: p.projectRoot, wouldConvert: p.sources.length, warnings });
+    }
+    return log("\u2192 dry-run: no spaces created, nothing written."), { ok: !0, command: "run", dryRun: !0, projects: plan };
+  }
+  let apiKey = await resolveBearer(opts2), teamId = await resolveTeamId(opts2, apiKey);
+  log(`  target team: ${teamId} (space type: ${opts2.spaceType})`);
+  let markers = await readMarkers(), results = [];
+  for (let p of projects) {
+    log(`\u2192 ${p.name}: creating space + materializing ${p.sources.length} file(s)\u2026`);
+    try {
+      let key = localKey(teamId, p.projectRoot), id = markers[key]?.spaceId ?? uuidv4(), spaceId = await createSpace(opts2, apiKey, teamId, { id, name: p.name });
+      await setMarker(key, {
+        spaceId,
+        spaceName: p.name,
+        teamId,
+        finalizedAt: now,
+        projectRoot: p.projectRoot
+      });
+      let mat = await materializeMarkdownSpace({
+        spaceId,
+        spaceName: p.name,
+        teamId,
+        originalFolder: p.projectRoot,
+        sources: p.sources,
+        now
+      });
+      log(`  ${p.name} \u2192 space ${spaceId}: ${mat.converted}/${p.sources.length} converted`), results.push({
+        name: p.name,
+        projectRoot: p.projectRoot,
+        spaceId,
+        converted: mat.converted,
+        failures: mat.failures
+      });
+    } catch (err) {
+      let code = err instanceof MigrationError ? err.code : "project_failed";
+      log(`  ! ${p.name} failed: ${err instanceof Error ? err.message : String(err)}`), results.push({
+        name: p.name,
+        projectRoot: p.projectRoot,
+        error: { code, message: err instanceof Error ? err.message : String(err) }
+      });
+    }
+  }
+  let ok = results.every((r) => !("error" in r)), migratedOk = results.filter((r) => !("error" in r)), topicsConverted = migratedOk.reduce(
+    (n, r) => n + (typeof r.converted == "number" ? r.converted : 0),
+    0
+  ), topicsFailed = migratedOk.reduce(
+    (n, r) => n + (Array.isArray(r.failures) ? r.failures.length : 0),
+    0
+  ), agent = resolveAgent() || void 0;
+  return await appendAnalyticsRecord({
+    name: AnalyticsEventNames.MIGRATION_RUN_COMPLETED,
+    properties: {
+      duration_ms: Date.now() - runStartMs,
+      outcome: results.length === migratedOk.length ? "completed" : migratedOk.length > 0 ? "partial" : "error",
+      projects_total: projects.length,
+      spaces_migrated: migratedOk.length,
+      projects_failed: results.length - migratedOk.length,
+      topics_converted: topicsConverted,
+      topics_failed: topicsFailed,
+      task_id: uuidv4(),
+      task_type: TASK_TYPE.MIGRATE,
+      team_id: teamId,
+      agent,
+      agent_id: agent
+    }
+  }), { ok, command: "run", team: teamId, migrated: results };
+}
+async function verify(_opts) {
+  let markers = await readMarkers(), spaces = [];
+  for (let [, m] of Object.entries(markers)) {
+    let tree = path.join(getGlobalDataDir(), "projects", m.spaceId, "context-tree");
+    spaces.push({
+      spaceId: m.spaceId,
+      spaceName: m.spaceName,
+      teamId: m.teamId,
+      htmlTopics: (await collectHtml(tree)).length
+    });
+  }
+  return { ok: !0, command: "verify", spaces };
+}
+var BACKUP_FOLDER_NAME = "ByteRover_Backups", BACKUP_MANIFEST_FILE = "manifest.json", BACKUP_VISIBLE_BRV_DIR = "brv", BACKUP_MANIFEST_VERSION = 1;
+function uniqueFolderName(base, used) {
+  let safe = base.replace(/[^a-zA-Z0-9._-]/g, "_") || "project", candidate = safe, n = 2;
+  for (; used.has(candidate); )
+    candidate = `${safe}-${n}`, n += 1;
+  return used.add(candidate), candidate;
+}
+function resolveBackupParent(backupDir) {
+  let target = backupDir ?? path.join(homedir2(), "Documents");
+  return target.replace(/([/\\]ByteRover_Backups)+[/\\]?$/, "") || target;
+}
+async function readBackupManifest(backupPath) {
+  try {
+    let raw = await readFile7(path.join(backupPath, BACKUP_MANIFEST_FILE), "utf8"), m = JSON.parse(raw);
+    if (m && Array.isArray(m.projects))
+      return {
+        version: m.version ?? BACKUP_MANIFEST_VERSION,
+        createdAt: typeof m.createdAt == "string" ? m.createdAt : "",
+        projects: m.projects
+      };
+  } catch {
+  }
+  return { version: BACKUP_MANIFEST_VERSION, createdAt: "", projects: [] };
+}
+async function cleanup(opts2) {
+  let backupPath = path.join(resolveBackupParent(opts2.backupDir), BACKUP_FOLDER_NAME), markers = await readMarkers(), existing = await readBackupManifest(backupPath), usedFolders = new Set(existing.projects.map((p) => p.folder)), manifestProjects = [...existing.projects], removals = [], results = [];
+  for (let [key, m] of Object.entries(markers)) {
+    let projectRoot = m.projectRoot ?? key.replace(/^local:[^:]+:/, ""), brvDir = path.join(projectRoot, ".brv");
+    if (!await isDir(brvDir)) {
+      results.push({ projectRoot, status: "already-backed-up (no .brv)" });
+      continue;
+    }
+    let v4tree = path.join(getGlobalDataDir(), "projects", m.spaceId, "context-tree");
+    if (!await isDir(v4tree)) {
+      results.push({ projectRoot, status: "skipped: v4 space not materialized \u2014 leaving .brv" });
+      continue;
+    }
+    let folder = uniqueFolderName(
+      path.basename(projectRoot) || m.spaceName || "project",
+      usedFolders
+    ), dest = path.join(backupPath, folder, BACKUP_VISIBLE_BRV_DIR);
+    if (opts2.dryRun) {
+      results.push({ projectRoot, wouldBackUpTo: dest, wouldRemove: brvDir });
+      continue;
+    }
+    if (!opts2.yes) {
+      results.push({ projectRoot, status: "needs --yes to back up + remove .brv" });
+      continue;
+    }
+    log(`\u2192 ${projectRoot}: backing up .brv \u2192 ${dest}\u2026`), await mkdir7(path.dirname(dest), { recursive: !0 }), await cp(brvDir, dest, { recursive: !0, verbatimSymlinks: !0 }), manifestProjects.push({ folder, projectRoot, brvPath: brvDir }), removals.push(brvDir), results.push({ projectRoot, backedUpTo: dest, folder });
+  }
+  if (removals.length > 0) {
+    await mkdir7(backupPath, { recursive: !0 });
+    let manifest = {
+      version: BACKUP_MANIFEST_VERSION,
+      createdAt: existing.createdAt || (/* @__PURE__ */ new Date()).toISOString(),
+      projects: manifestProjects
+    };
+    await writeFile7(
+      path.join(backupPath, BACKUP_MANIFEST_FILE),
+      `${JSON.stringify(manifest, null, 2)}
+`,
+      "utf8"
+    );
+    for (let brvDir of removals) await rm8(brvDir, { recursive: !0, force: !0 });
+  }
+  return { ok: !0, command: "cleanup", backupPath, projects: results };
+}
+
+// src/entries/migrate-v3.ts
+var HELP = "migrate-v3 <detect|run|verify|cleanup> [--dry-run] [--yes] [--scan-root <dir>] [--project <dir>]... [--team <id>] [--space-type team|personal] [--api-key-file <path>] [--auth-url <url>] [--backup-dir <dir>]", emit = (r) => void process.stdout.write(`${JSON.stringify(r)}
+`), opts = parseFlags(process.argv.slice(2));
+try {
+  let result;
+  opts.command === "detect" ? result = await detect(opts) : opts.command === "run" ? result = await run(opts) : opts.command === "verify" ? result = await verify(opts) : opts.command === "cleanup" ? result = await cleanup(opts) : result = { ok: !1, code: "usage", help: HELP }, emit(result), result.ok === !1 && process.exit(1);
+} catch (err) {
+  let code = err && typeof err == "object" && "code" in err ? String(err.code) : "unexpected_error";
+  emit({ ok: !1, code, error: err instanceof Error ? err.message : String(err) }), process.exit(1);
 }
 /*! Bundled license information:
 

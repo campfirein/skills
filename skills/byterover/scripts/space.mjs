@@ -16073,7 +16073,10 @@ var AnalyticsEventNames = {
   DREAM_COMPLETED: "dream_completed",
   QUERY_COMPLETED: "query_completed",
   READ_COMPLETED: "read_completed",
-  MIGRATION_RUN_COMPLETED: "migration_run_completed"
+  MIGRATION_RUN_COMPLETED: "migration_run_completed",
+  MIGRATION_STARTED: "migration_started",
+  AUTH_STARTED: "auth_started",
+  AUTH_COMPLETED: "auth_completed"
 }, TASK_TYPE = {
   RECORD: "record",
   DREAM: "dream",
@@ -16304,13 +16307,51 @@ var MigrationRunCompletedSchema = external_exports.object({
   agent_id: external_exports.string().regex(AGENT_SLUG_REGEX).max(64).optional()
 }).strict();
 
+// ../../packages/core/src/analytics/events/migration-started.ts
+var MigrationStartedSchema = external_exports.object({
+  /** v3 projects discovered for this run (a folder with `.brv/context-tree/*.md`). */
+  projects_total: external_exports.number().int().nonnegative(),
+  /** Shared with the paired `migration_run_completed` row. */
+  task_id: external_exports.string().min(1),
+  task_type: external_exports.enum(TASK_TYPE_VALUES),
+  /** Team the spaces are created under. */
+  team_id: external_exports.string().min(1).max(64).optional(),
+  /** Host agent slug that ran the migration (e.g. `openclaw`); omitted when undetected. */
+  agent: external_exports.string().regex(AGENT_SLUG_REGEX).max(64).optional(),
+  /** Same slug under the dashboard's canonical `agent_id` key. */
+  agent_id: external_exports.string().regex(AGENT_SLUG_REGEX).max(64).optional()
+}).strict();
+
+// ../../packages/core/src/analytics/events/auth-started.ts
+var AuthStartedSchema = external_exports.object({
+  /** Host agent slug that initiated auth (e.g. `openclaw`); omitted when undetected. */
+  agent: external_exports.string().regex(AGENT_SLUG_REGEX).max(64).optional(),
+  /** Same slug under the dashboard's canonical `agent_id` key. */
+  agent_id: external_exports.string().regex(AGENT_SLUG_REGEX).max(64).optional()
+}).strict();
+
+// ../../packages/core/src/analytics/events/auth-completed.ts
+var AuthCompletedSchema = external_exports.object({
+  /** Approval latency: device-flow start → approval, in ms. Omitted when the
+   *  flow's start time can't be read, so "unknown" stays distinct from a real
+   *  0 ms instead of silently collapsing to 0. */
+  duration_ms: external_exports.number().int().nonnegative().optional(),
+  /** Host agent slug that ran auth (e.g. `openclaw`); omitted when undetected. */
+  agent: external_exports.string().regex(AGENT_SLUG_REGEX).max(64).optional(),
+  /** Same slug under the dashboard's canonical `agent_id` key. */
+  agent_id: external_exports.string().regex(AGENT_SLUG_REGEX).max(64).optional()
+}).strict();
+
 // ../../packages/core/src/analytics/events/index.ts
 var ALL_EVENT_SCHEMAS = {
   [AnalyticsEventNames.RECORD_RUN_COMPLETED]: RecordRunCompletedSchema,
   [AnalyticsEventNames.DREAM_COMPLETED]: DreamCompletedSchema,
   [AnalyticsEventNames.QUERY_COMPLETED]: QueryCompletedSchema,
   [AnalyticsEventNames.READ_COMPLETED]: ReadCompletedSchema,
-  [AnalyticsEventNames.MIGRATION_RUN_COMPLETED]: MigrationRunCompletedSchema
+  [AnalyticsEventNames.MIGRATION_RUN_COMPLETED]: MigrationRunCompletedSchema,
+  [AnalyticsEventNames.MIGRATION_STARTED]: MigrationStartedSchema,
+  [AnalyticsEventNames.AUTH_STARTED]: AuthStartedSchema,
+  [AnalyticsEventNames.AUTH_COMPLETED]: AuthCompletedSchema
 };
 
 // ../../packages/core/src/analytics/pending-producer.ts
@@ -18754,6 +18795,11 @@ function topicPathFromHtml(html) {
   for (let el of walkElements(parseHtml(html)))
     if (el.tagName === "bv-topic") return el.attributes.path;
 }
+function rewriteTopicPath(html, newPath) {
+  let escaped = newPath.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;"), re = /(<bv-topic\b[^>]*?\bpath=)(["'])([^"']*)\2/i;
+  if (re.test(html))
+    return html.replace(re, `$1"${escaped}"`);
+}
 async function rootFromSpaceFlag(flags) {
   let spaceFlag = str2(flags.space);
   return spaceFlag === void 0 ? null : resolveSpaceFlag(spaceFlag);
@@ -19258,16 +19304,154 @@ async function runCommand(name, argv) {
       };
     }
     case "move": {
-      let startedAt = Date.now(), taskId = randomUUID7(), topicPath = positionals[0], fromSpaceFlag = str2(flags["from-space"]), toSpaceFlag = str2(flags["to-space"]);
+      let startedAt = Date.now(), taskId = randomUUID7(), topicPath = positionals[0], toPathFlag = str2(flags["to-path"]), fromSpaceFlag = str2(flags["from-space"]), toSpaceFlag = str2(flags["to-space"]);
       if (!topicPath)
         return {
           ok: !1,
           error: "move requires a <topic-path> positional"
         };
+      if (toPathFlag !== void 0) {
+        if (fromSpaceFlag !== void 0 || toSpaceFlag !== void 0)
+          return {
+            ok: !1,
+            error: "move accepts either --to-path (in-space) OR --from-space + --to-space (cross-space), not both"
+          };
+        let resolvedRoot = await rootForRecord(flags);
+        if (resolvedRoot.kind === "error") return resolvedRoot.result;
+        let root = resolvedRoot.root, blocked = await legacyGuard(root);
+        if (blocked) return blocked;
+        let sourceRel = canonicalRel(topicPath), targetRel = canonicalRel(toPathFlag);
+        if (sourceRel === targetRel)
+          return {
+            ok: !1,
+            error: `move source and destination paths are the same; nothing to do ("${sourceRel}")`
+          };
+        let sourceAbs = resolveWithinTree(root, sourceRel), sourceHtml2;
+        try {
+          sourceHtml2 = await readFile26(sourceAbs, "utf8");
+        } catch {
+          return {
+            ok: !1,
+            error: `no topic to move at "${topicPath}"`
+          };
+        }
+        let sourceSignal2 = await getSignal(root, sourceRel), danglingRefs2 = [], siblings2 = (await listTopics(root)).filter(
+          (p) => p !== sourceRel && p !== targetRel
+        );
+        for (let sib of siblings2)
+          try {
+            let sibAbs = resolveWithinTree(root, sib), sibHtml = await readFile26(sibAbs, "utf8"), related = readTopicRootAttribute(sibHtml, "related");
+            parseRelatedAttr(related).some((ref) => refTargets(ref, sourceRel)) && danglingRefs2.push(sib);
+          } catch {
+          }
+        let newKnowledgePath = knowledgePath(targetRel), rewrittenHtml = rewriteTopicPath(sourceHtml2, newKnowledgePath);
+        if (rewrittenHtml === void 0)
+          return {
+            ok: !1,
+            error: `source topic at "${topicPath}" has no <bv-topic path="\u2026"> attribute to rewrite`
+          };
+        let writeResult2 = await writeTopic(root, {
+          agent: resolveAgent(),
+          confirmOverwrite: flags.overwrite === !0,
+          rawHtml: rewrittenHtml
+        });
+        if (!writeResult2.ok)
+          return await emit2({
+            name: AnalyticsEventNames.RECORD_RUN_COMPLETED,
+            properties: {
+              duration_ms: Date.now() - startedAt,
+              knowledge_path: knowledgePath(topicPath),
+              operations_added: 0,
+              operations_deleted: 0,
+              operations_failed: 1,
+              operations_merged: 0,
+              operations_updated: 0,
+              outcome: "error",
+              pending_review_count: 0,
+              project_path_hash: await projectHashForRoot(root),
+              ...await spaceAttributionForRoot(root),
+              task_id: taskId,
+              task_type: TASK_TYPE.RECORD
+            }
+          }), {
+            ok: !1,
+            error: writeResult2.errors.map((e) => e.message).join("; ")
+          };
+        if (sourceSignal2 ? await updateSignal(root, writeResult2.relPath, () => sourceSignal2) : await updateSignal(
+          root,
+          writeResult2.relPath,
+          () => createDefaultRuntimeSignals()
+        ), await recordDeleteIntentBestEffort(root, sourceRel), !(await applyDelete(root, topicPath)).ok)
+          return await emit2({
+            name: AnalyticsEventNames.RECORD_RUN_COMPLETED,
+            properties: {
+              duration_ms: Date.now() - startedAt,
+              knowledge_path: knowledgePath(writeResult2.relPath),
+              operations_added: writeResult2.created ? 1 : 0,
+              operations_deleted: 0,
+              operations_failed: 1,
+              operations_merged: 0,
+              operations_updated: writeResult2.created ? 0 : 1,
+              outcome: "error",
+              pending_review_count: 0,
+              project_path_hash: await projectHashForRoot(root),
+              ...await spaceAttributionForRoot(root),
+              task_id: taskId,
+              task_type: TASK_TYPE.RECORD
+            }
+          }), {
+            ok: !1,
+            error: `move wrote destination "${writeResult2.relPath}" but could not remove source "${sourceRel}"`,
+            data: {
+              from_path: sourceRel,
+              to_path: writeResult2.relPath,
+              dangling_refs: danglingRefs2
+            }
+          };
+        let now2 = (/* @__PURE__ */ new Date()).toISOString();
+        await rebuildManifest(root), await rebuildIndex(root, { now: now2 });
+        let sourceId = readTopicRootAttribute(sourceHtml2, "id") ?? sourceRel;
+        await safeReconcile(root, {
+          kind: "rename",
+          path: sourceRel,
+          newPath: writeResult2.relPath,
+          preservedSignal: sourceSignal2,
+          source: "skill",
+          topicIdentity: sourceId
+        });
+        let meta2 = await topicMetadata(root, writeResult2.relPath);
+        return await emit2({
+          name: AnalyticsEventNames.RECORD_RUN_COMPLETED,
+          properties: {
+            duration_ms: Date.now() - startedAt,
+            keywords: meta2.keywords,
+            knowledge_path: knowledgePath(writeResult2.relPath),
+            operations_added: 0,
+            operations_deleted: 0,
+            operations_failed: 0,
+            operations_merged: 0,
+            operations_updated: 1,
+            outcome: "completed",
+            pending_review_count: 0,
+            project_path_hash: await projectHashForRoot(root),
+            ...await spaceAttributionForRoot(root),
+            tags: meta2.tags,
+            task_id: taskId,
+            task_type: TASK_TYPE.RECORD
+          }
+        }), {
+          ok: !0,
+          data: {
+            from_path: sourceRel,
+            to_path: writeResult2.relPath,
+            dangling_refs: danglingRefs2
+          }
+        };
+      }
       if (!fromSpaceFlag || !toSpaceFlag)
         return {
           ok: !1,
-          error: "move requires both --from-space <name-or-id> and --to-space <name-or-id>"
+          error: "move requires either --to-path <new-path> (in-space) or both --from-space <name-or-id> and --to-space <name-or-id> (cross-space)"
         };
       if (fromSpaceFlag === toSpaceFlag)
         return {
@@ -19334,7 +19518,7 @@ async function runCommand(name, argv) {
         toRoot,
         writeResult.relPath,
         () => createDefaultRuntimeSignals()
-      ), !(await applyDelete(fromRoot, topicPath)).ok)
+      ), await recordDeleteIntentBestEffort(fromRoot, rel), !(await applyDelete(fromRoot, topicPath)).ok)
         return await emit2({
           name: AnalyticsEventNames.RECORD_RUN_COMPLETED,
           properties: {

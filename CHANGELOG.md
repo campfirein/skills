@@ -1,5 +1,12 @@
 # skill
 
+## 4.0.8
+
+### Patch Changes
+
+- `move` now supports in-space rename / move / re-parent via a new `--to-path` flag, in addition to the existing cross-space `--from-space` + `--to-space` shape. Path-based knowledge tree means rename / move / re-parent are all the same operation (change the path string), so one command + one flag covers every shape: `brv move "auth/jwt" --to-path "security/jwt-refresh"`. The destination's `<bv-topic path="…">` attribute is rewritten to match the new path. In-space moves emit a single `rename` reconciler event, so sibling `related=` refs targeting the source path are **atomically rewritten** to the new path in one pass (no transient `?orphan=1` soft-marks visible in mid-batch state) and the signal sidecar carries over so importance / recency / maturity survive the move. Mutually exclusive with `--from-space`/`--to-space` — cross-space + rename in one shot is not supported in this release. SKILL.md updated to document the new shape.
+- `move` (both in-space and cross-space branches) now records a `delete-intent` for the source path before unlinking, so the next reconcile cycle force-deletes the source's cloud copy instead of restoring it. Without this, the source resurrected on the next sync — a cross-space move "duplicated" (topic ended up in both spaces); an in-space rename never stuck. Same pattern as `prune`/`merge`/`synthesize` from 4.0.7.
+
 ## 4.0.7
 
 ### Patch Changes

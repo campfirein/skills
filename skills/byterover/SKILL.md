@@ -2,7 +2,7 @@
 name: byterover
 description: "Persistent, portable memory for Al builders and agent teams. Use BEFORE any non-trivial work to retrieve prior decisions, patterns, and gotchas; use AFTER finishing to record what was learned. ALSO use to authenticate with ByteRover — when the user says to authenticate / auth / log in / sign in / connect / link ByteRover (or log out / sign out / disconnect), run the auth flow. Iron Law: query before you think, curate after you implement."
 metadata:
-  version: 4.0.7
+  version: 4.0.8
 ---
 
 # ByteRover — durable project memory
@@ -70,6 +70,7 @@ desktop app — the agent never creates them.
 | Fold one topic into another | `node scripts/merge.mjs <survivor> <loser>` |
 | Remove redundant topics | `node scripts/prune.mjs <topic-path>...` (variadic, atomic — aborts on first failure with a partial report) |
 | Combine many topics into a new one | `node scripts/synthesize.mjs <new-path> --html '<bv-topic …>…</bv-topic>' --absorb a.html,b.html,c.html` |
+| Rename / move / re-parent a topic within the current space | `node scripts/move.mjs <topic-path> --to-path <new-path>` (atomic — siblings' `related=` refs are rewritten to the new path; signal sidecar carries over; covers all of rename, move-to-new-parent, deep re-parent, and combined) |
 | Move a topic to a different space | `node scripts/move.mjs <topic-path> --from-space <name> --to-space <name>` (rebuilds manifest + index in both spaces; reports any sibling `related=` refs in the source that now dangle) |
 | Migrate legacy markdown | `node scripts/migrate.mjs [--dry-run]` |
 | Migrate a self-hosted **v3 VPS** → v4 (full guided procedure) | follow [migrate-v3-to-v4.md](migrate-v3-to-v4.md) |

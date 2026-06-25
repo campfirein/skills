@@ -7,7 +7,7 @@ var __export = (target, all) => {
 };
 
 // src/entries/auth.ts
-import { readFile as readFile5 } from "node:fs/promises";
+import { readFile as readFile8 } from "node:fs/promises";
 
 // ../../packages/core/src/render/element-types.ts
 var ELEMENT_NAMES = [
@@ -3757,6 +3757,22 @@ var VOID_ELEMENTS = /* @__PURE__ */ new Set([
   TAG_NAMES.WBR
 ]);
 
+// ../../packages/storage/src/cas-atomic-write.ts
+import { chmod, mkdir, rename, rm, writeFile } from "node:fs/promises";
+var RENAME_RETRY_DELAYS_MS = [10, 25, 50, 100, 200];
+async function renameWithRetry(tmp, filePath) {
+  for (let delayMs of RENAME_RETRY_DELAYS_MS)
+    try {
+      await rename(tmp, filePath);
+      return;
+    } catch (err) {
+      let code = err.code;
+      if (code !== "EPERM" && code !== "EACCES") throw err;
+      await new Promise((resolve2) => setTimeout(resolve2, delayMs));
+    }
+  await rename(tmp, filePath);
+}
+
 // ../../packages/core/src/tree/paths.ts
 import { homedir, platform } from "node:os";
 import { basename, dirname, isAbsolute, join, resolve, sep } from "node:path";
@@ -5251,7 +5267,10 @@ var AnalyticsEventNames = {
   DREAM_COMPLETED: "dream_completed",
   QUERY_COMPLETED: "query_completed",
   READ_COMPLETED: "read_completed",
-  MIGRATION_RUN_COMPLETED: "migration_run_completed"
+  MIGRATION_RUN_COMPLETED: "migration_run_completed",
+  MIGRATION_STARTED: "migration_started",
+  AUTH_STARTED: "auth_started",
+  AUTH_COMPLETED: "auth_completed"
 }, TASK_TYPE = {
   RECORD: "record",
   DREAM: "dream",
@@ -5482,17 +5501,320 @@ var MigrationRunCompletedSchema = external_exports.object({
   agent_id: external_exports.string().regex(AGENT_SLUG_REGEX).max(64).optional()
 }).strict();
 
+// ../../packages/core/src/analytics/events/migration-started.ts
+var MigrationStartedSchema = external_exports.object({
+  /** v3 projects discovered for this run (a folder with `.brv/context-tree/*.md`). */
+  projects_total: external_exports.number().int().nonnegative(),
+  /** Shared with the paired `migration_run_completed` row. */
+  task_id: external_exports.string().min(1),
+  task_type: external_exports.enum(TASK_TYPE_VALUES),
+  /** Team the spaces are created under. */
+  team_id: external_exports.string().min(1).max(64).optional(),
+  /** Host agent slug that ran the migration (e.g. `openclaw`); omitted when undetected. */
+  agent: external_exports.string().regex(AGENT_SLUG_REGEX).max(64).optional(),
+  /** Same slug under the dashboard's canonical `agent_id` key. */
+  agent_id: external_exports.string().regex(AGENT_SLUG_REGEX).max(64).optional()
+}).strict();
+
+// ../../packages/core/src/analytics/events/auth-started.ts
+var AuthStartedSchema = external_exports.object({
+  /** Host agent slug that initiated auth (e.g. `openclaw`); omitted when undetected. */
+  agent: external_exports.string().regex(AGENT_SLUG_REGEX).max(64).optional(),
+  /** Same slug under the dashboard's canonical `agent_id` key. */
+  agent_id: external_exports.string().regex(AGENT_SLUG_REGEX).max(64).optional()
+}).strict();
+
+// ../../packages/core/src/analytics/events/auth-completed.ts
+var AuthCompletedSchema = external_exports.object({
+  /** Approval latency: device-flow start → approval, in ms. Omitted when the
+   *  flow's start time can't be read, so "unknown" stays distinct from a real
+   *  0 ms instead of silently collapsing to 0. */
+  duration_ms: external_exports.number().int().nonnegative().optional(),
+  /** Host agent slug that ran auth (e.g. `openclaw`); omitted when undetected. */
+  agent: external_exports.string().regex(AGENT_SLUG_REGEX).max(64).optional(),
+  /** Same slug under the dashboard's canonical `agent_id` key. */
+  agent_id: external_exports.string().regex(AGENT_SLUG_REGEX).max(64).optional()
+}).strict();
+
 // ../../packages/core/src/analytics/events/index.ts
 var ALL_EVENT_SCHEMAS = {
   [AnalyticsEventNames.RECORD_RUN_COMPLETED]: RecordRunCompletedSchema,
   [AnalyticsEventNames.DREAM_COMPLETED]: DreamCompletedSchema,
   [AnalyticsEventNames.QUERY_COMPLETED]: QueryCompletedSchema,
   [AnalyticsEventNames.READ_COMPLETED]: ReadCompletedSchema,
-  [AnalyticsEventNames.MIGRATION_RUN_COMPLETED]: MigrationRunCompletedSchema
+  [AnalyticsEventNames.MIGRATION_RUN_COMPLETED]: MigrationRunCompletedSchema,
+  [AnalyticsEventNames.MIGRATION_STARTED]: MigrationStartedSchema,
+  [AnalyticsEventNames.AUTH_STARTED]: AuthStartedSchema,
+  [AnalyticsEventNames.AUTH_COMPLETED]: AuthCompletedSchema
 };
 
+// ../../packages/core/src/analytics/pending-producer.ts
+import { randomUUID as randomUUID2 } from "node:crypto";
+import { join as join4 } from "node:path";
+
+// ../../packages/core/src/analytics/identity.ts
+import { randomUUID } from "node:crypto";
+import { mkdir as mkdir2, open, readFile, rm as rm2, stat, writeFile as writeFile2 } from "node:fs/promises";
+import { join as join2 } from "node:path";
+var CONFIG_FILENAME = "config.json", CONFIG_VERSION = 1;
+var MACHINE_ID_KEY = "machine_id";
+function configDir() {
+  return getGlobalDataDir();
+}
+function configPath() {
+  return join2(configDir(), CONFIG_FILENAME);
+}
+function isNonEmptyString(value) {
+  return typeof value == "string" && value.trim().length > 0;
+}
+function isPlainObject(value) {
+  return typeof value == "object" && value !== null && !Array.isArray(value);
+}
+async function getOrCreateMachineId() {
+  return getOrCreateConfigId(MACHINE_ID_KEY);
+}
+async function getOrCreateConfigId(key) {
+  let existing = await readConfigId(key);
+  if (existing !== void 0) return existing;
+  try {
+    return await withConfigLock(async () => {
+      let reread = await readConfigId(key);
+      if (reread !== void 0) return reread;
+      let minted = randomUUID();
+      return await writeConfigId(key, minted), minted;
+    });
+  } catch (err) {
+    if (!(err instanceof ConfigLockError)) throw err;
+    let reread = await readConfigId(key);
+    if (reread !== void 0) return reread;
+    throw err;
+  }
+}
+var LOCK_STALE_MS = 3e4, LOCK_MAX_WAIT_MS = 3e3, ConfigLockError = class extends Error {
+  constructor() {
+    super("could not acquire config.json lock within the deadline"), this.name = "ConfigLockError";
+  }
+};
+function delay(ms) {
+  return new Promise((resolve2) => setTimeout(resolve2, ms));
+}
+async function withConfigLock(fn) {
+  await mkdir2(configDir(), { recursive: !0 });
+  let lockPath = `${configPath()}.lock`, ownerId = randomUUID(), lock, deadline = Date.now() + LOCK_MAX_WAIT_MS;
+  for (; ; ) {
+    try {
+      lock = await open(lockPath, "wx");
+      break;
+    } catch (err) {
+      if (!isErrnoCode(err, "EEXIST")) throw err;
+    }
+    try {
+      let st = await stat(lockPath);
+      if (Date.now() - st.mtimeMs > LOCK_STALE_MS) {
+        await rm2(lockPath, { force: !0 });
+        continue;
+      }
+    } catch {
+      continue;
+    }
+    if (Date.now() >= deadline) throw new ConfigLockError();
+    await delay(25);
+  }
+  if (!lock) throw new ConfigLockError();
+  await lock.writeFile(ownerId, "utf8").catch(() => {
+  });
+  try {
+    return await fn();
+  } finally {
+    await lock.close().catch(() => {
+    });
+    let current;
+    try {
+      current = await readFile(lockPath, "utf8");
+    } catch {
+      current = void 0;
+    }
+    current === ownerId && await rm2(lockPath, { force: !0 }).catch(() => {
+    });
+  }
+}
+async function readConfigId(key) {
+  let raw;
+  try {
+    raw = await readFile(configPath(), "utf8");
+  } catch (err) {
+    if (isErrnoCode(err, "ENOENT")) return;
+    console.warn(
+      `[byterover] Could not read ${configPath()}: ${describeErr(err)}`
+    );
+    return;
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    console.warn(
+      `[byterover] ${configPath()} is malformed JSON; treating as missing`
+    );
+    return;
+  }
+  if (!isPlainObject(parsed)) {
+    console.warn(
+      `[byterover] ${configPath()} is not a JSON object; treating as missing`
+    );
+    return;
+  }
+  let value = parsed[key];
+  return isNonEmptyString(value) ? value : void 0;
+}
+async function writeConfigId(key, value) {
+  await mkdir2(configDir(), { recursive: !0 });
+  let document = {};
+  try {
+    let raw = await readFile(configPath(), "utf8"), parsed = JSON.parse(raw);
+    isPlainObject(parsed) && (document = parsed);
+  } catch {
+  }
+  let next = {
+    ...document,
+    [key]: value
+  };
+  isNonEmptyString(next.createdAt) || (next.createdAt = (/* @__PURE__ */ new Date()).toISOString()), typeof next.version != "number" && typeof next.version != "string" && (next.version = CONFIG_VERSION);
+  let serialized = JSON.stringify(next, null, 2) + `
+`, target = configPath(), tmp = `${target}.${randomUUID()}.tmp`;
+  try {
+    await writeFile2(tmp, serialized, "utf8"), await renameWithRetry(tmp, target);
+  } catch (err) {
+    throw await rm2(tmp, { force: !0 }).catch(() => {
+    }), err;
+  }
+}
+function isErrnoCode(err, code) {
+  return typeof err == "object" && err !== null && "code" in err && err.code === code;
+}
+function describeErr(err) {
+  return err instanceof Error ? err.message : String(err);
+}
+
 // ../../packages/core/src/analytics/bounded-append.ts
-var MAX_ANALYTICS_BYTES = 50 * 1024 * 1024;
+import { appendFile, mkdir as mkdir3, readFile as readFile2, rm as rm3, stat as stat2, writeFile as writeFile3 } from "node:fs/promises";
+import { dirname as dirname2 } from "node:path";
+var MAX_ANALYTICS_BYTES = 50 * 1024 * 1024, COMPACT_TARGET_RATIO = 0.5, compactionChains = /* @__PURE__ */ new Map();
+function serializeCompaction(path, run) {
+  let result = (compactionChains.get(path) ?? Promise.resolve()).then(run, run), tail = result.then(
+    () => {
+    },
+    () => {
+    }
+  );
+  return compactionChains.set(path, tail), tail.then(() => {
+    compactionChains.get(path) === tail && compactionChains.delete(path);
+  }), result;
+}
+async function boundedAppendLine(path, jsonLine, opts) {
+  let maxBytes = opts?.maxBytes ?? MAX_ANALYTICS_BYTES, line = jsonLine.endsWith(`
+`) ? jsonLine : jsonLine + `
+`, lineBytes = Buffer.byteLength(line, "utf8");
+  try {
+    await mkdir3(dirname2(path), { recursive: !0 });
+    let dropped = 0, currentSize = 0;
+    try {
+      currentSize = (await stat2(path)).size;
+    } catch {
+      currentSize = 0;
+    }
+    if (currentSize + lineBytes > maxBytes) {
+      let target = Math.min(
+        maxBytes - lineBytes,
+        Math.floor(maxBytes * COMPACT_TARGET_RATIO)
+      );
+      dropped = await serializeCompaction(
+        path,
+        () => compactToFit(path, Math.max(0, target))
+      );
+    }
+    return await appendFile(path, line, "utf8"), dropped;
+  } catch {
+    return 0;
+  }
+}
+async function compactToFit(path, budgetBytes) {
+  let raw;
+  try {
+    raw = await readFile2(path, "utf8");
+  } catch {
+    return 0;
+  }
+  let lines = raw.split(`
+`).filter((l) => l.length > 0);
+  if (lines.length === 0) return 0;
+  let keptReversed = [], used = 0;
+  for (let i = lines.length - 1; i >= 0; i--) {
+    let l = lines[i], b = Buffer.byteLength(l + `
+`, "utf8");
+    if (used + b > budgetBytes) break;
+    used += b, keptReversed.push(l);
+  }
+  let kept = keptReversed.reverse(), dropped = lines.length - kept.length;
+  if (dropped === 0) return 0;
+  let body = kept.length > 0 ? kept.map((l) => l + `
+`).join("") : "", tmp = `${path}.${process.pid}.compact.tmp`;
+  try {
+    await writeFile3(tmp, body, "utf8"), await renameWithRetry(tmp, path);
+  } catch {
+    return await rm3(tmp, { force: !0 }).catch(() => {
+    }), 0;
+  }
+  return dropped;
+}
+
+// ../../packages/core/src/analytics/shared-state.ts
+import { mkdir as mkdir4, readFile as readFile3, rm as rm4, writeFile as writeFile4 } from "node:fs/promises";
+import { dirname as dirname3, join as join3 } from "node:path";
+var IDENTITY_CURRENT_FILE = "analytics-identity-current.json";
+function identityCurrentPath() {
+  return join3(getGlobalDataDir(), IDENTITY_CURRENT_FILE);
+}
+function isRecord(value) {
+  return typeof value == "object" && value !== null && !Array.isArray(value);
+}
+function isNonEmptyString2(value) {
+  return typeof value == "string" && value.trim().length > 0;
+}
+async function readIdentityCurrent(path = identityCurrentPath()) {
+  let parsed;
+  try {
+    parsed = JSON.parse(await readFile3(path, "utf8"));
+  } catch {
+    return;
+  }
+  if (isRecord(parsed) && parsed.schemaVersion === 1 && parsed.source === "desktop_web_sdk" && isNonEmptyString2(parsed.activeDeviceId))
+    return {
+      activeDeviceId: parsed.activeDeviceId,
+      source: "desktop_web_sdk",
+      ...isNonEmptyString2(parsed.userId) ? { userId: parsed.userId } : {},
+      ...isNonEmptyString2(parsed.deviceIdPublishedAt) ? { deviceIdPublishedAt: parsed.deviceIdPublishedAt } : {},
+      ...isNonEmptyString2(parsed.desktopHeartbeatAt) ? { desktopHeartbeatAt: parsed.desktopHeartbeatAt } : {}
+    };
+}
+var SHARED_STATE_SCHEMA_VERSION = 1;
+var DAEMON_IDENTITY_FILE = "analytics-daemon-identity.json";
+function daemonIdentityPath() {
+  return join3(getGlobalDataDir(), DAEMON_IDENTITY_FILE);
+}
+async function readDaemonIdentity(path = daemonIdentityPath()) {
+  let parsed;
+  try {
+    parsed = JSON.parse(await readFile3(path, "utf8"));
+  } catch {
+    return;
+  }
+  if (isRecord(parsed) && parsed.schemaVersion === SHARED_STATE_SCHEMA_VERSION && isNonEmptyString2(parsed.userId))
+    return {
+      userId: parsed.userId,
+      ...isNonEmptyString2(parsed.publishedAt) ? { publishedAt: parsed.publishedAt } : {}
+    };
+}
 
 // ../../packages/core/src/analytics/two-stage-schema.ts
 var nonEmpty = (msg) => external_exports.string().refine((s) => s.trim().length > 0, { message: msg }), DeviceIdSourceSchema = external_exports.enum([
@@ -5554,6 +5876,96 @@ var nonEmpty = (msg) => external_exports.string().refine((s) => s.trim().length 
   });
 });
 
+// ../../packages/core/src/analytics/pending-producer.ts
+var PENDING_FILENAME = "analytics-pending-identity.jsonl";
+function pendingFilePath() {
+  return join4(getGlobalDataDir(), PENDING_FILENAME);
+}
+async function captureAnalyticsEvent(input) {
+  try {
+    let occurredAt = (input.occurredAt ?? /* @__PURE__ */ new Date()).toISOString(), machineId = await getOrCreateMachineId(), current = await (input.readCurrentIdentity ?? (async () => {
+      let cur = await readIdentityCurrent();
+      return cur ? {
+        activeDeviceId: cur.activeDeviceId,
+        ...cur.userId !== void 0 ? { userId: cur.userId } : {},
+        ...cur.deviceIdPublishedAt !== void 0 ? { publishedAt: cur.deviceIdPublishedAt } : {}
+      } : void 0;
+    }))(), daemonId = await (input.readDaemonIdentity ?? (() => readDaemonIdentity()))(), auth = input.auth, isAuthed = auth?.status === "authenticated" && auth.userId !== void 0, isExplicitlyUnauthed = auth?.status === "unauthenticated", observedIdentity, observedAuthState;
+    if (isExplicitlyUnauthed)
+      observedAuthState = {
+        status: "unauthenticated",
+        ...auth?.updatedAt !== void 0 ? { updated_at: auth.updatedAt } : {},
+        ...auth?.source !== void 0 ? { source: auth.source } : {}
+      };
+    else {
+      let devicePart = current !== void 0 ? {
+        device_id: current.activeDeviceId,
+        device_id_source: "desktop_web_sdk"
+      } : {}, authPart = {};
+      isAuthed ? authPart = {
+        user_id: auth.userId,
+        ...auth.authContext !== void 0 ? { auth_context: auth.authContext } : {}
+      } : current?.userId !== void 0 ? authPart = {
+        user_id: current.userId,
+        auth_context: {
+          type: "jwt",
+          source: "desktop_auth",
+          ...current.publishedAt !== void 0 ? { auth_state_updated_at: current.publishedAt } : {}
+        }
+      } : daemonId?.userId !== void 0 && (authPart = {
+        user_id: daemonId.userId,
+        auth_context: { type: "jwt", source: "daemon_auth" }
+      });
+      let merged = { ...devicePart, ...authPart };
+      Object.keys(merged).length > 0 && (observedIdentity = merged);
+    }
+    let properties = {
+      ...input.properties ?? {},
+      machine_id: machineId,
+      source: input.source
+    }, row = {
+      id: randomUUID2(),
+      name: input.name,
+      occurred_at: occurredAt,
+      ...observedIdentity !== void 0 ? { observed_identity: observedIdentity } : {},
+      ...observedAuthState !== void 0 ? { observed_auth_state: observedAuthState } : {},
+      properties
+    };
+    return PendingRowSchema.parse(row), await boundedAppendLine(pendingFilePath(), JSON.stringify(row), input.bounds), row;
+  } catch (err) {
+    console.warn(
+      `[analytics] dropped pending ${String(input.name)}: ${describeErr2(err)}`
+    );
+    return;
+  }
+}
+function describeErr2(err) {
+  return err instanceof Error ? err.message : String(err);
+}
+
+// ../../packages/core/src/analytics/append.ts
+var EVENT_NAME_PREFIX = "v4:", SKILL_EVENT_RESOURCE = "skill";
+function toFinalSkillEventName(rawName) {
+  return rawName.startsWith(EVENT_NAME_PREFIX) ? rawName : `${EVENT_NAME_PREFIX}${SKILL_EVENT_RESOURCE}:${rawName}`;
+}
+async function appendAnalyticsRecord(input) {
+  try {
+    let validatedProps = ALL_EVENT_SCHEMAS[input.name].parse(input.properties);
+    await captureAnalyticsEvent({
+      name: toFinalSkillEventName(input.name),
+      source: input.source ?? "skill",
+      properties: validatedProps
+    });
+  } catch (err) {
+    console.warn(
+      `[analytics] dropped ${String(input.name)}: ${describeErr3(err)}`
+    );
+  }
+}
+function describeErr3(err) {
+  return err instanceof Error ? err.message : String(err);
+}
+
 // ../../packages/core/src/analytics/daemon-events.ts
 var DAEMON_EVENT_ACTION = {
   started: "started",
@@ -5597,31 +6009,31 @@ var DAEMON_EVENT_ACTION = {
 
 // ../../packages/sync/src/daemon-auth-store.ts
 import { createHash } from "node:crypto";
-import { chmod, mkdir, readFile, rename, writeFile, rm } from "node:fs/promises";
-import { dirname as dirname2, join as join2 } from "node:path";
+import { chmod as chmod2, mkdir as mkdir5, readFile as readFile4, rename as rename2, writeFile as writeFile5, rm as rm5 } from "node:fs/promises";
+import { dirname as dirname4, join as join5 } from "node:path";
 function daemonAuthPath(projectsRoot) {
-  return join2(projectsRoot, ".daemon", "auth.json");
+  return join5(projectsRoot, ".daemon", "auth.json");
 }
 function createTokenFingerprint(token) {
   return createHash("sha256").update(token).digest("hex").slice(0, 16);
 }
 async function readDaemonAuth(path) {
   try {
-    let raw = await readFile(path, "utf8");
+    let raw = await readFile4(path, "utf8");
     return JSON.parse(raw);
   } catch {
     return null;
   }
 }
 async function writeDaemonAuth(path, record) {
-  await mkdir(dirname2(path), { recursive: !0 });
+  await mkdir5(dirname4(path), { recursive: !0 });
   let tmp = `${path}.tmp-${process.pid}-${Date.now()}`;
-  await writeFile(tmp, JSON.stringify(record, null, 2) + `
-`, { mode: 384 }), await chmod(tmp, 384), await rename(tmp, path);
+  await writeFile5(tmp, JSON.stringify(record, null, 2) + `
+`, { mode: 384 }), await chmod2(tmp, 384), await rename2(tmp, path);
 }
 
 // ../../packages/sync/src/daemon-auth-identity.ts
-function isNonEmptyString(value) {
+function isNonEmptyString3(value) {
   return typeof value == "string" && value.trim().length > 0;
 }
 function parseDaemonAuthIdentity(raw) {
@@ -5630,13 +6042,13 @@ function parseDaemonAuthIdentity(raw) {
   if (!raw || typeof raw != "object" || Array.isArray(raw))
     return { ok: !1, reason: "malformed-auth" };
   let record = raw;
-  return record.provider === "daemon-device-session" ? isNonEmptyString(record.sessionId) ? {
+  return record.provider === "daemon-device-session" ? isNonEmptyString3(record.sessionId) ? {
     ok: !0,
     identity: {
       providerKind: "daemon-device-session",
       sessionId: record.sessionId
     }
-  } : { ok: !1, reason: "malformed-auth" } : record.provider === "api-key" ? isNonEmptyString(record.tokenFingerprint) ? {
+  } : { ok: !1, reason: "malformed-auth" } : record.provider === "api-key" ? isNonEmptyString3(record.tokenFingerprint) ? {
     ok: !0,
     identity: {
       providerKind: "api-key",
@@ -5659,16 +6071,37 @@ var ANALYTICS_TELEMETRY_URL = "https://v4-telemetry.byterover.dev", ANALYTICS_EN
 
 // src/sync/device-flow.ts
 import { hostname } from "node:os";
-import { chmod as chmod3, mkdir as mkdir3, readFile as readFile3, rename as rename2, rm as rm3, writeFile as writeFile2 } from "node:fs/promises";
-import { dirname as dirname4, join as join7 } from "node:path";
+import { chmod as chmod4, mkdir as mkdir7, readFile as readFile6, rename as rename3, rm as rm7, writeFile as writeFile6 } from "node:fs/promises";
+import { dirname as dirname6, join as join10 } from "node:path";
+
+// src/agent-resolver.ts
+function resolveAgent(env = process.env) {
+  let explicit = env.BRV_AGENT;
+  if (typeof explicit == "string" && explicit.length > 0 && AGENT_SLUG_REGEX.test(explicit))
+    return explicit;
+  for (let { slug, isSet } of HOST_FINGERPRINTS)
+    if (isSet(env)) return slug;
+}
+var HOST_FINGERPRINTS = [
+  {
+    isSet: (env) => env.CLAUDECODE === "1" || typeof env.CLAUDE_CODE_ENTRYPOINT == "string",
+    slug: "claude"
+  },
+  {
+    isSet: (env) => typeof env.CODEX_SANDBOX == "string" || typeof env.CODEX_SANDBOX_NETWORK_DISABLED == "string",
+    slug: "codex"
+  },
+  { isSet: (env) => env.CURSOR_AGENT === "1", slug: "cursor" },
+  { isSet: (env) => env.GEMINI_CLI === "1", slug: "gemini" }
+];
 
 // src/sync/pidfile.ts
-import { chmod as chmod2, mkdir as mkdir2, open, readFile as readFile2, rm as rm2 } from "node:fs/promises";
-import { join as join3 } from "node:path";
+import { chmod as chmod3, mkdir as mkdir6, open as open2, readFile as readFile5, rm as rm6 } from "node:fs/promises";
+import { join as join6 } from "node:path";
 var FILE = "daemon.pid";
 async function readPid(daemonDir2) {
   try {
-    let data = JSON.parse(await readFile2(join3(daemonDir2, FILE), "utf8"));
+    let data = JSON.parse(await readFile5(join6(daemonDir2, FILE), "utf8"));
     if (typeof data.pid != "number" || data.script !== "sync-daemon" || typeof data.projectsRoot != "string")
       return null;
     let authIdentityResult = data.authIdentity === void 0 ? null : parseDaemonAuthMarkerIdentity(data.authIdentity), authIdentity = authIdentityResult?.ok === !0 ? authIdentityResult.identity : void 0;
@@ -5687,7 +6120,7 @@ async function readPid(daemonDir2) {
   }
 }
 async function removePid(daemonDir2) {
-  await rm2(join3(daemonDir2, FILE), { force: !0 });
+  await rm6(join6(daemonDir2, FILE), { force: !0 });
 }
 function isAlive(pid) {
   try {
@@ -5703,7 +6136,7 @@ function isOwnedDaemon(record, projectsRoot) {
 // src/sync/spawn-daemon.ts
 import { spawn } from "node:child_process";
 import { closeSync as closeSync2 } from "node:fs";
-import { dirname as dirname3, join as join5 } from "node:path";
+import { dirname as dirname5, join as join8 } from "node:path";
 import { fileURLToPath } from "node:url";
 
 // src/sync/daemon-log.ts
@@ -5718,13 +6151,13 @@ import {
   rmSync,
   statSync
 } from "node:fs";
-import { join as join4 } from "node:path";
+import { join as join7 } from "node:path";
 var DAEMON_LOG_FILE = "daemon.log", ROTATED_DAEMON_LOG_PREFIX = "daemon-", MAX_ACTIVE_DAEMON_LOG_BYTES = 150 * 1024 * 1024, ROTATED_DAEMON_LOG_RETENTION_MS = 10080 * 60 * 1e3;
 function daemonDir(projectsRoot) {
-  return join4(projectsRoot, ".daemon");
+  return join7(projectsRoot, ".daemon");
 }
 function daemonLogPath(projectsRoot) {
-  return join4(daemonDir(projectsRoot), DAEMON_LOG_FILE);
+  return join7(daemonDir(projectsRoot), DAEMON_LOG_FILE);
 }
 function localDateKey(date) {
   let year = date.getFullYear(), month = String(date.getMonth() + 1).padStart(2, "0"), day = String(date.getDate()).padStart(2, "0");
@@ -5736,7 +6169,7 @@ function timestampKey(date) {
 }
 function rotatedLogPath(dir, now, suffix) {
   let base = `${ROTATED_DAEMON_LOG_PREFIX}${timestampKey(now)}`, suffixPart = suffix === 0 ? "" : `-${suffix}`;
-  return join4(dir, `${base}${suffixPart}.log`);
+  return join7(dir, `${base}${suffixPart}.log`);
 }
 function isCollisionError(err) {
   return isNodeError(err) && (err.code === "EEXIST" || err.code === "ENOTEMPTY");
@@ -5793,7 +6226,7 @@ function pruneRotatedLogs(dir, now, retentionMs, fs) {
   let cutoff = now.getTime() - retentionMs;
   for (let name of names) {
     if (!isRotatedDaemonLog(name)) continue;
-    let path = join4(dir, name);
+    let path = join7(dir, name);
     try {
       fs.statSync(path).mtimeMs < cutoff && fs.rmSync(path, { force: !0 });
     } catch {
@@ -5840,7 +6273,7 @@ function isNodeError(error) {
 
 // src/sync/spawn-daemon.ts
 function spawnDetachedEntry(projectsRoot, entryFile, args2) {
-  let entry = join5(dirname3(fileURLToPath(import.meta.url)), entryFile), logTarget = openDaemonLogForSpawn(projectsRoot), child = spawn(process.execPath, [entry, ...args2], {
+  let entry = join8(dirname5(fileURLToPath(import.meta.url)), entryFile), logTarget = openDaemonLogForSpawn(projectsRoot), child = spawn(process.execPath, [entry, ...args2], {
     detached: !0,
     stdio: ["ignore", logTarget, logTarget],
     cwd: process.cwd(),
@@ -5859,10 +6292,10 @@ function spawnDevicePollerProcess(projectsRoot) {
 }
 
 // src/sync/stop-daemon.ts
-import { join as join6 } from "node:path";
+import { join as join9 } from "node:path";
 var STOP_POLL_INTERVAL_MS = 100;
 async function stopOwnedDaemon(projectsRoot, deps = {}) {
-  let daemonDir2 = join6(projectsRoot, ".daemon"), isAlive2 = deps.isAlive ?? isAlive, readPid2 = deps.readPid ?? readPid, kill = deps.kill ?? ((pid, signal) => process.kill(pid, signal)), sleep = deps.sleep ?? ((ms) => new Promise((r) => setTimeout(r, ms))), initial = await readPid2(daemonDir2);
+  let daemonDir2 = join9(projectsRoot, ".daemon"), isAlive2 = deps.isAlive ?? isAlive, readPid2 = deps.readPid ?? readPid, kill = deps.kill ?? ((pid, signal) => process.kill(pid, signal)), sleep = deps.sleep ?? ((ms) => new Promise((r) => setTimeout(r, ms))), initial = await readPid2(daemonDir2);
   if (!isOwnedDaemon(initial, projectsRoot) || !isAlive2(initial.pid))
     return await removePid(daemonDir2), { stopped: !0, reason: "not-running" };
   let beforeTerm = await readPid2(daemonDir2);
@@ -5897,28 +6330,28 @@ async function stopOwnedDaemon(projectsRoot, deps = {}) {
 
 // src/sync/device-flow.ts
 function deviceFlowStatePath(projectsRoot) {
-  return join7(projectsRoot, ".daemon", "device-flow.json");
+  return join10(projectsRoot, ".daemon", "device-flow.json");
 }
 async function readPendingDeviceFlow(path) {
   try {
-    let raw = await readFile3(path, "utf8");
+    let raw = await readFile6(path, "utf8");
     return JSON.parse(raw);
   } catch {
     return null;
   }
 }
 async function writePendingDeviceFlow(path, record) {
-  await mkdir3(dirname4(path), { recursive: !0 });
+  await mkdir7(dirname6(path), { recursive: !0 });
   let tmp = `${path}.tmp-${process.pid}-${Date.now()}`;
-  await writeFile2(tmp, JSON.stringify(record, null, 2) + `
-`, { mode: 384 }), await chmod3(tmp, 384), await rename2(tmp, path);
+  await writeFile6(tmp, JSON.stringify(record, null, 2) + `
+`, { mode: 384 }), await chmod4(tmp, 384), await rename3(tmp, path);
 }
 async function clearPendingDeviceFlow(path, deviceCode) {
   let current = await readPendingDeviceFlow(path);
-  current && current.deviceCode !== deviceCode || await rm3(path, { force: !0 });
+  current && current.deviceCode !== deviceCode || await rm7(path, { force: !0 });
 }
 async function abortPendingDeviceFlow(projectsRoot) {
-  await rm3(deviceFlowStatePath(projectsRoot), { force: !0 });
+  await rm7(deviceFlowStatePath(projectsRoot), { force: !0 });
 }
 function devicePlatform() {
   let p = process.platform;
@@ -5971,8 +6404,12 @@ async function pollDeviceTokenOnce(authUrl, deviceCode, f) {
   } : body.error ? { state: "error" } : { state: "pending" };
 }
 async function completeDeviceFlow(session, deviceCode, deps = {}) {
-  let projectsRoot = await (deps.resolveProjectsRoot ?? getProjectsDir)();
-  return (await (deps.stopDaemon ?? stopOwnedDaemon)(projectsRoot, deps)).stopped ? (await writeDaemonAuth(daemonAuthPath(projectsRoot), {
+  let projectsRoot = await (deps.resolveProjectsRoot ?? getProjectsDir)(), now = deps.now ?? Date.now, pendingForDuration = await readPendingDeviceFlow(
+    deviceFlowStatePath(projectsRoot)
+  );
+  if (!(await (deps.stopDaemon ?? stopOwnedDaemon)(projectsRoot, deps)).stopped)
+    return { ok: !1, error: "daemon_stop_failed" };
+  await writeDaemonAuth(daemonAuthPath(projectsRoot), {
     schemaVersion: 1,
     provider: "daemon-device-session",
     refreshToken: session.refreshToken,
@@ -5981,7 +6418,16 @@ async function completeDeviceFlow(session, deviceCode, deps = {}) {
     deviceId: session.deviceId,
     sessionId: session.sessionId,
     tokenFingerprint: createTokenFingerprint(session.refreshToken)
-  }), (deps.spawnDaemon ?? spawnDaemonProcess)(projectsRoot), deviceCode && await clearPendingDeviceFlow(deviceFlowStatePath(projectsRoot), deviceCode), { ok: !0 }) : { ok: !1, error: "daemon_stop_failed" };
+  }), (deps.spawnDaemon ?? spawnDaemonProcess)(projectsRoot), deviceCode && await clearPendingDeviceFlow(deviceFlowStatePath(projectsRoot), deviceCode);
+  let startedMs = pendingForDuration?.createdAt ? Date.parse(pendingForDuration.createdAt) : NaN, agent = resolveAgent() || void 0;
+  return await appendAnalyticsRecord({
+    name: AnalyticsEventNames.AUTH_COMPLETED,
+    properties: {
+      ...Number.isFinite(startedMs) ? { duration_ms: Math.max(0, now() - startedMs) } : {},
+      agent,
+      agent_id: agent
+    }
+  }), { ok: !0 };
 }
 function expiresInS(expiresAt, now) {
   return Math.max(0, Math.ceil((Date.parse(expiresAt) - now) / 1e3));
@@ -6022,6 +6468,11 @@ async function startDeviceFlow(deps = {}) {
     createdAt: new Date(now()).toISOString()
   };
   await writePendingDeviceFlow(statePath, pending);
+  let startAgent = resolveAgent() || void 0;
+  await appendAnalyticsRecord({
+    name: AnalyticsEventNames.AUTH_STARTED,
+    properties: { agent: startAgent, agent_id: startAgent }
+  });
   let pid = spawnPoller(projectsRoot);
   return pid && await writePendingDeviceFlow(statePath, { ...pending, pollerPid: pid }), {
     ok: !0,
@@ -6225,7 +6676,7 @@ async function authViaDeviceFlow(deps = {}) {
 }
 
 // src/sync/daemon-auth-identity-reader.ts
-import { readFile as readFile4 } from "node:fs/promises";
+import { readFile as readFile7 } from "node:fs/promises";
 function buildWhoamiResult(read) {
   if (!read.ok)
     return { payload: { ok: !1, reason: read.reason }, exitCode: 1 };
@@ -6238,7 +6689,7 @@ function buildWhoamiResult(read) {
 async function readCurrentDaemonAuthIdentity(projectsRoot) {
   let path = daemonAuthPath(projectsRoot), raw;
   try {
-    raw = JSON.parse(await readFile4(path, "utf8"));
+    raw = JSON.parse(await readFile7(path, "utf8"));
   } catch (err) {
     if (err.code === "ENOENT")
       raw = null;
@@ -6272,7 +6723,7 @@ if (args[0] === "whoami") {
 }
 var keyFile = flagValue("--key-file"), positional = args.find((a) => !a.startsWith("--"));
 if (keyFile || positional) {
-  let result = keyFile ? await authByterover((await readFile5(keyFile, "utf8")).trim()) : await authByterover(positional);
+  let result = keyFile ? await authByterover((await readFile8(keyFile, "utf8")).trim()) : await authByterover(positional);
   console.log(JSON.stringify(result)), result.ok || process.exit(1);
 } else if (args.includes("--wait")) {
   let result = await authViaDeviceFlow();

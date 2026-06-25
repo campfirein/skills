@@ -6170,7 +6170,10 @@ var AnalyticsEventNames = {
   DREAM_COMPLETED: "dream_completed",
   QUERY_COMPLETED: "query_completed",
   READ_COMPLETED: "read_completed",
-  MIGRATION_RUN_COMPLETED: "migration_run_completed"
+  MIGRATION_RUN_COMPLETED: "migration_run_completed",
+  MIGRATION_STARTED: "migration_started",
+  AUTH_STARTED: "auth_started",
+  AUTH_COMPLETED: "auth_completed"
 }, TASK_TYPE = {
   RECORD: "record",
   DREAM: "dream",
@@ -6401,13 +6404,51 @@ var MigrationRunCompletedSchema = external_exports.object({
   agent_id: external_exports.string().regex(AGENT_SLUG_REGEX).max(64).optional()
 }).strict();
 
+// ../../packages/core/src/analytics/events/migration-started.ts
+var MigrationStartedSchema = external_exports.object({
+  /** v3 projects discovered for this run (a folder with `.brv/context-tree/*.md`). */
+  projects_total: external_exports.number().int().nonnegative(),
+  /** Shared with the paired `migration_run_completed` row. */
+  task_id: external_exports.string().min(1),
+  task_type: external_exports.enum(TASK_TYPE_VALUES),
+  /** Team the spaces are created under. */
+  team_id: external_exports.string().min(1).max(64).optional(),
+  /** Host agent slug that ran the migration (e.g. `openclaw`); omitted when undetected. */
+  agent: external_exports.string().regex(AGENT_SLUG_REGEX).max(64).optional(),
+  /** Same slug under the dashboard's canonical `agent_id` key. */
+  agent_id: external_exports.string().regex(AGENT_SLUG_REGEX).max(64).optional()
+}).strict();
+
+// ../../packages/core/src/analytics/events/auth-started.ts
+var AuthStartedSchema = external_exports.object({
+  /** Host agent slug that initiated auth (e.g. `openclaw`); omitted when undetected. */
+  agent: external_exports.string().regex(AGENT_SLUG_REGEX).max(64).optional(),
+  /** Same slug under the dashboard's canonical `agent_id` key. */
+  agent_id: external_exports.string().regex(AGENT_SLUG_REGEX).max(64).optional()
+}).strict();
+
+// ../../packages/core/src/analytics/events/auth-completed.ts
+var AuthCompletedSchema = external_exports.object({
+  /** Approval latency: device-flow start → approval, in ms. Omitted when the
+   *  flow's start time can't be read, so "unknown" stays distinct from a real
+   *  0 ms instead of silently collapsing to 0. */
+  duration_ms: external_exports.number().int().nonnegative().optional(),
+  /** Host agent slug that ran auth (e.g. `openclaw`); omitted when undetected. */
+  agent: external_exports.string().regex(AGENT_SLUG_REGEX).max(64).optional(),
+  /** Same slug under the dashboard's canonical `agent_id` key. */
+  agent_id: external_exports.string().regex(AGENT_SLUG_REGEX).max(64).optional()
+}).strict();
+
 // ../../packages/core/src/analytics/events/index.ts
 var ALL_EVENT_SCHEMAS = {
   [AnalyticsEventNames.RECORD_RUN_COMPLETED]: RecordRunCompletedSchema,
   [AnalyticsEventNames.DREAM_COMPLETED]: DreamCompletedSchema,
   [AnalyticsEventNames.QUERY_COMPLETED]: QueryCompletedSchema,
   [AnalyticsEventNames.READ_COMPLETED]: ReadCompletedSchema,
-  [AnalyticsEventNames.MIGRATION_RUN_COMPLETED]: MigrationRunCompletedSchema
+  [AnalyticsEventNames.MIGRATION_RUN_COMPLETED]: MigrationRunCompletedSchema,
+  [AnalyticsEventNames.MIGRATION_STARTED]: MigrationStartedSchema,
+  [AnalyticsEventNames.AUTH_STARTED]: AuthStartedSchema,
+  [AnalyticsEventNames.AUTH_COMPLETED]: AuthCompletedSchema
 };
 
 // ../../packages/core/src/analytics/pending-producer.ts
@@ -7126,6 +7167,18 @@ async function run(opts2) {
   }
   let apiKey = await resolveBearer(opts2), teamId = await resolveTeamId(opts2, apiKey);
   log(`  target team: ${teamId} (space type: ${opts2.spaceType})`);
+  let runTaskId = uuidv4(), agent = resolveAgent() || void 0;
+  await appendAnalyticsRecord({
+    name: AnalyticsEventNames.MIGRATION_STARTED,
+    properties: {
+      projects_total: projects.length,
+      task_id: runTaskId,
+      task_type: TASK_TYPE.MIGRATE,
+      team_id: teamId,
+      agent,
+      agent_id: agent
+    }
+  });
   let markers = await readMarkers(), results = [];
   for (let p of projects) {
     log(`\u2192 ${p.name}: creating space + materializing ${p.sources.length} file(s)\u2026`);
@@ -7168,7 +7221,7 @@ async function run(opts2) {
   ), topicsFailed = migratedOk.reduce(
     (n, r) => n + (Array.isArray(r.failures) ? r.failures.length : 0),
     0
-  ), agent = resolveAgent() || void 0;
+  );
   return await appendAnalyticsRecord({
     name: AnalyticsEventNames.MIGRATION_RUN_COMPLETED,
     properties: {
@@ -7179,7 +7232,7 @@ async function run(opts2) {
       projects_failed: results.length - migratedOk.length,
       topics_converted: topicsConverted,
       topics_failed: topicsFailed,
-      task_id: uuidv4(),
+      task_id: runTaskId,
       task_type: TASK_TYPE.MIGRATE,
       team_id: teamId,
       agent,

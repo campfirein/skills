@@ -7,7 +7,7 @@ var __export = (target, all) => {
 };
 
 // src/migrate-v3.ts
-import { cp, mkdir as mkdir7, readFile as readFile7, readdir, rm as rm8, stat as stat3, writeFile as writeFile7 } from "node:fs/promises";
+import { cp, mkdir as mkdir8, readFile as readFile8, readdir, rm as rm9, stat as stat3, writeFile as writeFile8 } from "node:fs/promises";
 import { homedir as homedir2 } from "node:os";
 import path from "node:path";
 
@@ -3795,24 +3795,19 @@ var PROJECTS_DIRNAME = "projects", GLOBAL_DATA_DIRNAME = "brv";
 function getGlobalDataDir() {
   let override = process.env.BRV_DATA_DIR;
   if (override) return override;
-  let currentPlatform = platform();
+  let dirName = process.env.BRV_DATA_DIRNAME?.trim() || GLOBAL_DATA_DIRNAME, currentPlatform = platform();
   if (currentPlatform === "win32") {
     let localAppData = process.env.LOCALAPPDATA;
-    return localAppData !== void 0 ? join(localAppData, GLOBAL_DATA_DIRNAME) : join(homedir(), "AppData", "Local", GLOBAL_DATA_DIRNAME);
+    return localAppData !== void 0 ? join(localAppData, dirName) : join(homedir(), "AppData", "Local", dirName);
   }
   if (currentPlatform === "darwin")
-    return join(
-      homedir(),
-      "Library",
-      "Application Support",
-      GLOBAL_DATA_DIRNAME
-    );
+    return join(homedir(), "Library", "Application Support", dirName);
   if (currentPlatform === "linux") {
     let xdgDataHome = process.env.XDG_DATA_HOME;
     if (xdgDataHome && isAbsolute(xdgDataHome))
-      return join(xdgDataHome, GLOBAL_DATA_DIRNAME);
+      return join(xdgDataHome, dirName);
   }
-  return join(homedir(), ".local", "share", GLOBAL_DATA_DIRNAME);
+  return join(homedir(), ".local", "share", dirName);
 }
 function getProjectsDir() {
   return join(getGlobalDataDir(), PROJECTS_DIRNAME);
@@ -6241,6 +6236,9 @@ var RecordRunCompletedSchema = external_exports.object({
 var DreamCompletedSchema = external_exports.object({
   /** How many candidate pairs / paths / clusters the engine returned. */
   candidate_count: external_exports.number().int().nonnegative(),
+  /** Subset of candidate_count that surfaced as STALE (prune mode only;
+   *  reason ∈ {stale-mtime, both}). Optional: omitted for merge/link/synthesize. */
+  stale_candidate_count: external_exports.number().int().nonnegative().optional(),
   duration_ms: external_exports.number().int().nonnegative(),
   mode: external_exports.enum(DREAM_MODES),
   outcome: external_exports.enum(["completed", "cancelled", "error"]),
@@ -6910,6 +6908,99 @@ var DAEMON_EVENT_ACTION = {
   error_code: external_exports.string().max(120).optional()
 }).strict();
 
+// ../../packages/sync/src/daemon-auth-store.ts
+import {
+  createCipheriv,
+  createDecipheriv,
+  createHash as createHash2,
+  randomBytes as randomBytes3
+} from "node:crypto";
+import { chmod as chmod3, mkdir as mkdir7, readFile as readFile7, rename as rename5, writeFile as writeFile7, rm as rm8 } from "node:fs/promises";
+import { basename as basename2, dirname as dirname5, join as join8 } from "node:path";
+var DAEMON_AUTH_KEY_BYTES = 32;
+var DAEMON_AUTH_KEY_FILENAME = "daemon-auth.key";
+function daemonAuthPath(projectsRoot) {
+  return join8(projectsRoot, ".daemon", "auth.json");
+}
+function daemonAuthKeyPath(authPath) {
+  let daemonDir = dirname5(authPath), projectsRoot = dirname5(daemonDir), dataRoot = dirname5(projectsRoot);
+  return basename2(daemonDir) === ".daemon" && basename2(projectsRoot) === "projects" && dataRoot !== dirname5(dataRoot) ? join8(dataRoot, DAEMON_AUTH_KEY_FILENAME) : join8(daemonDir, "auth.key");
+}
+function parseDaemonAuthKey(raw) {
+  try {
+    let record = JSON.parse(raw);
+    if (record.schemaVersion !== 1 || record.alg !== "AES-256-GCM" || typeof record.key != "string")
+      return null;
+    let key = Buffer.from(record.key, "base64url");
+    return key.length === DAEMON_AUTH_KEY_BYTES ? key : null;
+  } catch {
+    return null;
+  }
+}
+async function readDaemonAuthKey(path2) {
+  try {
+    return parseDaemonAuthKey(await readFile7(path2, "utf8"));
+  } catch {
+    return null;
+  }
+}
+function daemonDeviceSessionAad(record) {
+  return Buffer.from(
+    JSON.stringify({
+      schemaVersion: record.schemaVersion,
+      provider: record.provider,
+      refreshExpiresAt: record.refreshExpiresAt,
+      refreshAbsoluteExpiresAt: record.refreshAbsoluteExpiresAt,
+      deviceId: record.deviceId,
+      sessionId: record.sessionId,
+      tokenFingerprint: record.tokenFingerprint
+    }),
+    "utf8"
+  );
+}
+function isEncryptedDaemonDeviceSession(value) {
+  let encrypted = value.refreshTokenEncrypted;
+  return value.provider === "daemon-device-session" && encrypted !== void 0 && encrypted.schemaVersion === 1 && encrypted.alg === "AES-256-GCM" && typeof encrypted.iv == "string" && typeof encrypted.ciphertext == "string" && typeof encrypted.tag == "string";
+}
+function isPlaintextDaemonDeviceSession(value) {
+  return value.provider === "daemon-device-session" && typeof value.refreshToken == "string";
+}
+async function decryptDaemonDeviceSession(path2, record) {
+  let key = await readDaemonAuthKey(daemonAuthKeyPath(path2));
+  if (!key) return null;
+  let { refreshTokenEncrypted, ...publicRecord } = record;
+  try {
+    let decipher = createDecipheriv(
+      "aes-256-gcm",
+      key,
+      Buffer.from(refreshTokenEncrypted.iv, "base64url")
+    );
+    decipher.setAAD(daemonDeviceSessionAad(publicRecord)), decipher.setAuthTag(Buffer.from(refreshTokenEncrypted.tag, "base64url"));
+    let refreshToken = Buffer.concat([
+      decipher.update(
+        Buffer.from(refreshTokenEncrypted.ciphertext, "base64url")
+      ),
+      decipher.final()
+    ]).toString("utf8");
+    return {
+      ...publicRecord,
+      refreshToken
+    };
+  } catch {
+    return null;
+  } finally {
+    key.fill(0);
+  }
+}
+async function readDaemonAuth(path2) {
+  try {
+    let raw = await readFile7(path2, "utf8"), record = JSON.parse(raw);
+    return isEncryptedDaemonDeviceSession(record) ? decryptDaemonDeviceSession(path2, record) : record.provider === "daemon-device-session" && !isPlaintextDaemonDeviceSession(record) ? null : record;
+  } catch {
+    return null;
+  }
+}
+
 // src/agent-resolver.ts
 function resolveAgent(env = process.env) {
   let explicit = env.BRV_AGENT;
@@ -6971,10 +7062,11 @@ var log = (line) => void process.stderr.write(`${line}
   }
 };
 async function resolveBearer(opts2) {
-  if (opts2.apiKeyFile) return (await readFile7(opts2.apiKeyFile, "utf8")).trim();
+  if (opts2.apiKeyFile) return (await readFile8(opts2.apiKeyFile, "utf8")).trim();
   if (opts2.apiKey) return opts2.apiKey.trim();
   try {
-    let authPath = path.join(getProjectsDir(), ".daemon", "auth.json"), stored = JSON.parse(await readFile7(authPath, "utf8"));
+    let stored = await readDaemonAuth(daemonAuthPath(getProjectsDir()));
+    if (!stored) throw new Error("missing auth");
     if (stored.provider === "api-key" && stored.apiKey) return stored.apiKey;
     if (stored.provider === "daemon-device-session" && stored.refreshToken)
       return stored.refreshToken;
@@ -7110,7 +7202,7 @@ async function scanV3Projects(opts2) {
 var markerFile = () => path.join(getGlobalDataDir(), "desktop-migrations.json"), localKey = (teamId, projectRoot) => `local:${teamId}:${projectRoot}`;
 async function readMarkers() {
   try {
-    let parsed = JSON.parse(await readFile7(markerFile(), "utf8"));
+    let parsed = JSON.parse(await readFile8(markerFile(), "utf8"));
     return parsed && typeof parsed == "object" ? parsed : {};
   } catch {
     return {};
@@ -7120,7 +7212,7 @@ async function setMarker(key, entry) {
   let all = await readMarkers();
   all[key] = entry;
   let p = markerFile();
-  await mkdir7(path.dirname(p), { recursive: !0 }), await writeFile7(p, `${JSON.stringify(all, null, 2)}
+  await mkdir8(path.dirname(p), { recursive: !0 }), await writeFile8(p, `${JSON.stringify(all, null, 2)}
 `, "utf8");
 }
 async function collectHtml(dir, out = []) {
@@ -7157,7 +7249,7 @@ async function run(opts2) {
       let warnings = 0;
       for (let s of p.sources)
         try {
-          let md = await readFile7(s.absPath, "utf8");
+          let md = await readFile8(s.absPath, "utf8");
           warnings += convertMarkdownTopicToHtml({ markdown: md, relPath: s.relPath, now }).warnings.length;
         } catch {
         }
@@ -7266,7 +7358,7 @@ function resolveBackupParent(backupDir) {
 }
 async function readBackupManifest(backupPath) {
   try {
-    let raw = await readFile7(path.join(backupPath, BACKUP_MANIFEST_FILE), "utf8"), m = JSON.parse(raw);
+    let raw = await readFile8(path.join(backupPath, BACKUP_MANIFEST_FILE), "utf8"), m = JSON.parse(raw);
     if (m && Array.isArray(m.projects))
       return {
         version: m.version ?? BACKUP_MANIFEST_VERSION,
@@ -7302,22 +7394,22 @@ async function cleanup(opts2) {
       results.push({ projectRoot, status: "needs --yes to back up + remove .brv" });
       continue;
     }
-    log(`\u2192 ${projectRoot}: backing up .brv \u2192 ${dest}\u2026`), await mkdir7(path.dirname(dest), { recursive: !0 }), await cp(brvDir, dest, { recursive: !0, verbatimSymlinks: !0 }), manifestProjects.push({ folder, projectRoot, brvPath: brvDir }), removals.push(brvDir), results.push({ projectRoot, backedUpTo: dest, folder });
+    log(`\u2192 ${projectRoot}: backing up .brv \u2192 ${dest}\u2026`), await mkdir8(path.dirname(dest), { recursive: !0 }), await cp(brvDir, dest, { recursive: !0, verbatimSymlinks: !0 }), manifestProjects.push({ folder, projectRoot, brvPath: brvDir }), removals.push(brvDir), results.push({ projectRoot, backedUpTo: dest, folder });
   }
   if (removals.length > 0) {
-    await mkdir7(backupPath, { recursive: !0 });
+    await mkdir8(backupPath, { recursive: !0 });
     let manifest = {
       version: BACKUP_MANIFEST_VERSION,
       createdAt: existing.createdAt || (/* @__PURE__ */ new Date()).toISOString(),
       projects: manifestProjects
     };
-    await writeFile7(
+    await writeFile8(
       path.join(backupPath, BACKUP_MANIFEST_FILE),
       `${JSON.stringify(manifest, null, 2)}
 `,
       "utf8"
     );
-    for (let brvDir of removals) await rm8(brvDir, { recursive: !0, force: !0 });
+    for (let brvDir of removals) await rm9(brvDir, { recursive: !0, force: !0 });
   }
   return { ok: !0, command: "cleanup", backupPath, projects: results };
 }

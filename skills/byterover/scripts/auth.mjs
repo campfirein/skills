@@ -3788,24 +3788,19 @@ var PROJECTS_DIRNAME = "projects", GLOBAL_DATA_DIRNAME = "brv";
 function getGlobalDataDir() {
   let override = process.env.BRV_DATA_DIR;
   if (override) return override;
-  let currentPlatform = platform();
+  let dirName = process.env.BRV_DATA_DIRNAME?.trim() || GLOBAL_DATA_DIRNAME, currentPlatform = platform();
   if (currentPlatform === "win32") {
     let localAppData = process.env.LOCALAPPDATA;
-    return localAppData !== void 0 ? join(localAppData, GLOBAL_DATA_DIRNAME) : join(homedir(), "AppData", "Local", GLOBAL_DATA_DIRNAME);
+    return localAppData !== void 0 ? join(localAppData, dirName) : join(homedir(), "AppData", "Local", dirName);
   }
   if (currentPlatform === "darwin")
-    return join(
-      homedir(),
-      "Library",
-      "Application Support",
-      GLOBAL_DATA_DIRNAME
-    );
+    return join(homedir(), "Library", "Application Support", dirName);
   if (currentPlatform === "linux") {
     let xdgDataHome = process.env.XDG_DATA_HOME;
     if (xdgDataHome && isAbsolute(xdgDataHome))
-      return join(xdgDataHome, GLOBAL_DATA_DIRNAME);
+      return join(xdgDataHome, dirName);
   }
-  return join(homedir(), ".local", "share", GLOBAL_DATA_DIRNAME);
+  return join(homedir(), ".local", "share", dirName);
 }
 function getProjectsDir() {
   return join(getGlobalDataDir(), PROJECTS_DIRNAME);
@@ -5338,6 +5333,9 @@ var RecordRunCompletedSchema = external_exports.object({
 var DreamCompletedSchema = external_exports.object({
   /** How many candidate pairs / paths / clusters the engine returned. */
   candidate_count: external_exports.number().int().nonnegative(),
+  /** Subset of candidate_count that surfaced as STALE (prune mode only;
+   *  reason ∈ {stale-mtime, both}). Optional: omitted for merge/link/synthesize. */
+  stale_candidate_count: external_exports.number().int().nonnegative().optional(),
   duration_ms: external_exports.number().int().nonnegative(),
   mode: external_exports.enum(DREAM_MODES),
   outcome: external_exports.enum(["completed", "cancelled", "error"]),
@@ -6008,33 +6006,165 @@ var DAEMON_EVENT_ACTION = {
 }).strict();
 
 // ../../packages/sync/src/daemon-auth-store.ts
-import { createHash } from "node:crypto";
+import {
+  createCipheriv,
+  createDecipheriv,
+  createHash,
+  randomBytes
+} from "node:crypto";
 import { chmod as chmod2, mkdir as mkdir5, readFile as readFile4, rename as rename2, writeFile as writeFile5, rm as rm5 } from "node:fs/promises";
-import { dirname as dirname4, join as join5 } from "node:path";
+import { basename as basename2, dirname as dirname4, join as join5 } from "node:path";
+var DAEMON_AUTH_KEY_BYTES = 32, DAEMON_AUTH_IV_BYTES = 12, DAEMON_AUTH_KEY_FILENAME = "daemon-auth.key";
 function daemonAuthPath(projectsRoot) {
   return join5(projectsRoot, ".daemon", "auth.json");
 }
 function createTokenFingerprint(token) {
   return createHash("sha256").update(token).digest("hex").slice(0, 16);
 }
+function daemonAuthKeyPath(authPath) {
+  let daemonDir2 = dirname4(authPath), projectsRoot = dirname4(daemonDir2), dataRoot = dirname4(projectsRoot);
+  return basename2(daemonDir2) === ".daemon" && basename2(projectsRoot) === "projects" && dataRoot !== dirname4(dataRoot) ? join5(dataRoot, DAEMON_AUTH_KEY_FILENAME) : join5(daemonDir2, "auth.key");
+}
+function parseDaemonAuthKey(raw) {
+  try {
+    let record = JSON.parse(raw);
+    if (record.schemaVersion !== 1 || record.alg !== "AES-256-GCM" || typeof record.key != "string")
+      return null;
+    let key = Buffer.from(record.key, "base64url");
+    return key.length === DAEMON_AUTH_KEY_BYTES ? key : null;
+  } catch {
+    return null;
+  }
+}
+async function readDaemonAuthKey(path) {
+  try {
+    return parseDaemonAuthKey(await readFile4(path, "utf8"));
+  } catch {
+    return null;
+  }
+}
+async function readOrCreateDaemonAuthKey(authPath) {
+  let keyPath = daemonAuthKeyPath(authPath), existing = await readDaemonAuthKey(keyPath);
+  if (existing) return existing;
+  let key = randomBytes(DAEMON_AUTH_KEY_BYTES), record = {
+    schemaVersion: 1,
+    alg: "AES-256-GCM",
+    key: key.toString("base64url"),
+    createdAt: (/* @__PURE__ */ new Date()).toISOString()
+  };
+  await mkdir5(dirname4(keyPath), { recursive: !0, mode: 448 });
+  try {
+    return await writeFile5(keyPath, JSON.stringify(record, null, 2) + `
+`, {
+      mode: 384,
+      flag: "wx"
+    }), await chmod2(keyPath, 384), key;
+  } catch (error) {
+    if (error.code !== "EEXIST") throw error;
+    let raced = await readDaemonAuthKey(keyPath);
+    if (raced) return raced;
+    throw error;
+  }
+}
+function daemonDeviceSessionAad(record) {
+  return Buffer.from(
+    JSON.stringify({
+      schemaVersion: record.schemaVersion,
+      provider: record.provider,
+      refreshExpiresAt: record.refreshExpiresAt,
+      refreshAbsoluteExpiresAt: record.refreshAbsoluteExpiresAt,
+      deviceId: record.deviceId,
+      sessionId: record.sessionId,
+      tokenFingerprint: record.tokenFingerprint
+    }),
+    "utf8"
+  );
+}
+function isEncryptedDaemonDeviceSession(value) {
+  let encrypted = value.refreshTokenEncrypted;
+  return value.provider === "daemon-device-session" && encrypted !== void 0 && encrypted.schemaVersion === 1 && encrypted.alg === "AES-256-GCM" && typeof encrypted.iv == "string" && typeof encrypted.ciphertext == "string" && typeof encrypted.tag == "string";
+}
+function isPlaintextDaemonDeviceSession(value) {
+  return value.provider === "daemon-device-session" && typeof value.refreshToken == "string";
+}
+async function encryptDaemonDeviceSession(path, record) {
+  let { refreshToken, ...publicRecord } = record, key = await readOrCreateDaemonAuthKey(path), iv = randomBytes(DAEMON_AUTH_IV_BYTES);
+  try {
+    let cipher = createCipheriv("aes-256-gcm", key, iv);
+    cipher.setAAD(daemonDeviceSessionAad(publicRecord));
+    let ciphertext = Buffer.concat([
+      cipher.update(Buffer.from(refreshToken, "utf8")),
+      cipher.final()
+    ]);
+    return {
+      ...publicRecord,
+      refreshTokenEncrypted: {
+        schemaVersion: 1,
+        alg: "AES-256-GCM",
+        iv: iv.toString("base64url"),
+        ciphertext: ciphertext.toString("base64url"),
+        tag: cipher.getAuthTag().toString("base64url")
+      }
+    };
+  } finally {
+    key.fill(0);
+  }
+}
+async function decryptDaemonDeviceSession(path, record) {
+  let key = await readDaemonAuthKey(daemonAuthKeyPath(path));
+  if (!key) return null;
+  let { refreshTokenEncrypted, ...publicRecord } = record;
+  try {
+    let decipher = createDecipheriv(
+      "aes-256-gcm",
+      key,
+      Buffer.from(refreshTokenEncrypted.iv, "base64url")
+    );
+    decipher.setAAD(daemonDeviceSessionAad(publicRecord)), decipher.setAuthTag(Buffer.from(refreshTokenEncrypted.tag, "base64url"));
+    let refreshToken = Buffer.concat([
+      decipher.update(
+        Buffer.from(refreshTokenEncrypted.ciphertext, "base64url")
+      ),
+      decipher.final()
+    ]).toString("utf8");
+    return {
+      ...publicRecord,
+      refreshToken
+    };
+  } catch {
+    return null;
+  } finally {
+    key.fill(0);
+  }
+}
 async function readDaemonAuth(path) {
   try {
-    let raw = await readFile4(path, "utf8");
-    return JSON.parse(raw);
+    let raw = await readFile4(path, "utf8"), record = JSON.parse(raw);
+    return isEncryptedDaemonDeviceSession(record) ? decryptDaemonDeviceSession(path, record) : record.provider === "daemon-device-session" && !isPlaintextDaemonDeviceSession(record) ? null : record;
   } catch {
     return null;
   }
 }
 async function writeDaemonAuth(path, record) {
   await mkdir5(dirname4(path), { recursive: !0 });
-  let tmp = `${path}.tmp-${process.pid}-${Date.now()}`;
-  await writeFile5(tmp, JSON.stringify(record, null, 2) + `
-`, { mode: 384 }), await chmod2(tmp, 384), await rename2(tmp, path);
+  let tmp = `${path}.tmp-${process.pid}-${Date.now()}`, persisted = record.provider === "daemon-device-session" ? await encryptDaemonDeviceSession(path, record) : record;
+  await writeFile5(tmp, JSON.stringify(persisted, null, 2) + `
+`, {
+    mode: 384
+  }), await chmod2(tmp, 384), await rename2(tmp, path);
 }
 
 // ../../packages/sync/src/daemon-auth-identity.ts
 function isNonEmptyString3(value) {
   return typeof value == "string" && value.trim().length > 0;
+}
+function hasDeviceSessionCredential(record) {
+  if (isNonEmptyString3(record.refreshToken)) return !0;
+  let encrypted = record.refreshTokenEncrypted;
+  if (!encrypted || typeof encrypted != "object" || Array.isArray(encrypted))
+    return !1;
+  let envelope = encrypted;
+  return envelope.schemaVersion === 1 && envelope.alg === "AES-256-GCM" && isNonEmptyString3(envelope.iv) && isNonEmptyString3(envelope.ciphertext) && isNonEmptyString3(envelope.tag);
 }
 function parseDaemonAuthIdentity(raw) {
   if (raw == null)
@@ -6042,13 +6172,13 @@ function parseDaemonAuthIdentity(raw) {
   if (!raw || typeof raw != "object" || Array.isArray(raw))
     return { ok: !1, reason: "malformed-auth" };
   let record = raw;
-  return record.provider === "daemon-device-session" ? isNonEmptyString3(record.sessionId) ? {
+  return record.provider === "daemon-device-session" ? !isNonEmptyString3(record.sessionId) || !hasDeviceSessionCredential(record) ? { ok: !1, reason: "malformed-auth" } : {
     ok: !0,
     identity: {
       providerKind: "daemon-device-session",
       sessionId: record.sessionId
     }
-  } : { ok: !1, reason: "malformed-auth" } : record.provider === "api-key" ? isNonEmptyString3(record.tokenFingerprint) ? {
+  } : record.provider === "api-key" ? isNonEmptyString3(record.tokenFingerprint) ? {
     ok: !0,
     identity: {
       providerKind: "api-key",

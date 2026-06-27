@@ -113,13 +113,13 @@ var require_realtime_contracts = __commonJS({
       zeroPadRevision: () => zeroPadRevision
     });
     module.exports = __toCommonJS(index_exports);
-    var import_node_path35 = __toESM2(__require("node:path"), 1);
+    var import_node_path38 = __toESM2(__require("node:path"), 1);
     function assertSafeTarEntryName(name, options = {}) {
       if (options.type && options.type !== "file")
         throw new Error("unsafe tar entry");
-      if (name.includes("\\") || name.includes("\0") || import_node_path35.default.posix.isAbsolute(name))
+      if (name.includes("\\") || name.includes("\0") || import_node_path38.default.posix.isAbsolute(name))
         throw new Error("unsafe tar entry");
-      let normalized = import_node_path35.default.posix.normalize(name);
+      let normalized = import_node_path38.default.posix.normalize(name);
       if (normalized === "." || normalized === ".." || normalized.startsWith("../"))
         throw new Error("unsafe tar entry");
       if (options.seen?.has(normalized)) throw new Error("duplicate tar entry");
@@ -496,10 +496,10 @@ var require_realtime_contracts = __commonJS({
 });
 
 // src/commands.ts
-import { randomUUID as randomUUID7 } from "node:crypto";
+import { randomUUID as randomUUID8 } from "node:crypto";
 import { existsSync as existsSync4, readFileSync as readFileSync2 } from "node:fs";
-import { mkdir as mkdir19, readdir as readdir7, readFile as readFile26, rm as rm17, stat as stat8 } from "node:fs/promises";
-import { basename as basename4, dirname as dirname13, join as join28, resolve as resolve10, sep as sep7 } from "node:path";
+import { mkdir as mkdir20, readdir as readdir8, readFile as readFile27, rm as rm18, stat as stat8 } from "node:fs/promises";
+import { basename as basename5, dirname as dirname14, join as join29, resolve as resolve10, sep as sep7 } from "node:path";
 
 // ../../packages/core/src/render/element-types.ts
 var ELEMENT_NAMES = [
@@ -9913,24 +9913,19 @@ var CONTEXT_TREE_DIRNAME = "context-tree", DAEMON_DIRNAME = ".daemon", DAEMON_SP
 function getGlobalDataDir() {
   let override = process.env.BRV_DATA_DIR;
   if (override) return override;
-  let currentPlatform = platform();
+  let dirName = process.env.BRV_DATA_DIRNAME?.trim() || GLOBAL_DATA_DIRNAME, currentPlatform = platform();
   if (currentPlatform === "win32") {
     let localAppData = process.env.LOCALAPPDATA;
-    return localAppData !== void 0 ? join2(localAppData, GLOBAL_DATA_DIRNAME) : join2(homedir(), "AppData", "Local", GLOBAL_DATA_DIRNAME);
+    return localAppData !== void 0 ? join2(localAppData, dirName) : join2(homedir(), "AppData", "Local", dirName);
   }
   if (currentPlatform === "darwin")
-    return join2(
-      homedir(),
-      "Library",
-      "Application Support",
-      GLOBAL_DATA_DIRNAME
-    );
+    return join2(homedir(), "Library", "Application Support", dirName);
   if (currentPlatform === "linux") {
     let xdgDataHome = process.env.XDG_DATA_HOME;
     if (xdgDataHome && isAbsolute(xdgDataHome))
-      return join2(xdgDataHome, GLOBAL_DATA_DIRNAME);
+      return join2(xdgDataHome, dirName);
   }
-  return join2(homedir(), ".local", "share", GLOBAL_DATA_DIRNAME);
+  return join2(homedir(), ".local", "share", dirName);
 }
 function getProjectsDir() {
   return join2(getGlobalDataDir(), PROJECTS_DIRNAME);
@@ -14024,6 +14019,11 @@ async function fileMtimeMs(root, path2) {
     return;
   }
 }
+function countStaleCandidates(candidates) {
+  return candidates.filter(
+    (c) => c.reason === "stale-mtime" || c.reason === "both"
+  ).length;
+}
 async function findSynthesizeCandidates(root, options = {}) {
   let minTopics = options.minTopics ?? 5, paths = await listTopics(root), byDomain = /* @__PURE__ */ new Map();
   for (let path2 of paths) {
@@ -15721,9 +15721,12 @@ var MAX_HITS = 3, HEADER = "\u{1F4DA} From ByteRover:", RECALL_COUNT_THRESHOLD =
 function encodeTopicPath(topicPath) {
   return `context-tree/${topicPath.split("/").map((seg) => encodeURIComponent(seg)).join("/")}`;
 }
+function citationScheme() {
+  return process.env.BRV_DEEPLINK_SCHEME?.trim() === "byterover-dev" ? "byterover-dev" : "byterover";
+}
 function topicInspectUrl(webBaseUrl, spaceId, topicPath, elementIds = []) {
-  let origin = webBaseUrl.replace(/\/+$/, ""), route = /^https?:\/\/(127\.0\.0\.1|localhost|\[::1\])(:|\/|$)/i.test(origin) ? "v" : "i", base = `${origin}/${route}/topic/${encodeURIComponent(spaceId)}/${encodeTopicPath(topicPath)}`, fragment = buildElementFragment(elementIds);
-  return fragment.length > 0 ? `${base}#${fragment}` : base;
+  let origin = webBaseUrl.replace(/\/+$/, ""), route = /^https?:\/\/(127\.0\.0\.1|localhost|\[::1\])(:|\/|$)/i.test(origin) ? "v" : "i", base = `${origin}/${route}/topic/${encodeURIComponent(spaceId)}/${encodeTopicPath(topicPath)}`, fragment = buildElementFragment(elementIds), schemeQuery = route === "i" && citationScheme() === "byterover-dev" ? `?scheme=${encodeURIComponent("byterover-dev")}` : "", fragmentPart = fragment.length > 0 ? `#${fragment}` : "";
+  return `${base}${schemeQuery}${fragmentPart}`;
 }
 function buildElementFragment(elementIds) {
   let seen = /* @__PURE__ */ new Set(), bodies = [];
@@ -16144,6 +16147,9 @@ var RecordRunCompletedSchema = external_exports.object({
 var DreamCompletedSchema = external_exports.object({
   /** How many candidate pairs / paths / clusters the engine returned. */
   candidate_count: external_exports.number().int().nonnegative(),
+  /** Subset of candidate_count that surfaced as STALE (prune mode only;
+   *  reason ∈ {stale-mtime, both}). Optional: omitted for merge/link/synthesize. */
+  stale_candidate_count: external_exports.number().int().nonnegative().optional(),
   duration_ms: external_exports.number().int().nonnegative(),
   mode: external_exports.enum(DREAM_MODES),
   outcome: external_exports.enum(["completed", "cancelled", "error"]),
@@ -17513,6 +17519,13 @@ var MemoryHttpClient = class {
   }
 };
 
+// ../../packages/sync/src/syncable.ts
+var INDEX_FILE3 = "index.html", DERIVED_ARTIFACT_RE2 = /\.(abstract|full|overview)\.html$/i;
+function isSyncable(treeRelPath) {
+  let p = treeRelPath.replace(/\\/g, "/");
+  return !(p.startsWith("../") || p.includes("/../") || p === ".." || p.startsWith(".brv/") || p.includes("/.brv/") || !p.toLowerCase().endsWith(".html") || p === INDEX_FILE3 || DERIVED_ARTIFACT_RE2.test(p));
+}
+
 // ../../packages/sync/src/delete-intent.ts
 import { randomUUID as randomUUID5 } from "node:crypto";
 import {
@@ -17590,17 +17603,378 @@ async function recordDeleteIntent(input) {
   };
   return await writeIntentFile(dir, intent), intent;
 }
+async function consumeDeleteIntent(syncDir, intentId) {
+  await rm14(join20(intentsDir(syncDir), `${intentId}.json`), {
+    force: !0
+  }).catch(() => {
+  });
+}
+async function clearDeleteIntents(syncDir) {
+  await rm14(intentsDir(syncDir), { recursive: !0, force: !0 }).catch(
+    () => {
+    }
+  );
+}
+
+// ../../packages/sync/src/move-intent.ts
+import { createHash as createHash6, randomUUID as randomUUID6 } from "node:crypto";
+import { chmod as chmod4, mkdir as mkdir14, readFile as readFile19, readdir as readdir6, rename as rename9, rm as rm15, writeFile as writeFile13 } from "node:fs/promises";
+import { join as join21 } from "node:path";
+
+// ../../packages/sync/src/sync-key.ts
+import { posix, win32 } from "node:path";
+var MAX_SYNC_KEY_LENGTH = 512;
+function parseSyncKey(raw) {
+  let normalized = raw;
+  if (normalized.length === 0 || normalized.length > MAX_SYNC_KEY_LENGTH || posix.isAbsolute(normalized) || win32.isAbsolute(normalized) || normalized.includes("\\") || normalized.includes(":") || normalized.includes("\0") || /[\u0001-\u001f\u007f]/.test(normalized) || normalized.includes("//"))
+    throw new Error(`invalid sync key: ${raw}`);
+  if (normalized.split("/").some(
+    (segment) => segment.length === 0 || segment === "." || segment === ".."
+  ))
+    throw new Error(`invalid sync key: ${raw}`);
+  if (!isSyncable(normalized))
+    throw new Error(`invalid sync key: ${raw}`);
+  return normalized;
+}
+
+// ../../packages/sync/src/move-intent.ts
+var MOVE_INTENT_TTL_MS = 1440 * 60 * 1e3, MOVE_INTENTS_DIR = "move-intents";
+function authContextFailure(authContext, now) {
+  return authContext.authGeneration.length === 0 ? "missing-auth-generation" : authContext.canWrite !== !0 || authContext.mode !== "bidirectional" ? "read-only-or-pull-only" : authContext.syncState !== "active" || authContext.expiresAt && Date.parse(authContext.expiresAt) <= now.getTime() ? "stale-auth-context" : null;
+}
+function isMoveContextWritable(ctx, nowMs2) {
+  return authContextFailure(ctx, new Date(nowMs2)) === null;
+}
+async function validateMoveIntentForLocalRename(input) {
+  let from, to;
+  try {
+    from = parseSyncKey(input.from), to = parseSyncKey(input.to);
+  } catch {
+    return { ok: !1, reason: "invalid-sync-key" };
+  }
+  let now = input.now ?? /* @__PURE__ */ new Date(), authFailure = authContextFailure(input.authContext, now);
+  if (authFailure) return { ok: !1, reason: authFailure };
+  if (!input.sourceBaseline)
+    return { ok: !1, reason: "missing-source-baseline" };
+  if (!input.topicIdentity)
+    return { ok: !1, reason: "missing-topic-identity" };
+  let destination = await input.destination.readState(to);
+  return input.destination.policy === "must-be-absent" && destination.exists ? { ok: !1, reason: "destination-exists" } : input.destination.policy === "must-match-topic-identity" && (!destination.exists || destination.identity !== input.topicIdentity) ? { ok: !1, reason: "destination-identity-mismatch" } : {
+    ok: !0,
+    from,
+    to,
+    topicIdentity: input.topicIdentity,
+    sourceBaseline: input.sourceBaseline,
+    authContext: input.authContext
+  };
+}
+async function prepareMoveIntentForLocalRename(input) {
+  let validation = await validateMoveIntentForLocalRename(input);
+  if (!validation.ok) return validation;
+  try {
+    return { ok: !0, intent: await recordMoveIntent({
+      syncDir: input.syncDir,
+      from: validation.from,
+      to: validation.to,
+      topicIdentity: validation.topicIdentity,
+      sourceBaseline: validation.sourceBaseline,
+      authGeneration: validation.authContext.authGeneration,
+      now: input.now
+    }) };
+  } catch {
+    return { ok: !1, reason: "record-failed" };
+  }
+}
+function parseIntent2(raw, now) {
+  if (typeof raw != "object" || raw === null) return null;
+  let rec = raw;
+  if (rec.schemaVersion !== 1 || typeof rec.id != "string" || rec.state !== "prepared" || typeof rec.topicIdentity != "string" || typeof rec.createdAt != "string" || typeof rec.expiresAt != "string") return null;
+  let from;
+  try {
+    from = parseSyncKey(rec.from);
+  } catch {
+    return null;
+  }
+  let to;
+  try {
+    to = parseSyncKey(rec.to);
+  } catch {
+    return null;
+  }
+  let sb = rec.sourceBaseline;
+  if (typeof sb != "object" || sb === null || typeof sb.md5 != "string" || typeof sb.updatedAt != "string")
+    return null;
+  let expiresAt = Date.parse(rec.expiresAt);
+  return Number.isNaN(expiresAt) || expiresAt <= now.getTime() || typeof rec.authGeneration != "string" || rec.authGeneration.length === 0 ? null : {
+    schemaVersion: 1,
+    id: rec.id,
+    state: "prepared",
+    from,
+    to,
+    topicIdentity: rec.topicIdentity,
+    sourceBaseline: sb,
+    createdAt: rec.createdAt,
+    expiresAt: rec.expiresAt,
+    authGeneration: rec.authGeneration
+  };
+}
+function intentsDir2(syncDir) {
+  return join21(syncDir, MOVE_INTENTS_DIR);
+}
+function serialiseIntent(intent) {
+  return {
+    ...intent,
+    from: intent.from,
+    to: intent.to
+  };
+}
+function moveIntentId(input) {
+  return createHash6("sha256").update(JSON.stringify(input)).digest("hex").slice(0, 32);
+}
+async function writeIntentFile2(dir, intent) {
+  await mkdir14(dir, { recursive: !0, mode: 448 });
+  try {
+    await chmod4(dir, 448);
+  } catch {
+  }
+  let tmpPath = join21(dir, `.${intent.id}.${randomUUID6()}.tmp`), finalPath = join21(dir, `${intent.id}.json`);
+  await writeFile13(tmpPath, JSON.stringify(serialiseIntent(intent), null, 2) + `
+`, {
+    mode: 384
+  });
+  try {
+    await chmod4(tmpPath, 384);
+  } catch {
+  }
+  await rename9(tmpPath, finalPath);
+}
+async function readLegacyFileRaw(syncDir) {
+  try {
+    let raw = await readFile19(join21(syncDir, "move-intents.json"), "utf8"), parsed = JSON.parse(raw);
+    if (typeof parsed == "object" && parsed !== null && parsed.schemaVersion === 1 && Array.isArray(parsed.intents))
+      return parsed.intents;
+  } catch {
+    return [];
+  }
+  return [];
+}
+async function readMoveIntents(syncDir, opts) {
+  let now = opts?.now ?? /* @__PURE__ */ new Date(), dir = intentsDir2(syncDir), result = [], names = [];
+  try {
+    names = await readdir6(dir);
+  } catch {
+    names = [];
+  }
+  for (let name of names) {
+    if (!name.endsWith(".json")) continue;
+    let filePath = join21(dir, name), content;
+    try {
+      content = await readFile19(filePath, "utf8");
+    } catch {
+      continue;
+    }
+    let parsed = null;
+    try {
+      parsed = parseIntent2(JSON.parse(content), now);
+    } catch {
+      parsed = null;
+    }
+    parsed ? result.push(parsed) : await rm15(filePath, { force: !0 }).catch(() => {
+    });
+  }
+  for (let entry of await readLegacyFileRaw(syncDir)) {
+    let parsed = parseIntent2(entry, now);
+    parsed && !result.some((intent) => intent.id === parsed.id) && (result.push(parsed), opts?.compact && await writeIntentFile2(dir, parsed).catch(() => {
+    }));
+  }
+  return opts?.compact && await rm15(join21(syncDir, "move-intents.json"), { force: !0 }).catch(() => {
+  }), result;
+}
+async function recordMoveIntent(input) {
+  let { syncDir, from, to, topicIdentity, sourceBaseline, authGeneration } = input, now = input.now ?? /* @__PURE__ */ new Date(), fromKey = parseSyncKey(from), toKey2 = parseSyncKey(to), duplicate = (await readMoveIntents(syncDir, { now })).find(
+    (intent2) => intent2.from === from && intent2.to === to && intent2.topicIdentity === topicIdentity && intent2.sourceBaseline.md5 === sourceBaseline.md5 && intent2.sourceBaseline.updatedAt === sourceBaseline.updatedAt && intent2.authGeneration === authGeneration
+  );
+  if (duplicate) return duplicate;
+  let createdAt = now.toISOString(), intent = {
+    schemaVersion: 1,
+    id: moveIntentId({
+      from,
+      to,
+      topicIdentity,
+      sourceBaseline,
+      authGeneration
+    }),
+    state: "prepared",
+    from: fromKey,
+    to: toKey2,
+    topicIdentity,
+    sourceBaseline,
+    createdAt,
+    expiresAt: new Date(now.getTime() + MOVE_INTENT_TTL_MS).toISOString(),
+    authGeneration
+  };
+  return await writeIntentFile2(intentsDir2(syncDir), intent), intent;
+}
+async function consumeMoveIntent(syncDir, intentId) {
+  await rm15(join21(intentsDir2(syncDir), `${intentId}.json`), {
+    force: !0
+  }).catch(() => {
+  });
+}
+async function dropInvalidMoveIntent(syncDir, intentId) {
+  await consumeMoveIntent(syncDir, intentId);
+}
+async function clearMoveIntents(syncDir) {
+  await rm15(intentsDir2(syncDir), { recursive: !0, force: !0 }).catch(() => {
+  }), await rm15(join21(syncDir, "move-intents.json"), { force: !0 }).catch(() => {
+  });
+}
+
+// ../../packages/sync/src/state.ts
+var BASELINE_KEY = "baseline", BASELINE_REVISION_KEY = "baselineRevision", STATUS_KEY = "status", DEFAULT_STATUS = {
+  running: !1,
+  state: "idle",
+  wsState: "degraded",
+  conflicts: [],
+  rejected: [],
+  pendingError: null
+}, SyncState = class {
+  constructor(syncDir) {
+    this.syncDir = syncDir;
+    this.kv = new FileKeyStorage(syncDir);
+  }
+  kv;
+  async getBaseline() {
+    return await this.kv.get(BASELINE_KEY) ?? {};
+  }
+  async setBaseline(b) {
+    await this.kv.set(BASELINE_KEY, b);
+  }
+  async getBaselineRevision() {
+    let value = await this.kv.get(BASELINE_REVISION_KEY);
+    return typeof value == "number" ? value : null;
+  }
+  async setBaselineRevision(rev) {
+    await this.kv.set(BASELINE_REVISION_KEY, rev);
+  }
+  async getStatus() {
+    let stored = await this.kv.get(STATUS_KEY);
+    return { ...DEFAULT_STATUS, ...stored };
+  }
+  async setStatus(s) {
+    await this.kv.set(STATUS_KEY, s);
+  }
+  async getMoveIntents(now = /* @__PURE__ */ new Date(), opts) {
+    return readMoveIntents(this.syncDir, { now, compact: opts?.compact });
+  }
+  async consumeMoveIntent(intentId) {
+    await consumeMoveIntent(this.syncDir, intentId);
+  }
+  async dropInvalidMoveIntent(intentId) {
+    await dropInvalidMoveIntent(this.syncDir, intentId);
+  }
+  async clearMoveIntents() {
+    await clearMoveIntents(this.syncDir);
+  }
+  async getDeleteIntents(now = /* @__PURE__ */ new Date()) {
+    return readDeleteIntents(this.syncDir, { now });
+  }
+  async consumeDeleteIntent(intentId) {
+    await consumeDeleteIntent(this.syncDir, intentId);
+  }
+  async clearDeleteIntents() {
+    await clearDeleteIntents(this.syncDir);
+  }
+};
 
 // ../../packages/sync/src/daemon-auth-store.ts
-import { chmod as chmod4, mkdir as mkdir14, readFile as readFile19, rename as rename9, writeFile as writeFile13, rm as rm15 } from "node:fs/promises";
-import { dirname as dirname10, join as join21 } from "node:path";
+import {
+  createCipheriv as createCipheriv2,
+  createDecipheriv as createDecipheriv2,
+  createHash as createHash7,
+  randomBytes as randomBytes6
+} from "node:crypto";
+import { chmod as chmod5, mkdir as mkdir15, readFile as readFile20, rename as rename10, writeFile as writeFile14, rm as rm16 } from "node:fs/promises";
+import { basename as basename2, dirname as dirname10, join as join22 } from "node:path";
+var DAEMON_AUTH_KEY_BYTES = 32;
+var DAEMON_AUTH_KEY_FILENAME = "daemon-auth.key";
 function daemonAuthPath(projectsRoot) {
-  return join21(projectsRoot, ".daemon", "auth.json");
+  return join22(projectsRoot, ".daemon", "auth.json");
+}
+function daemonAuthKeyPath(authPath) {
+  let daemonDir = dirname10(authPath), projectsRoot = dirname10(daemonDir), dataRoot = dirname10(projectsRoot);
+  return basename2(daemonDir) === ".daemon" && basename2(projectsRoot) === "projects" && dataRoot !== dirname10(dataRoot) ? join22(dataRoot, DAEMON_AUTH_KEY_FILENAME) : join22(daemonDir, "auth.key");
+}
+function parseDaemonAuthKey(raw) {
+  try {
+    let record = JSON.parse(raw);
+    if (record.schemaVersion !== 1 || record.alg !== "AES-256-GCM" || typeof record.key != "string")
+      return null;
+    let key = Buffer.from(record.key, "base64url");
+    return key.length === DAEMON_AUTH_KEY_BYTES ? key : null;
+  } catch {
+    return null;
+  }
+}
+async function readDaemonAuthKey(path2) {
+  try {
+    return parseDaemonAuthKey(await readFile20(path2, "utf8"));
+  } catch {
+    return null;
+  }
+}
+function daemonDeviceSessionAad(record) {
+  return Buffer.from(
+    JSON.stringify({
+      schemaVersion: record.schemaVersion,
+      provider: record.provider,
+      refreshExpiresAt: record.refreshExpiresAt,
+      refreshAbsoluteExpiresAt: record.refreshAbsoluteExpiresAt,
+      deviceId: record.deviceId,
+      sessionId: record.sessionId,
+      tokenFingerprint: record.tokenFingerprint
+    }),
+    "utf8"
+  );
+}
+function isEncryptedDaemonDeviceSession(value) {
+  let encrypted = value.refreshTokenEncrypted;
+  return value.provider === "daemon-device-session" && encrypted !== void 0 && encrypted.schemaVersion === 1 && encrypted.alg === "AES-256-GCM" && typeof encrypted.iv == "string" && typeof encrypted.ciphertext == "string" && typeof encrypted.tag == "string";
+}
+function isPlaintextDaemonDeviceSession(value) {
+  return value.provider === "daemon-device-session" && typeof value.refreshToken == "string";
+}
+async function decryptDaemonDeviceSession(path2, record) {
+  let key = await readDaemonAuthKey(daemonAuthKeyPath(path2));
+  if (!key) return null;
+  let { refreshTokenEncrypted, ...publicRecord } = record;
+  try {
+    let decipher = createDecipheriv2(
+      "aes-256-gcm",
+      key,
+      Buffer.from(refreshTokenEncrypted.iv, "base64url")
+    );
+    decipher.setAAD(daemonDeviceSessionAad(publicRecord)), decipher.setAuthTag(Buffer.from(refreshTokenEncrypted.tag, "base64url"));
+    let refreshToken = Buffer.concat([
+      decipher.update(
+        Buffer.from(refreshTokenEncrypted.ciphertext, "base64url")
+      ),
+      decipher.final()
+    ]).toString("utf8");
+    return {
+      ...publicRecord,
+      refreshToken
+    };
+  } catch {
+    return null;
+  } finally {
+    key.fill(0);
+  }
 }
 async function readDaemonAuth(path2) {
   try {
-    let raw = await readFile19(path2, "utf8");
-    return JSON.parse(raw);
+    let raw = await readFile20(path2, "utf8"), record = JSON.parse(raw);
+    return isEncryptedDaemonDeviceSession(record) ? decryptDaemonDeviceSession(path2, record) : record.provider === "daemon-device-session" && !isPlaintextDaemonDeviceSession(record) ? null : record;
   } catch {
     return null;
   }
@@ -17609,8 +17983,8 @@ async function readDaemonAuth(path2) {
 // ../../packages/sync/src/daemon-status.ts
 var import_realtime_contracts2 = __toESM(require_realtime_contracts());
 import { constants } from "node:fs";
-import { open as open4, readFile as readFile20 } from "node:fs/promises";
-import { join as join22 } from "node:path";
+import { open as open4, readFile as readFile21 } from "node:fs/promises";
+import { join as join23 } from "node:path";
 
 // ../../packages/sync/src/daemon-auth-identity.ts
 function parseDaemonAuthMarkerIdentity(raw) {
@@ -17623,20 +17997,20 @@ function parseDaemonAuthMarkerIdentity(raw) {
 // ../../packages/sync/src/daemon-status.ts
 var DAEMON_PID_MAX_BYTES = 16 * 1024, DAEMON_STATUS_V2_MAX_BYTES = 64 * 1024, DAEMON_READY_V2_MAX_BYTES = 16 * 1024, DAEMON_SPACES_INDEX_V2_MAX_BYTES = 512 * 1024, DAEMON_SPACE_STATUS_V2_MAX_BYTES = 256 * 1024, DAEMON_SPACE_READY_V2_MAX_BYTES = 16 * 1024, DAEMON_STATUS_V1_FALLBACK_MAX_BYTES = 2 * 1024 * 1024, DAEMON_READY_V1_FALLBACK_MAX_BYTES = 1 * 1024 * 1024;
 function daemonStatusPath(projectsRoot) {
-  return join22(projectsRoot, ".daemon", "status.json");
+  return join23(projectsRoot, ".daemon", "status.json");
 }
 function assertSafeDaemonSpaceId(spaceId) {
   if (!normalizeUuidLike(spaceId))
     throw new Error(`invalid daemon space id: ${spaceId}`);
 }
 function daemonReadyPath(projectsRoot) {
-  return join22(projectsRoot, ".daemon", "ready.json");
+  return join23(projectsRoot, ".daemon", "ready.json");
 }
 function daemonSpacesDir(projectsRoot) {
-  return join22(projectsRoot, ".daemon", "spaces");
+  return join23(projectsRoot, ".daemon", "spaces");
 }
 function daemonSpaceReadyPath(projectsRoot, spaceId) {
-  return assertSafeDaemonSpaceId(spaceId), join22(daemonSpacesDir(projectsRoot), spaceId, "ready.json");
+  return assertSafeDaemonSpaceId(spaceId), join23(daemonSpacesDir(projectsRoot), spaceId, "ready.json");
 }
 function normalizeAuthState(value) {
   return value === "auth-expired" || value === "auth_expired" ? "auth_expired" : value === "not_configured" || value === "signed_out" || value === "provisioning" || value === "starting" || value === "transient_error" || value === "credential_persistence_error" || value === "running" ? value : null;
@@ -17751,9 +18125,38 @@ function normalizeDaemonStatusV2(raw) {
     spacesSyncing
   };
 }
+function normalizeMoveAuthGeneration(value) {
+  if (typeof value != "string") return;
+  let trimmed = value.trim();
+  if (!(trimmed.length === 0 || trimmed.length > 256) && !/[\x00-\x1F\x7F]/.test(trimmed) && !isTokenLike(trimmed))
+    return trimmed;
+}
+function normalizeMoveIntentAuthContext(value) {
+  if (!isRecord2(value)) return;
+  let spaceId = normalizeUuidLike(value.spaceId);
+  if (!spaceId) return;
+  let authGeneration = normalizeMoveAuthGeneration(value.authGeneration);
+  if (!authGeneration || typeof value.canWrite != "boolean" || value.mode !== "bidirectional" && value.mode !== "pull-only" || value.syncState !== "active" && value.syncState !== "paused")
+    return;
+  let capturedAt = normalizeIsoDate(value.capturedAt);
+  if (!capturedAt) return;
+  let teamId = normalizeUuidLike(value.teamId), expiresAt = value.expiresAt === void 0 ? void 0 : normalizeIsoDate(value.expiresAt) ?? void 0;
+  return {
+    spaceId,
+    ...teamId ? { teamId } : {},
+    authGeneration,
+    canWrite: value.canWrite,
+    mode: value.mode,
+    syncState: value.syncState,
+    capturedAt,
+    ...expiresAt !== void 0 ? { expiresAt } : {}
+  };
+}
 function normalizeDaemonSpaceReadyV2(raw) {
   if (!isRecord2(raw) || raw.schemaVersion !== 2) return null;
-  let daemonInstanceId = normalizeDaemonInstanceId(raw.daemonInstanceId), spaceId = normalizeUuidLike(raw.spaceId), readyRevision = normalizeRevision(raw.readyRevision), updatedAt = normalizeIsoDate(raw.updatedAt), baselineEstablishedAt = raw.baselineEstablishedAt === void 0 ? void 0 : normalizeIsoDate(raw.baselineEstablishedAt) ?? void 0, watchEnabledAt = raw.watchEnabledAt === void 0 ? void 0 : normalizeIsoDate(raw.watchEnabledAt) ?? void 0, bootstrapError = normalizeNullableString(raw.bootstrapError);
+  let daemonInstanceId = normalizeDaemonInstanceId(raw.daemonInstanceId), spaceId = normalizeUuidLike(raw.spaceId), readyRevision = normalizeRevision(raw.readyRevision), updatedAt = normalizeIsoDate(raw.updatedAt), moveIntentAuthContext = normalizeMoveIntentAuthContext(
+    raw.moveIntentAuthContext
+  ), baselineEstablishedAt = raw.baselineEstablishedAt === void 0 ? void 0 : normalizeIsoDate(raw.baselineEstablishedAt) ?? void 0, watchEnabledAt = raw.watchEnabledAt === void 0 ? void 0 : normalizeIsoDate(raw.watchEnabledAt) ?? void 0, bootstrapError = normalizeNullableString(raw.bootstrapError);
   return !daemonInstanceId || !spaceId || typeof raw.ready != "boolean" || readyRevision === null || !updatedAt || bootstrapError === void 0 ? null : {
     schemaVersion: 2,
     daemonInstanceId,
@@ -17763,7 +18166,8 @@ function normalizeDaemonSpaceReadyV2(raw) {
     updatedAt,
     ...baselineEstablishedAt !== void 0 ? { baselineEstablishedAt } : {},
     ...watchEnabledAt !== void 0 ? { watchEnabledAt } : {},
-    bootstrapError
+    bootstrapError,
+    ...moveIntentAuthContext ? { moveIntentAuthContext } : {}
   };
 }
 async function defaultReadJson(path2, maxBytes2 = DAEMON_STATUS_V2_MAX_BYTES) {
@@ -17854,13 +18258,12 @@ async function readDaemonSpaceReady(input) {
   });
 }
 
-// src/sync/cloud-resolver.ts
-import { access as access2, readdir as readdir6, readFile as readFile23 } from "node:fs/promises";
-import { basename as basename3, dirname as dirname11, join as join25 } from "node:path";
+// src/sync/move-write-context.ts
+import { dirname as dirname12 } from "node:path";
 
 // src/sync/capability.ts
-import { mkdir as mkdir15, readFile as readFile21, rename as rename10, writeFile as writeFile14 } from "node:fs/promises";
-import { basename as basename2, join as join23 } from "node:path";
+import { mkdir as mkdir16, readFile as readFile22, rename as rename11, writeFile as writeFile15 } from "node:fs/promises";
+import { basename as basename3, join as join24 } from "node:path";
 function validateCapabilityRecord(record) {
   if (record.capability_source !== "jwt" && record.capability_source !== "projection")
     return { kind: "invalid", reason: "invalid capability_source" };
@@ -17897,9 +18300,9 @@ function validateCapabilityRecord(record) {
   };
 }
 async function readCapability(spaceDir) {
-  let path2 = join23(syncStateDirForSpaceDir(spaceDir), "capability.json"), raw;
+  let path2 = join24(syncStateDirForSpaceDir(spaceDir), "capability.json"), raw;
   try {
-    raw = await readFile21(path2, "utf8");
+    raw = await readFile22(path2, "utf8");
   } catch (err) {
     if (err.code === "ENOENT")
       return { kind: "missing" };
@@ -17907,7 +18310,7 @@ async function readCapability(spaceDir) {
   }
   try {
     let record = JSON.parse(raw), baseResult = validateCapabilityRecord(record);
-    return baseResult.kind !== "ok" ? baseResult : basename2(spaceDir) !== record.space_id ? { kind: "invalid", reason: "space_id mismatch" } : baseResult;
+    return baseResult.kind !== "ok" ? baseResult : basename3(spaceDir) !== record.space_id ? { kind: "invalid", reason: "space_id mismatch" } : baseResult;
   } catch (err) {
     if (err instanceof SyntaxError)
       return {
@@ -17918,19 +18321,23 @@ async function readCapability(spaceDir) {
   }
 }
 
+// src/sync/cloud-resolver.ts
+import { access as access2, readdir as readdir7, readFile as readFile24 } from "node:fs/promises";
+import { basename as basename4, dirname as dirname11, join as join26 } from "node:path";
+
 // src/sync/cloud-projects.ts
-import { join as join24 } from "node:path";
+import { join as join25 } from "node:path";
 function isUuid2(value) {
   return isUuid(value);
 }
 function cloudSpaceDir(projectsRoot, spaceId) {
   if (!isUuid2(spaceId)) throw new Error(`invalid space_id: ${spaceId}`);
-  return join24(projectsRoot, spaceId);
+  return join25(projectsRoot, spaceId);
 }
 
 // src/sync/readiness.ts
 import { constants as constants2 } from "node:fs";
-import { chmod as chmod5, mkdir as mkdir16, open as open5, readFile as readFile22, rm as rm16, writeFile as writeFile15 } from "node:fs/promises";
+import { chmod as chmod6, mkdir as mkdir17, open as open5, readFile as readFile23, rm as rm17, writeFile as writeFile16 } from "node:fs/promises";
 var MAX_DAEMON_READY_JSON_BYTES = 64 * 1024;
 async function readDaemonReadyJson(path2) {
   let file = null;
@@ -17957,7 +18364,7 @@ async function exists(path2) {
 }
 async function hasCloudSidecar(spaceDir) {
   let syncDir = syncStateDirForSpaceDir(spaceDir);
-  return await exists(join25(syncDir, "status.json")) || await exists(join25(syncDir, "capability.json")) || await exists(join25(syncDir, "baseline.json"));
+  return await exists(join26(syncDir, "status.json")) || await exists(join26(syncDir, "capability.json")) || await exists(join26(syncDir, "baseline.json"));
 }
 async function readDaemonBootstrapStateForSpace(input) {
   let envelope = await readDaemonStatusEnvelope({
@@ -17991,7 +18398,7 @@ async function readDaemonBootstrapStateForSpace(input) {
     } : { kind: "missing", sourceSchema: 2 };
   }
   let ready = await readDaemonReadyJson(
-    join25(input.projectsRoot, ".daemon", "ready.json")
+    join26(input.projectsRoot, ".daemon", "ready.json")
   );
   if (typeof ready != "object" || ready === null || Array.isArray(ready))
     return { kind: "missing", sourceSchema: envelope.schemaVersion };
@@ -18011,7 +18418,7 @@ async function readDaemonBootstrapStateForSpace(input) {
 async function readDaemonBootstrapState(spaceDir) {
   return readDaemonBootstrapStateForSpace({
     projectsRoot: dirname11(spaceDir),
-    spaceId: basename3(spaceDir)
+    spaceId: basename4(spaceDir)
   });
 }
 function v2BootstrapBlocker(state) {
@@ -18031,8 +18438,8 @@ function isAuthExpiredLocalCache(input) {
 }
 async function readEngineBootstrapReady(spaceDir) {
   try {
-    let raw = await readFile23(
-      join25(syncStateDirForSpaceDir(spaceDir), "status.json"),
+    let raw = await readFile24(
+      join26(syncStateDirForSpaceDir(spaceDir), "status.json"),
       "utf8"
     );
     return { kind: "ok", ready: JSON.parse(raw).bootstrapReady === !0 };
@@ -18047,13 +18454,13 @@ async function readEngineBootstrapReady(spaceDir) {
 async function hasUsableLocalCache(spaceDir) {
   let status = await readEngineBootstrapReady(spaceDir);
   return status.kind !== "ok" || !status.ready || !await exists(
-    join25(syncStateDirForSpaceDir(spaceDir), "baseline.json")
-  ) ? !1 : exists(join25(spaceDir, "context-tree"));
+    join26(syncStateDirForSpaceDir(spaceDir), "baseline.json")
+  ) ? !1 : exists(join26(spaceDir, "context-tree"));
 }
 async function readStrictMetadata(spaceDir) {
   let raw;
   try {
-    raw = await readFile23(join25(spaceDir, "metadata.json"), "utf8");
+    raw = await readFile24(join26(spaceDir, "metadata.json"), "utf8");
   } catch (err) {
     if (err.code === "ENOENT")
       return { kind: "missing" };
@@ -18087,7 +18494,7 @@ async function classifyCloudSpace(spaceDir) {
     return await hasCloudSidecar(spaceDir) ? { kind: "invalid", reason: "missing metadata with cloud sidecars" } : { kind: "local", reason: "missing_metadata" };
   if (metadata.kind === "invalid")
     return { kind: "invalid", reason: metadata.reason };
-  if (basename3(spaceDir) !== metadata.metadata.space_id)
+  if (basename4(spaceDir) !== metadata.metadata.space_id)
     return { kind: "invalid", reason: "metadata space_id mismatch" };
   let capability = await readCapability(spaceDir);
   if (metadata.metadata.team_id === null && capability.kind !== "ok")
@@ -18117,7 +18524,7 @@ async function classifyCloudSpace(spaceDir) {
     if (!status.ready)
       return { kind: "not_ready", reason: "bootstrap_not_ready" };
     if (!await exists(
-      join25(syncStateDirForSpaceDir(spaceDir), "baseline.json")
+      join26(syncStateDirForSpaceDir(spaceDir), "baseline.json")
     ))
       return { kind: "not_ready", reason: "missing_baseline" };
   }
@@ -18128,7 +18535,7 @@ async function classifyCloudSpace(spaceDir) {
     team_id: capability.capability.team_id,
     can_read: authExpiredLocalCache ? !0 : capability.capability.can_read,
     can_write: authExpiredLocalCache ? !0 : capability.capability.can_write,
-    root: join25(spaceDir, "context-tree")
+    root: join26(spaceDir, "context-tree")
   };
 }
 async function resolveCloudBoundRoot(input) {
@@ -18183,7 +18590,7 @@ async function resolveCloudBoundRoot(input) {
 async function listQueryableCloudRoots(projectsRoot) {
   let entries;
   try {
-    entries = await readdir6(projectsRoot);
+    entries = await readdir7(projectsRoot);
   } catch {
     return [];
   }
@@ -18223,17 +18630,75 @@ async function awaitBaselineReady(spaceDir, opts = {}) {
   }
 }
 
+// src/sync/move-write-context.ts
+async function classifyMoveWriteContext(root) {
+  let spaceDir = dirname12(root), cloud = await classifyCloudSpace(spaceDir);
+  if (cloud.kind === "local") return { kind: "local-only" };
+  if (cloud.kind !== "ready")
+    return { kind: "not-ready", reason: cloud.reason };
+  let capability = await readCapability(spaceDir);
+  if (capability.kind !== "ok")
+    return { kind: "not-ready", reason: "missing_capability" };
+  if (!capability.capability.can_write)
+    return { kind: "not-ready", reason: "read_only" };
+  if (capability.capability.sync_state !== "active")
+    return { kind: "not-ready", reason: "sync_not_active" };
+  if (Date.parse(capability.capability.token_expires_at) <= Date.now())
+    return { kind: "not-ready", reason: "capability_expired" };
+  let projectsRoot = getProjectsDir(), envelope = await readDaemonStatusEnvelope({ projectsRoot });
+  if (envelope.schemaVersion !== 2)
+    return { kind: "not-ready", reason: "missing_daemon_write_context" };
+  let readyModel = await readDaemonSpaceReady({
+    projectsRoot,
+    spaceId: capability.capability.space_id,
+    daemonInstanceId: envelope.daemonInstanceId,
+    currentGlobalSchema: 2
+  });
+  if (readyModel?.sourceSchema !== 2 || readyModel.source !== "per-space")
+    return { kind: "not-ready", reason: "missing_daemon_write_context" };
+  let ready = readyModel.ready, authContext = ready.moveIntentAuthContext;
+  return !ready.ready || !authContext ? { kind: "not-ready", reason: "missing_daemon_write_context" } : authContext.spaceId !== capability.capability.space_id || authContext.teamId !== capability.capability.team_id || !isMoveContextWritable(authContext, Date.now()) ? { kind: "not-ready", reason: "daemon_write_context_mismatch" } : {
+    kind: "synced",
+    syncDir: syncStateDirForContextTreeRoot(root),
+    authContext
+  };
+}
+function moveFailureMessage(reason) {
+  switch (reason) {
+    case "invalid-sync-key":
+      return "cannot move synced topic safely: source or destination path is invalid";
+    case "missing-auth-generation":
+      return "cannot move synced topic safely: sync is not ready; sign in and retry";
+    case "stale-auth-context":
+      return "cannot move synced topic safely: sync credentials are stale; restart sync and retry";
+    case "read-only-or-pull-only":
+      return "cannot move synced topic safely: this space is not writable";
+    case "missing-source-baseline":
+      return "cannot move synced topic safely: source has no synced baseline; run sync and retry";
+    case "missing-topic-identity":
+      return "cannot move synced topic safely: topic has no stable identity; run sync and retry";
+    case "destination-exists":
+      return "cannot move synced topic safely: destination already exists";
+    case "destination-identity-mismatch":
+      return "cannot move synced topic safely: destination is not the same topic; choose a different path";
+    case "record-failed":
+      return "cannot move synced topic safely: move intent could not be recorded; check local disk permissions";
+    default:
+      return "cannot move synced topic safely: sync is not ready; sign in and retry";
+  }
+}
+
 // src/space-identity.ts
-import { chmod as chmod6, mkdir as mkdir17, readFile as readFile24, unlink as unlink2, writeFile as writeFile16 } from "node:fs/promises";
-import { join as join26 } from "node:path";
-var publicIdentityPath = (spaceDir) => join26(spaceDir, "identity.json"), privateKeyDir = (spaceDir) => join26(spaceDir, "identity"), plaintextKeyPath = (spaceDir, spaceId) => join26(privateKeyDir(spaceDir), `${spaceId}.key.pem`);
+import { chmod as chmod7, mkdir as mkdir18, readFile as readFile25, unlink as unlink2, writeFile as writeFile17 } from "node:fs/promises";
+import { join as join27 } from "node:path";
+var publicIdentityPath = (spaceDir) => join27(spaceDir, "identity.json"), privateKeyDir = (spaceDir) => join27(spaceDir, "identity"), plaintextKeyPath = (spaceDir, spaceId) => join27(privateKeyDir(spaceDir), `${spaceId}.key.pem`);
 function resolvePassphrase(opts) {
   return opts?.passphrase;
 }
 async function readRecord(spaceDir) {
   let raw;
   try {
-    raw = await readFile24(publicIdentityPath(spaceDir), "utf8");
+    raw = await readFile25(publicIdentityPath(spaceDir), "utf8");
   } catch (e) {
     if (e.code === "ENOENT") return null;
     throw e;
@@ -18279,7 +18744,7 @@ async function persistNewIdentity(spaceDir, spaceId, opts) {
     );
   else {
     let keyPath = plaintextKeyPath(spaceDir, spaceId);
-    await writeFile16(keyPath, privateKeyPem, { mode: 384 }), await chmod6(keyPath, 384);
+    await writeFile17(keyPath, privateKeyPem, { mode: 384 }), await chmod7(keyPath, 384);
   }
   let record = {
     space_id: spaceId,
@@ -18289,7 +18754,7 @@ async function persistNewIdentity(spaceDir, spaceId, opts) {
     key_storage: keyStorage,
     created_at: (/* @__PURE__ */ new Date()).toISOString()
   };
-  return await writeFile16(
+  return await writeFile17(
     publicIdentityPath(spaceDir),
     `${JSON.stringify(record, null, 2)}
 `,
@@ -18299,10 +18764,10 @@ async function persistNewIdentity(spaceDir, spaceId, opts) {
 async function getOrCreateSpaceIdentity(spaceDir, spaceId, opts) {
   let existing = await readRecord(spaceDir);
   if (existing) return toPublic(existing);
-  await mkdir17(privateKeyDir(spaceDir), { recursive: !0, mode: 448 }), await chmod6(privateKeyDir(spaceDir), 448);
-  let lockPath2 = join26(privateKeyDir(spaceDir), `${spaceId}.lock`), won = !1;
+  await mkdir18(privateKeyDir(spaceDir), { recursive: !0, mode: 448 }), await chmod7(privateKeyDir(spaceDir), 448);
+  let lockPath2 = join27(privateKeyDir(spaceDir), `${spaceId}.lock`), won = !1;
   try {
-    await writeFile16(lockPath2, String(process.pid), { flag: "wx", mode: 384 }), won = !0;
+    await writeFile17(lockPath2, String(process.pid), { flag: "wx", mode: 384 }), won = !0;
   } catch (e) {
     if (e.code !== "EEXIST") throw e;
   }
@@ -18336,7 +18801,7 @@ async function loadSpacePrivateKey(spaceDir, spaceId, opts) {
     );
   }
   try {
-    return await readFile24(plaintextKeyPath(spaceDir, spaceId), "utf8");
+    return await readFile25(plaintextKeyPath(spaceDir, spaceId), "utf8");
   } catch (e) {
     if (e.code === "ENOENT") return null;
     throw e;
@@ -18346,17 +18811,17 @@ async function loadSpacePrivateKey(spaceDir, spaceId, opts) {
 // src/sync/config.ts
 import {
   access as access3,
-  chmod as chmod7,
-  mkdir as mkdir18,
-  readFile as readFile25,
-  rename as rename11,
-  writeFile as writeFile17
+  chmod as chmod8,
+  mkdir as mkdir19,
+  readFile as readFile26,
+  rename as rename12,
+  writeFile as writeFile18
 } from "node:fs/promises";
-import { dirname as dirname12, join as join27 } from "node:path";
+import { dirname as dirname13, join as join28 } from "node:path";
 var FILE = "sync.json";
 async function readConfig(syncDir) {
   try {
-    let raw = await readFile25(join27(syncDir, FILE), "utf8");
+    let raw = await readFile26(join28(syncDir, FILE), "utf8");
     return JSON.parse(raw);
   } catch {
     return null;
@@ -18456,8 +18921,8 @@ async function mintToken(input) {
 }
 
 // src/disclosure-manifest.ts
-import { createHash as createHash6 } from "node:crypto";
-var sha256hex = (s) => createHash6("sha256").update(s, "utf8").digest("hex"), MANIFEST_PREFIX = "byterover.disclosure-manifest.v1", POLICY_VERSION = "2", REDACTION_ALGORITHM = {
+import { createHash as createHash8 } from "node:crypto";
+var sha256hex = (s) => createHash8("sha256").update(s, "utf8").digest("hex"), MANIFEST_PREFIX = "byterover.disclosure-manifest.v1", POLICY_VERSION = "2", REDACTION_ALGORITHM = {
   full: "full-v1",
   metadata: "metadata-allowlist-v2",
   redacted: "strip-bv-fact-non-public-v2"
@@ -18512,7 +18977,7 @@ function verifyHtmlTopic(html, publicKeyPem) {
 }
 
 // src/command-event.ts
-import { randomUUID as randomUUID6 } from "node:crypto";
+import { randomUUID as randomUUID7 } from "node:crypto";
 
 // src/config.ts
 var ANALYTICS_TELEMETRY_URL = "https://v4-telemetry.byterover.dev", ANALYTICS_ENABLED = ANALYTICS_TELEMETRY_URL.length > 0, rawMaxBytes = 0, EVENT_MAX_BYTES = Number.isInteger(rawMaxBytes) && rawMaxBytes > 0 ? rawMaxBytes : 4096, rawCapabilityRefresh = "", CAPABILITY_REFRESH_ENABLED = !["0", "false", "off"].includes(
@@ -18546,7 +19011,7 @@ function buildEventProperties(input, cap) {
     ...attribution
   };
   if (byteLen(inline) <= effectiveCap) return [inline];
-  let groupId = randomUUID6(), metaTemplate = {
+  let groupId = randomUUID7(), metaTemplate = {
     command: input.command,
     cwd: process.cwd(),
     ok: input.result.ok,
@@ -18624,7 +19089,7 @@ async function spaceAttributionForRoot(root) {
   let space_id = spaceIdFromContextTreeRoot(resolve10(root));
   if (space_id === null) return {};
   try {
-    let meta = await readSpaceMetadata(join28(getProjectsDir(), space_id));
+    let meta = await readSpaceMetadata(join29(getProjectsDir(), space_id));
     return {
       space_id,
       ...meta?.team_id ? { team_id: meta.team_id } : {}
@@ -18634,8 +19099,8 @@ async function spaceAttributionForRoot(root) {
   }
 }
 function spaceIdFromContextTreeRoot(root) {
-  if (basename4(root) !== "context-tree") return null;
-  let candidate = basename4(dirname13(root));
+  if (basename5(root) !== "context-tree") return null;
+  let candidate = basename5(dirname14(root));
   return isUuid(candidate) ? candidate : null;
 }
 function pickMostRecentBindingForSpace(bindings, space_id) {
@@ -18647,14 +19112,14 @@ function pickMostRecentBindingForSpace(bindings, space_id) {
 async function findSpaceIdByDisplayName(displayName) {
   let entries = [];
   try {
-    entries = await readdir7(getProjectsDir());
+    entries = await readdir8(getProjectsDir());
   } catch {
     return null;
   }
   for (let name of entries)
     if (isUuid(name))
       try {
-        let meta = await readSpaceMetadata(join28(getProjectsDir(), name));
+        let meta = await readSpaceMetadata(join29(getProjectsDir(), name));
         if (meta !== null && meta.space_name === displayName)
           return meta.space_id;
       } catch {
@@ -18746,7 +19211,7 @@ async function recordDeleteIntentBestEffort(root, prefix) {
   }
 }
 function spaceIdFromRoot(root) {
-  let parent = basename4(dirname13(root));
+  let parent = basename5(dirname14(root));
   if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
     parent
   ))
@@ -18754,7 +19219,7 @@ function spaceIdFromRoot(root) {
 }
 function resolveWebBaseUrl() {
   try {
-    let portPath = join28(getGlobalDataDir(), "bridge-port.txt"), raw = readFileSync2(portPath, "utf8").trim();
+    let portPath = join29(getGlobalDataDir(), "bridge-port.txt"), raw = readFileSync2(portPath, "utf8").trim();
     if (/^\d+$/.test(raw)) {
       let port = Number(raw);
       if (port > 0 && port < 65536) return `http://127.0.0.1:${port}`;
@@ -19005,7 +19470,7 @@ async function runCommand(name, argv) {
   let { positionals, flags } = parseArgs(argv);
   switch (name) {
     case "record": {
-      let startedAt = Date.now(), taskId = randomUUID7(), path2 = positionals[0];
+      let startedAt = Date.now(), taskId = randomUUID8(), path2 = positionals[0];
       if (!path2) return { ok: !1, error: "record requires a topic path" };
       let resolvedRoot = await rootForRecord(flags);
       if (resolvedRoot.kind === "error") return resolvedRoot.result;
@@ -19083,7 +19548,7 @@ async function runCommand(name, argv) {
       };
     }
     case "prune": {
-      let startedAt = Date.now(), taskId = randomUUID7(), paths = positionals.filter((p) => !!p);
+      let startedAt = Date.now(), taskId = randomUUID8(), paths = positionals.filter((p) => !!p);
       if (paths.length === 0)
         return {
           ok: !1,
@@ -19163,7 +19628,7 @@ async function runCommand(name, argv) {
       };
     }
     case "synthesize": {
-      let startedAt = Date.now(), taskId = randomUUID7(), newPath = positionals[0];
+      let startedAt = Date.now(), taskId = randomUUID8(), newPath = positionals[0];
       if (!newPath)
         return {
           ok: !1,
@@ -19304,7 +19769,7 @@ async function runCommand(name, argv) {
       };
     }
     case "move": {
-      let startedAt = Date.now(), taskId = randomUUID7(), topicPath = positionals[0], toPathFlag = str2(flags["to-path"]), fromSpaceFlag = str2(flags["from-space"]), toSpaceFlag = str2(flags["to-space"]);
+      let startedAt = Date.now(), taskId = randomUUID8(), topicPath = positionals[0], toPathFlag = str2(flags["to-path"]), fromSpaceFlag = str2(flags["from-space"]), toSpaceFlag = str2(flags["to-space"]);
       if (!topicPath)
         return {
           ok: !1,
@@ -19326,9 +19791,20 @@ async function runCommand(name, argv) {
             ok: !1,
             error: `move source and destination paths are the same; nothing to do ("${sourceRel}")`
           };
+        let moveWriteContext = await classifyMoveWriteContext(root);
+        if (moveWriteContext.kind === "not-ready")
+          return {
+            ok: !1,
+            error: "cannot move synced topic safely: sync is not ready; sign in and retry"
+          };
+        if (moveWriteContext.kind === "synced" && flags.overwrite === !0)
+          return {
+            ok: !1,
+            error: "cannot move synced topic safely: --overwrite is not supported for synced moves"
+          };
         let sourceAbs = resolveWithinTree(root, sourceRel), sourceHtml2;
         try {
-          sourceHtml2 = await readFile26(sourceAbs, "utf8");
+          sourceHtml2 = await readFile27(sourceAbs, "utf8");
         } catch {
           return {
             ok: !1,
@@ -19340,10 +19816,31 @@ async function runCommand(name, argv) {
         );
         for (let sib of siblings2)
           try {
-            let sibAbs = resolveWithinTree(root, sib), sibHtml = await readFile26(sibAbs, "utf8"), related = readTopicRootAttribute(sibHtml, "related");
+            let sibAbs = resolveWithinTree(root, sib), sibHtml = await readFile27(sibAbs, "utf8"), related = readTopicRootAttribute(sibHtml, "related");
             parseRelatedAttr(related).some((ref) => refTargets(ref, sourceRel)) && danglingRefs2.push(sib);
           } catch {
           }
+        let syncedSourceId, syncedBaseline;
+        if (moveWriteContext.kind === "synced" && (syncedSourceId = readTopicRootAttribute(sourceHtml2, "id"), syncedBaseline = await new SyncState(
+          moveWriteContext.syncDir
+        ).getBaseline()), moveWriteContext.kind === "synced") {
+          let preflight = await validateMoveIntentForLocalRename({
+            syncDir: moveWriteContext.syncDir,
+            authContext: moveWriteContext.authContext,
+            from: sourceRel,
+            to: targetRel,
+            topicIdentity: syncedSourceId,
+            sourceBaseline: syncedBaseline?.[sourceRel],
+            destination: {
+              policy: "must-be-absent",
+              readState: async () => ({
+                exists: existsSync4(resolveWithinTree(root, targetRel))
+              })
+            }
+          });
+          if (!preflight.ok)
+            return { ok: !1, error: moveFailureMessage(preflight.reason) };
+        }
         let newKnowledgePath = knowledgePath(targetRel), rewrittenHtml = rewriteTopicPath(sourceHtml2, newKnowledgePath);
         if (rewrittenHtml === void 0)
           return {
@@ -19381,7 +19878,42 @@ async function runCommand(name, argv) {
           root,
           writeResult2.relPath,
           () => createDefaultRuntimeSignals()
-        ), await recordDeleteIntentBestEffort(root, sourceRel), !(await applyDelete(root, topicPath)).ok)
+        ), moveWriteContext.kind === "synced") {
+          let prepared = await prepareMoveIntentForLocalRename({
+            syncDir: moveWriteContext.syncDir,
+            authContext: moveWriteContext.authContext,
+            from: sourceRel,
+            to: writeResult2.relPath,
+            topicIdentity: syncedSourceId,
+            sourceBaseline: syncedBaseline?.[sourceRel],
+            destination: {
+              policy: "must-match-topic-identity",
+              readState: async () => ({
+                exists: existsSync4(
+                  resolveWithinTree(root, writeResult2.relPath)
+                ),
+                identity: readTopicRootAttribute(
+                  await readFile27(
+                    resolveWithinTree(root, writeResult2.relPath),
+                    "utf8"
+                  ),
+                  "id"
+                )
+              })
+            }
+          });
+          if (!prepared.ok)
+            return await applyDelete(root, writeResult2.relPath).catch(() => {
+            }), await deleteSignal(root, writeResult2.relPath).catch(
+              () => {
+              }
+            ), await rebuildManifest(root).catch(() => {
+            }), await rebuildIndex(root, { now: (/* @__PURE__ */ new Date()).toISOString() }).catch(
+              () => {
+              }
+            ), { ok: !1, error: moveFailureMessage(prepared.reason) };
+        }
+        if (!(await applyDelete(root, topicPath)).ok)
           return await emit2({
             name: AnalyticsEventNames.RECORD_RUN_COMPLETED,
             properties: {
@@ -19473,7 +20005,7 @@ async function runCommand(name, argv) {
       if (toBlocked) return toBlocked;
       let rel = canonicalRel(topicPath), fromAbs = resolveWithinTree(fromRoot, rel), sourceHtml;
       try {
-        sourceHtml = await readFile26(fromAbs, "utf8");
+        sourceHtml = await readFile27(fromAbs, "utf8");
       } catch {
         return {
           ok: !1,
@@ -19483,7 +20015,7 @@ async function runCommand(name, argv) {
       let sourceSignal = await getSignal(fromRoot, rel), danglingRefs = [], siblings = (await listTopics(fromRoot)).filter((p) => p !== rel);
       for (let sib of siblings)
         try {
-          let sibAbs = resolveWithinTree(fromRoot, sib), sibHtml = await readFile26(sibAbs, "utf8"), related = readTopicRootAttribute(sibHtml, "related");
+          let sibAbs = resolveWithinTree(fromRoot, sib), sibHtml = await readFile27(sibAbs, "utf8"), related = readTopicRootAttribute(sibHtml, "related");
           parseRelatedAttr(related).some((ref) => refTargets(ref, rel)) && danglingRefs.push(sib);
         } catch {
         }
@@ -19592,7 +20124,7 @@ async function runCommand(name, argv) {
       };
     }
     case "read": {
-      let startedAt = Date.now(), taskId = randomUUID7(), path2 = positionals[0];
+      let startedAt = Date.now(), taskId = randomUUID8(), path2 = positionals[0];
       if (!path2)
         return await emit2({
           name: AnalyticsEventNames.READ_COMPLETED,
@@ -19691,7 +20223,7 @@ async function runCommand(name, argv) {
     }
     case "query":
     case "search": {
-      let startedAt = Date.now(), taskId = randomUUID7(), query = positionals.join(" "), QUERY_TEXT_MAX = 512, queryProp = query.length === 0 ? {} : {
+      let startedAt = Date.now(), taskId = randomUUID8(), query = positionals.join(" "), QUERY_TEXT_MAX = 512, queryProp = query.length === 0 ? {} : {
         query: query.length > QUERY_TEXT_MAX ? `${query.slice(0, QUERY_TEXT_MAX - 1)}\u2026` : query
       }, limit = str2(flags.limit) ? Number(str2(flags.limit)) : 10, resolvedRoots = await rootsForQuery(flags);
       if (resolvedRoots.kind === "error") return resolvedRoots.result;
@@ -19848,7 +20380,7 @@ async function runCommand(name, argv) {
         }), blocks = [], matchedDocs = [];
         for (let hit of hits)
           try {
-            let abs = resolveWithinTree(root, hit.path), raw = await readFile26(abs, "utf8");
+            let abs = resolveWithinTree(root, hit.path), raw = await readFile27(abs, "utf8");
             blocks.push(raw), matchedDocs.push({
               path: hit.path,
               title: hit.title,
@@ -19873,9 +20405,9 @@ async function runCommand(name, argv) {
       }
     }
     case "dream": {
-      let startedAt = Date.now(), taskId = randomUUID7(), root = await rootFrom(flags), blocked = await legacyGuard(root);
+      let startedAt = Date.now(), taskId = randomUUID8(), root = await rootFrom(flags), blocked = await legacyGuard(root);
       if (blocked) return blocked;
-      let mode = str2(flags.mode) ?? "merge", num = (key) => str2(flags[key]) !== void 0 ? Number(str2(flags[key])) : void 0, minScore = num("min-score"), limit = num("limit"), candidates;
+      let mode = str2(flags.mode) ?? "merge", num = (key) => str2(flags[key]) !== void 0 ? Number(str2(flags[key])) : void 0, minScore = num("min-score"), limit = num("limit"), candidates, staleCandidateCount;
       switch (mode) {
         case "link": {
           candidates = await findLinkCandidates(root, { limit, minScore });
@@ -19886,11 +20418,12 @@ async function runCommand(name, argv) {
           break;
         }
         case "prune": {
-          candidates = await findPruneCandidates(root, {
+          let pruneCandidates = await findPruneCandidates(root, {
             limit,
             maxImportance: num("max-importance"),
             now: (/* @__PURE__ */ new Date()).toISOString()
           });
+          candidates = pruneCandidates, staleCandidateCount = countStaleCandidates(pruneCandidates);
           break;
         }
         case "synthesize": {
@@ -19910,6 +20443,7 @@ async function runCommand(name, argv) {
         name: AnalyticsEventNames.DREAM_COMPLETED,
         properties: {
           candidate_count: candidateCount,
+          ...staleCandidateCount !== void 0 ? { stale_candidate_count: staleCandidateCount } : {},
           duration_ms: Date.now() - startedAt,
           mode,
           outcome: "completed",
@@ -19921,7 +20455,7 @@ async function runCommand(name, argv) {
       }), { ok: !0, data: { candidates, mode } };
     }
     case "merge": {
-      let startedAt = Date.now(), taskId = randomUUID7(), survivorPath = positionals[0], loserPath = positionals[1];
+      let startedAt = Date.now(), taskId = randomUUID8(), survivorPath = positionals[0], loserPath = positionals[1];
       if (!survivorPath || !loserPath)
         return {
           ok: !1,
@@ -20054,12 +20588,12 @@ async function countTopics(root) {
   async function walk3(dir) {
     let entries;
     try {
-      entries = await readdir7(dir, { withFileTypes: !0 });
+      entries = await readdir8(dir, { withFileTypes: !0 });
     } catch {
       return;
     }
     for (let e of entries) {
-      let abs = join28(dir, e.name);
+      let abs = join29(dir, e.name);
       e.isDirectory() ? await walk3(abs) : e.name.endsWith(".html") && count++;
     }
   }
@@ -20068,7 +20602,7 @@ async function countTopics(root) {
 async function runSpaceList() {
   let dir = getProjectsDir(), onDisk = /* @__PURE__ */ new Set();
   try {
-    let entries = await readdir7(dir, { withFileTypes: !0 });
+    let entries = await readdir8(dir, { withFileTypes: !0 });
     for (let e of entries)
       e.isDirectory() && isUuid(e.name) && onDisk.add(e.name);
   } catch {
@@ -20082,7 +20616,7 @@ async function runSpaceList() {
   let ids = [...onDisk].sort();
   return { ok: !0, data: { spaces: await Promise.all(
     ids.map(async (space_id) => {
-      let meta = await readSpaceMetadata(join28(dir, space_id)).catch(
+      let meta = await readSpaceMetadata(join29(dir, space_id)).catch(
         () => null
       ), root = spaceContextTreePath(space_id), topicCount = await pathExists(root) ? await countTopics(root) : 0;
       return {
@@ -20113,7 +20647,7 @@ async function runSpaceCurrent() {
   };
   resolution.source === "marker" && (data.markerPath = resolution.markerPath);
   let meta = await readSpaceMetadata(
-    join28(getProjectsDir(), resolution.space_id)
+    join29(getProjectsDir(), resolution.space_id)
   ).catch(() => null);
   return meta !== null ? data.space_name = meta.space_name : resolution.source === "marker" && (data.space_name = resolution.space_name), resolution.source === "registry" && (data.bindingFolder = resolution.bindingFolder), resolution.deleted !== void 0 && (data.deleted = resolution.deleted), resolution.source === "default" && !await hasTipBeenShown(process.cwd()) && (data.tip = 'Using the default space. To work in a named space, create one in the ByteRover desktop app and then run `space bind "<name>"` from this folder.'), { ok: !0, data };
 }
@@ -20140,7 +20674,7 @@ async function runSpaceIdentity() {
   };
 }
 async function buildTopicSignerForRoot(root) {
-  let spaceDir = dirname13(root), spaceId = basename4(spaceDir), privateKeyPem = await loadSpacePrivateKey(spaceDir, spaceId).catch(
+  let spaceDir = dirname14(root), spaceId = basename5(spaceDir), privateKeyPem = await loadSpacePrivateKey(spaceDir, spaceId).catch(
     () => null
   );
   if (!privateKeyPem) return;
@@ -20154,7 +20688,7 @@ async function buildTopicSignerForRoot(root) {
 async function runSpaceReidentify(flags) {
   let resolved = await rootForRecord(flags);
   if (resolved.kind === "error") return resolved.result;
-  let root = resolved.root, spaceDir = dirname13(root), spaceId = basename4(spaceDir), identity = await readSpaceIdentity(spaceDir).catch(() => null), signer = await buildTopicSignerForRoot(root);
+  let root = resolved.root, spaceDir = dirname14(root), spaceId = basename5(spaceDir), identity = await readSpaceIdentity(spaceDir).catch(() => null), signer = await buildTopicSignerForRoot(root);
   if (!identity || !signer || identity.space_id !== spaceId)
     return {
       ok: !1,
@@ -20163,7 +20697,7 @@ async function runSpaceReidentify(flags) {
     };
   let topics = await listTopics(root), failed = [], resigned = 0;
   for (let rel of topics) {
-    let rawHtml = await readFile26(join28(root, rel), "utf8").catch(() => null);
+    let rawHtml = await readFile27(join29(root, rel), "utf8").catch(() => null);
     if (rawHtml === null) {
       failed.push(rel);
       continue;
@@ -20226,7 +20760,7 @@ async function runSpaceVerify(topicPath, flags) {
       code: "ambiguous-space",
       error: "space verify needs a single space; bind one (`space bind`) or pass `--space`/`--root`"
     };
-  let root = selection.root, identity = await readSpaceIdentity(dirname13(root));
+  let root = selection.root, identity = await readSpaceIdentity(dirname14(root));
   if (!identity)
     return {
       ok: !1,
@@ -20242,7 +20776,7 @@ async function runSpaceVerify(topicPath, flags) {
     };
   let html;
   try {
-    html = await readFile26(abs, "utf8");
+    html = await readFile27(abs, "utf8");
   } catch {
     return { ok: !1, code: "not-found", error: `topic not found: ${topicPath}` };
   }
@@ -20295,13 +20829,13 @@ async function runSpaceDisclose(topicPath, flags) {
     };
   let html;
   try {
-    html = await readFile26(abs, "utf8");
+    html = await readFile27(abs, "utf8");
   } catch {
     return { ok: !1, code: "not-found", error: `topic not found: ${topicPath}` };
   }
   let layeredHtml = materializeLayer(html, layer);
   if (flags.manifest === !0) {
-    let spaceDir = dirname13(root), identity = await readSpaceIdentity(spaceDir), privateKeyPem = identity ? await loadSpacePrivateKey(spaceDir, basename4(spaceDir)).catch(() => null) : null;
+    let spaceDir = dirname14(root), identity = await readSpaceIdentity(spaceDir), privateKeyPem = identity ? await loadSpacePrivateKey(spaceDir, basename5(spaceDir)).catch(() => null) : null;
     if (!identity || !privateKeyPem)
       return {
         ok: !1,
@@ -20359,7 +20893,7 @@ async function runSpaceBind(name) {
     }
     space_id = resolution.space_id;
     let meta = await readSpaceMetadata(
-      join28(getProjectsDir(), space_id)
+      join29(getProjectsDir(), space_id)
     ).catch(() => null);
     meta !== null ? space_name = meta.space_name : resolution.source === "marker" ? space_name = resolution.space_name : space_name = "Untitled Space", pinned = !0;
   }
@@ -20375,7 +20909,7 @@ async function runSpaceBind(name) {
   return await addBinding(cwd, space_id), {
     data: {
       folder: cwd,
-      marker: join28(cwd, MARKER_FILENAME),
+      marker: join29(cwd, MARKER_FILENAME),
       pinnedFromResolver: pinned,
       space_id,
       space_name
@@ -20384,7 +20918,7 @@ async function runSpaceBind(name) {
   };
 }
 async function runSpaceUnbind() {
-  let cwd = process.cwd(), markerPath = join28(cwd, MARKER_FILENAME), previousSpaceId, marker = await readMarkerAt(cwd).catch(() => null);
+  let cwd = process.cwd(), markerPath = join29(cwd, MARKER_FILENAME), previousSpaceId, marker = await readMarkerAt(cwd).catch(() => null);
   marker !== null && (previousSpaceId = marker.space_id);
   let active = (await readBindings()).find(
     (b) => resolve10(b.folder) === resolve10(cwd) && b.removedAt === void 0
@@ -20397,7 +20931,7 @@ async function runSpaceUnbind() {
     };
   if (marker !== null)
     try {
-      await rm17(markerPath, { force: !0 });
+      await rm18(markerPath, { force: !0 });
     } catch (err) {
       return {
         ok: !1,
@@ -20455,7 +20989,7 @@ async function runSpaceRename(oldName, newName, _flags) {
       error: `A space named "${newName}" already exists`,
       ok: !1
     };
-  let spaceDir = join28(getProjectsDir(), space_id), meta = await readSpaceMetadata(spaceDir);
+  let spaceDir = join29(getProjectsDir(), space_id), meta = await readSpaceMetadata(spaceDir);
   return meta === null ? {
     code: "no-metadata",
     error: `Space ${space_id} has no metadata.json \u2014 cannot rename`,

@@ -1,5 +1,11 @@
 # skill
 
+## 4.0.9
+
+### Patch Changes
+
+- Stamp a ByteRover User-Agent on outgoing skill requests, harden synced move intent handling, encrypt daemon device refresh tokens, bind the onboarding recall space correctly, and include stale candidate counts in prune-dream analytics.
+
 ## 4.0.8
 
 ### Patch Changes

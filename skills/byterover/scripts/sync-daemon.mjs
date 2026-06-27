@@ -2937,7 +2937,7 @@ var require_extension = __commonJS({
 var require_websocket = __commonJS({
   "../../node_modules/.pnpm/ws@8.20.1/node_modules/ws/lib/websocket.js"(exports, module) {
     "use strict";
-    var EventEmitter = __require("events"), https = __require("https"), http = __require("http"), net = __require("net"), tls = __require("tls"), { randomBytes: randomBytes3, createHash: createHash12 } = __require("crypto"), { Duplex, Readable: Readable2 } = __require("stream"), { URL: URL2 } = __require("url"), PerMessageDeflate2 = require_permessage_deflate(), Receiver2 = require_receiver(), Sender2 = require_sender(), { isBlob } = require_validation(), {
+    var EventEmitter = __require("events"), https = __require("https"), http = __require("http"), net = __require("net"), tls = __require("tls"), { randomBytes: randomBytes4, createHash: createHash13 } = __require("crypto"), { Duplex, Readable: Readable2 } = __require("stream"), { URL: URL2 } = __require("url"), PerMessageDeflate2 = require_permessage_deflate(), Receiver2 = require_receiver(), Sender2 = require_sender(), { isBlob } = require_validation(), {
       BINARY_TYPES,
       CLOSE_TIMEOUT,
       EMPTY_BUFFER,
@@ -3315,7 +3315,7 @@ var require_websocket = __commonJS({
         emitErrorAndClose(websocket, err);
         return;
       }
-      let defaultPort = isSecure ? 443 : 80, key = randomBytes3(16).toString("base64"), request = isSecure ? https.request : http.request, protocolSet = /* @__PURE__ */ new Set(), perMessageDeflate;
+      let defaultPort = isSecure ? 443 : 80, key = randomBytes4(16).toString("base64"), request = isSecure ? https.request : http.request, protocolSet = /* @__PURE__ */ new Set(), perMessageDeflate;
       if (opts.createConnection = opts.createConnection || (isSecure ? tlsConnect : netConnect), opts.defaultPort = opts.defaultPort || defaultPort, opts.port = parsedUrl.port || defaultPort, opts.host = parsedUrl.hostname.startsWith("[") ? parsedUrl.hostname.slice(1, -1) : parsedUrl.hostname, opts.headers = {
         ...opts.headers,
         "Sec-WebSocket-Version": opts.protocolVersion,
@@ -3391,7 +3391,7 @@ var require_websocket = __commonJS({
           abortHandshake(websocket, socket, "Invalid Upgrade header");
           return;
         }
-        let digest = createHash12("sha1").update(key + GUID).digest("base64");
+        let digest = createHash13("sha1").update(key + GUID).digest("base64");
         if (res.headers["sec-websocket-accept"] !== digest) {
           abortHandshake(websocket, socket, "Invalid Sec-WebSocket-Accept header");
           return;
@@ -3627,7 +3627,7 @@ var require_subprotocol = __commonJS({
 var require_websocket_server = __commonJS({
   "../../node_modules/.pnpm/ws@8.20.1/node_modules/ws/lib/websocket-server.js"(exports, module) {
     "use strict";
-    var EventEmitter = __require("events"), http = __require("http"), { Duplex } = __require("stream"), { createHash: createHash12 } = __require("crypto"), extension2 = require_extension(), PerMessageDeflate2 = require_permessage_deflate(), subprotocol2 = require_subprotocol(), WebSocket2 = require_websocket(), { CLOSE_TIMEOUT, GUID, kWebSocket } = require_constants(), keyRegex = /^[+/0-9A-Za-z]{22}==$/, RUNNING = 0, CLOSING = 1, CLOSED = 2, WebSocketServer2 = class extends EventEmitter {
+    var EventEmitter = __require("events"), http = __require("http"), { Duplex } = __require("stream"), { createHash: createHash13 } = __require("crypto"), extension2 = require_extension(), PerMessageDeflate2 = require_permessage_deflate(), subprotocol2 = require_subprotocol(), WebSocket2 = require_websocket(), { CLOSE_TIMEOUT, GUID, kWebSocket } = require_constants(), keyRegex = /^[+/0-9A-Za-z]{22}==$/, RUNNING = 0, CLOSING = 1, CLOSED = 2, WebSocketServer2 = class extends EventEmitter {
       /**
        * Create a `WebSocketServer` instance.
        *
@@ -3868,7 +3868,7 @@ var require_websocket_server = __commonJS({
           "HTTP/1.1 101 Switching Protocols",
           "Upgrade: websocket",
           "Connection: Upgrade",
-          `Sec-WebSocket-Accept: ${createHash12("sha1").update(key + GUID).digest("base64")}`
+          `Sec-WebSocket-Accept: ${createHash13("sha1").update(key + GUID).digest("base64")}`
         ], ws = new this.options.WebSocket(null, void 0, this.options);
         if (protocols.size) {
           let protocol4 = this.options.handleProtocols ? this.options.handleProtocols(protocols, req) : protocols.values().next().value;
@@ -14650,24 +14650,19 @@ var DAEMON_DIRNAME = ".daemon", DAEMON_SPACES_DIRNAME = "spaces", SYNC_STATE_DIR
 function getGlobalDataDir() {
   let override = process.env.BRV_DATA_DIR;
   if (override) return override;
-  let currentPlatform = platform();
+  let dirName = process.env.BRV_DATA_DIRNAME?.trim() || GLOBAL_DATA_DIRNAME, currentPlatform = platform();
   if (currentPlatform === "win32") {
     let localAppData = process.env.LOCALAPPDATA;
-    return localAppData !== void 0 ? join3(localAppData, GLOBAL_DATA_DIRNAME) : join3(homedir(), "AppData", "Local", GLOBAL_DATA_DIRNAME);
+    return localAppData !== void 0 ? join3(localAppData, dirName) : join3(homedir(), "AppData", "Local", dirName);
   }
   if (currentPlatform === "darwin")
-    return join3(
-      homedir(),
-      "Library",
-      "Application Support",
-      GLOBAL_DATA_DIRNAME
-    );
+    return join3(homedir(), "Library", "Application Support", dirName);
   if (currentPlatform === "linux") {
     let xdgDataHome = process.env.XDG_DATA_HOME;
     if (xdgDataHome && isAbsolute(xdgDataHome))
-      return join3(xdgDataHome, GLOBAL_DATA_DIRNAME);
+      return join3(xdgDataHome, dirName);
   }
-  return join3(homedir(), ".local", "share", GLOBAL_DATA_DIRNAME);
+  return join3(homedir(), ".local", "share", dirName);
 }
 function getProjectsDir() {
   return join3(getGlobalDataDir(), PROJECTS_DIRNAME);
@@ -16709,8 +16704,8 @@ async function withRegistryLock(fn) {
       break;
     } catch (err) {
       if (!isErrnoCode(err, "EEXIST")) throw err;
-      let stat12 = await lstat(lock).catch(() => null);
-      if (stat12 && Date.now() - stat12.mtimeMs > LOCK_STALE_MS) {
+      let stat11 = await lstat(lock).catch(() => null);
+      if (stat11 && Date.now() - stat11.mtimeMs > LOCK_STALE_MS) {
         await rm5(lock, { force: !0 });
         continue;
       }
@@ -16926,6 +16921,9 @@ var RecordRunCompletedSchema = external_exports.object({
 var DreamCompletedSchema = external_exports.object({
   /** How many candidate pairs / paths / clusters the engine returned. */
   candidate_count: external_exports.number().int().nonnegative(),
+  /** Subset of candidate_count that surfaced as STALE (prune mode only;
+   *  reason ∈ {stale-mtime, both}). Optional: omitted for merge/link/synthesize. */
+  stale_candidate_count: external_exports.number().int().nonnegative().optional(),
   duration_ms: external_exports.number().int().nonnegative(),
   mode: external_exports.enum(DREAM_MODES),
   outcome: external_exports.enum(["completed", "cancelled", "error"]),
@@ -17757,22 +17755,22 @@ function describeErr4(err) {
   return err instanceof Error ? err.message : String(err);
 }
 
+// src/config.ts
+var SKILL_VERSION = "4.0.9", AUTH_URL = "https://v4-app.byterover.dev", BASE_URL = "https://v4-be.byterover.dev", CAPABILITY_WS_URL = "https://v4-be.byterover.dev", ANALYTICS_TELEMETRY_URL = "https://v4-telemetry.byterover.dev", ANALYTICS_ENABLED = ANALYTICS_TELEMETRY_URL.length > 0, rawMaxBytes = 0, EVENT_MAX_BYTES = Number.isInteger(rawMaxBytes) && rawMaxBytes > 0 ? rawMaxBytes : 4096, rawCapabilityRefresh = "", CAPABILITY_REFRESH_ENABLED = !["0", "false", "off"].includes(
+  rawCapabilityRefresh.trim().toLowerCase()
+);
+
 // src/sync/daemon.ts
 import {
   appendFile as appendFile2,
   chmod as chmod8,
   lstat as lstat3,
   readFile as readFile26,
-  readdir as readdir9,
+  readdir as readdir10,
   realpath as realpath3,
   rm as rm21
 } from "node:fs/promises";
 import { join as join35, sep as sep9 } from "node:path";
-
-// src/config.ts
-var SKILL_VERSION = "4.0.8", AUTH_URL = "https://v4-app.byterover.dev", BASE_URL = "https://v4-be.byterover.dev", CAPABILITY_WS_URL = "https://v4-be.byterover.dev", ANALYTICS_TELEMETRY_URL = "https://v4-telemetry.byterover.dev", ANALYTICS_ENABLED = ANALYTICS_TELEMETRY_URL.length > 0, rawMaxBytes = 0, EVENT_MAX_BYTES = Number.isInteger(rawMaxBytes) && rawMaxBytes > 0 ? rawMaxBytes : 4096, rawCapabilityRefresh = "", CAPABILITY_REFRESH_ENABLED = !["0", "false", "off"].includes(
-  rawCapabilityRefresh.trim().toLowerCase()
-);
 
 // src/sync/daemon-log.ts
 import {
@@ -18890,7 +18888,7 @@ var BaseXHR = class extends Polling {
       this.onError("xhr poll error", xhrStatus, context);
     }), this.pollXhr = req;
   }
-}, Request = class _Request extends import_component_emitter2.Emitter {
+}, Request2 = class _Request extends import_component_emitter2.Emitter {
   /**
    * Request constructor
    *
@@ -18987,8 +18985,8 @@ var BaseXHR = class extends Polling {
     this._cleanup();
   }
 };
-Request.requestsCount = 0;
-Request.requests = {};
+Request2.requestsCount = 0;
+Request2.requests = {};
 if (typeof document < "u") {
   if (typeof attachEvent == "function")
     attachEvent("onunload", unloadHandler);
@@ -18998,8 +18996,8 @@ if (typeof document < "u") {
   }
 }
 function unloadHandler() {
-  for (let i in Request.requests)
-    Request.requests.hasOwnProperty(i) && Request.requests[i].abort();
+  for (let i in Request2.requests)
+    Request2.requests.hasOwnProperty(i) && Request2.requests[i].abort();
 }
 var hasXHR2 = (function() {
   let xhr = newRequest({
@@ -19025,7 +19023,7 @@ function newRequest(opts) {
 var XMLHttpRequest2 = XMLHttpRequestModule.default || XMLHttpRequestModule, XHR = class extends BaseXHR {
   request(opts = {}) {
     var _a;
-    return Object.assign(opts, { xd: this.xd, cookieJar: (_a = this.socket) === null || _a === void 0 ? void 0 : _a._cookieJar }, this.opts), new Request((opts2) => new XMLHttpRequest2(opts2), this.uri(), opts);
+    return Object.assign(opts, { xd: this.xd, cookieJar: (_a = this.socket) === null || _a === void 0 ? void 0 : _a._cookieJar }, this.opts), new Request2((opts2) => new XMLHttpRequest2(opts2), this.uri(), opts);
   }
 };
 
@@ -21074,8 +21072,8 @@ async function runWithConcurrency(items, limit, worker) {
 }
 
 // ../../packages/sync/src/move-intent.ts
-import { randomUUID as randomUUID6 } from "node:crypto";
-import { chmod as chmod4, mkdir as mkdir8, readFile as readFile11, rename as rename4, rm as rm10, stat as stat5, writeFile as writeFile8 } from "node:fs/promises";
+import { createHash as createHash5, randomUUID as randomUUID6 } from "node:crypto";
+import { chmod as chmod4, mkdir as mkdir8, readFile as readFile11, readdir as readdir5, rename as rename4, rm as rm10, writeFile as writeFile8 } from "node:fs/promises";
 import { join as join15 } from "node:path";
 
 // ../../packages/sync/src/sync-key.ts
@@ -21095,7 +21093,53 @@ function parseSyncKey(raw) {
 }
 
 // ../../packages/sync/src/move-intent.ts
-var MOVE_INTENT_TTL_MS = 1440 * 60 * 1e3, MOVE_INTENTS_FILE = "move-intents.json";
+var MOVE_INTENT_TTL_MS = 1440 * 60 * 1e3, MOVE_INTENTS_DIR = "move-intents";
+function authContextFailure(authContext, now) {
+  return authContext.authGeneration.length === 0 ? "missing-auth-generation" : authContext.canWrite !== !0 || authContext.mode !== "bidirectional" ? "read-only-or-pull-only" : authContext.syncState !== "active" || authContext.expiresAt && Date.parse(authContext.expiresAt) <= now.getTime() ? "stale-auth-context" : null;
+}
+function isMoveContextWritable(ctx, nowMs) {
+  return authContextFailure(ctx, new Date(nowMs)) === null;
+}
+async function validateMoveIntentForLocalRename(input) {
+  let from, to;
+  try {
+    from = parseSyncKey(input.from), to = parseSyncKey(input.to);
+  } catch {
+    return { ok: !1, reason: "invalid-sync-key" };
+  }
+  let now = input.now ?? /* @__PURE__ */ new Date(), authFailure = authContextFailure(input.authContext, now);
+  if (authFailure) return { ok: !1, reason: authFailure };
+  if (!input.sourceBaseline)
+    return { ok: !1, reason: "missing-source-baseline" };
+  if (!input.topicIdentity)
+    return { ok: !1, reason: "missing-topic-identity" };
+  let destination = await input.destination.readState(to);
+  return input.destination.policy === "must-be-absent" && destination.exists ? { ok: !1, reason: "destination-exists" } : input.destination.policy === "must-match-topic-identity" && (!destination.exists || destination.identity !== input.topicIdentity) ? { ok: !1, reason: "destination-identity-mismatch" } : {
+    ok: !0,
+    from,
+    to,
+    topicIdentity: input.topicIdentity,
+    sourceBaseline: input.sourceBaseline,
+    authContext: input.authContext
+  };
+}
+async function prepareMoveIntentForLocalRename(input) {
+  let validation = await validateMoveIntentForLocalRename(input);
+  if (!validation.ok) return validation;
+  try {
+    return { ok: !0, intent: await recordMoveIntent({
+      syncDir: input.syncDir,
+      from: validation.from,
+      to: validation.to,
+      topicIdentity: validation.topicIdentity,
+      sourceBaseline: validation.sourceBaseline,
+      authGeneration: validation.authContext.authGeneration,
+      now: input.now
+    }) };
+  } catch {
+    return { ok: !1, reason: "record-failed" };
+  }
+}
 function parseIntent2(raw, now) {
   if (typeof raw != "object" || raw === null) return null;
   let rec = raw;
@@ -21129,92 +21173,116 @@ function parseIntent2(raw, now) {
     authGeneration: rec.authGeneration
   };
 }
-async function readFileRaw(syncDir) {
-  let filePath = join15(syncDir, MOVE_INTENTS_FILE);
-  try {
-    let raw = await readFile11(filePath, "utf8"), parsed = JSON.parse(raw);
-    return typeof parsed == "object" && parsed !== null && parsed.schemaVersion === 1 && Array.isArray(parsed.intents) ? parsed.intents : [];
-  } catch {
-    return [];
-  }
+function intentsDir2(syncDir) {
+  return join15(syncDir, MOVE_INTENTS_DIR);
 }
-async function writeFileRaw(syncDir, intents) {
-  await mkdir8(syncDir, { recursive: !0, mode: 448 });
+function serialiseIntent(intent) {
+  return {
+    ...intent,
+    from: intent.from,
+    to: intent.to
+  };
+}
+function moveIntentId(input) {
+  return createHash5("sha256").update(JSON.stringify(input)).digest("hex").slice(0, 32);
+}
+async function writeIntentFile2(dir, intent) {
+  await mkdir8(dir, { recursive: !0, mode: 448 });
   try {
-    await chmod4(syncDir, 448);
+    await chmod4(dir, 448);
   } catch {
   }
-  let filePath = join15(syncDir, MOVE_INTENTS_FILE);
-  try {
-    if (!(await stat5(filePath)).isFile())
-      throw new Error(`${MOVE_INTENTS_FILE} is not a regular file`);
-  } catch (err) {
-    if (err instanceof Error && err.message.includes("not a regular file"))
-      throw err;
-  }
-  let tmpName = `.move-intents.${randomUUID6()}.tmp`, tmpPath = join15(syncDir, tmpName);
-  await writeFile8(tmpPath, JSON.stringify({ schemaVersion: 1, intents }, null, 2) + `
-`, { mode: 384 });
+  let tmpPath = join15(dir, `.${intent.id}.${randomUUID6()}.tmp`), finalPath = join15(dir, `${intent.id}.json`);
+  await writeFile8(tmpPath, JSON.stringify(serialiseIntent(intent), null, 2) + `
+`, {
+    mode: 384
+  });
   try {
     await chmod4(tmpPath, 384);
   } catch {
   }
-  await rename4(tmpPath, filePath);
+  await rename4(tmpPath, finalPath);
+}
+async function readLegacyFileRaw(syncDir) {
   try {
-    await chmod4(filePath, 384);
+    let raw = await readFile11(join15(syncDir, "move-intents.json"), "utf8"), parsed = JSON.parse(raw);
+    if (typeof parsed == "object" && parsed !== null && parsed.schemaVersion === 1 && Array.isArray(parsed.intents))
+      return parsed.intents;
   } catch {
+    return [];
   }
+  return [];
 }
 async function readMoveIntents(syncDir, opts) {
-  let now = opts?.now ?? /* @__PURE__ */ new Date(), raw = await readFileRaw(syncDir), result = [];
-  for (let entry of raw) {
-    let intent = parseIntent2(entry, now);
-    intent && result.push(intent);
+  let now = opts?.now ?? /* @__PURE__ */ new Date(), dir = intentsDir2(syncDir), result = [], names = [];
+  try {
+    names = await readdir5(dir);
+  } catch {
+    names = [];
   }
-  return opts?.compact && await writeFileRaw(
-    syncDir,
-    result.map((intent) => ({
-      ...intent,
-      from: intent.from,
-      to: intent.to
-    }))
-  ), result;
+  for (let name of names) {
+    if (!name.endsWith(".json")) continue;
+    let filePath = join15(dir, name), content;
+    try {
+      content = await readFile11(filePath, "utf8");
+    } catch {
+      continue;
+    }
+    let parsed = null;
+    try {
+      parsed = parseIntent2(JSON.parse(content), now);
+    } catch {
+      parsed = null;
+    }
+    parsed ? result.push(parsed) : await rm10(filePath, { force: !0 }).catch(() => {
+    });
+  }
+  for (let entry of await readLegacyFileRaw(syncDir)) {
+    let parsed = parseIntent2(entry, now);
+    parsed && !result.some((intent) => intent.id === parsed.id) && (result.push(parsed), opts?.compact && await writeIntentFile2(dir, parsed).catch(() => {
+    }));
+  }
+  return opts?.compact && await rm10(join15(syncDir, "move-intents.json"), { force: !0 }).catch(() => {
+  }), result;
 }
 async function recordMoveIntent(input) {
-  let { syncDir, from, to, topicIdentity, sourceBaseline, authGeneration } = input, now = input.now ?? /* @__PURE__ */ new Date(), fromKey = parseSyncKey(from), toKey2 = parseSyncKey(to), existingRaw = await readFileRaw(syncDir), duplicate = existingRaw.map((entry) => parseIntent2(entry, now)).filter((intent2) => intent2 !== null).find(
+  let { syncDir, from, to, topicIdentity, sourceBaseline, authGeneration } = input, now = input.now ?? /* @__PURE__ */ new Date(), fromKey = parseSyncKey(from), toKey2 = parseSyncKey(to), duplicate = (await readMoveIntents(syncDir, { now })).find(
     (intent2) => intent2.from === from && intent2.to === to && intent2.topicIdentity === topicIdentity && intent2.sourceBaseline.md5 === sourceBaseline.md5 && intent2.sourceBaseline.updatedAt === sourceBaseline.updatedAt && intent2.authGeneration === authGeneration
   );
   if (duplicate) return duplicate;
-  let id = randomUUID6(), createdAt = now.toISOString(), expiresAt = new Date(now.getTime() + MOVE_INTENT_TTL_MS).toISOString(), intent = {
+  let createdAt = now.toISOString(), intent = {
     schemaVersion: 1,
-    id,
+    id: moveIntentId({
+      from,
+      to,
+      topicIdentity,
+      sourceBaseline,
+      authGeneration
+    }),
     state: "prepared",
     from: fromKey,
     to: toKey2,
     topicIdentity,
     sourceBaseline,
     createdAt,
-    expiresAt,
+    expiresAt: new Date(now.getTime() + MOVE_INTENT_TTL_MS).toISOString(),
     authGeneration
-  }, serialised = {
-    ...intent,
-    from: fromKey,
-    to: toKey2
   };
-  return existingRaw.push(serialised), await writeFileRaw(syncDir, existingRaw), intent;
-}
-async function removeIntent(syncDir, intentId) {
-  let filtered = (await readFileRaw(syncDir)).filter((entry) => typeof entry != "object" || entry === null ? !0 : entry.id !== intentId);
-  await writeFileRaw(syncDir, filtered);
+  return await writeIntentFile2(intentsDir2(syncDir), intent), intent;
 }
 async function consumeMoveIntent(syncDir, intentId) {
-  await removeIntent(syncDir, intentId);
+  await rm10(join15(intentsDir2(syncDir), `${intentId}.json`), {
+    force: !0
+  }).catch(() => {
+  });
 }
 async function dropInvalidMoveIntent(syncDir, intentId) {
-  await removeIntent(syncDir, intentId);
+  await consumeMoveIntent(syncDir, intentId);
 }
 async function clearMoveIntents(syncDir) {
-  await rm10(join15(syncDir, MOVE_INTENTS_FILE), { force: !0 });
+  await rm10(intentsDir2(syncDir), { recursive: !0, force: !0 }).catch(() => {
+  }), await rm10(join15(syncDir, "move-intents.json"), { force: !0 }).catch(() => {
+  });
 }
 
 // ../../packages/sync/src/state.ts
@@ -21275,7 +21343,7 @@ var BASELINE_KEY = "baseline", BASELINE_REVISION_KEY = "baselineRevision", STATU
 };
 
 // ../../packages/sync/src/tree-fs.ts
-import { rmdir, stat as stat6 } from "node:fs/promises";
+import { rmdir, stat as stat5 } from "node:fs/promises";
 import { dirname as dirname7, resolve as resolve5, sep as sep5 } from "node:path";
 var LIST_CONCURRENCY = 16, TreeFs = class {
   constructor(root) {
@@ -21293,7 +21361,7 @@ var LIST_CONCURRENCY = 16, TreeFs = class {
     return await runWithConcurrency(keys, LIST_CONCURRENCY, async (key) => {
       let st;
       try {
-        st = await stat6(resolveWithin(this.root, key));
+        st = await stat5(resolveWithin(this.root, key));
       } catch {
         return;
       }
@@ -21352,10 +21420,11 @@ async function inferMoveIntentsFromSnapshot(input) {
     recorded: [],
     skipped: []
   };
-  if (input.authGeneration.length === 0)
+  if (input.authContext.authGeneration.length === 0)
     return result.attentionRequired = !0, result.skipped.push("missing-auth-generation"), await input.log?.({
       action: "move-intent.infer.skipped",
       reason: "missing-auth-generation",
+      operation: "complete-move",
       spaceId: input.spaceId
     }), result;
   if (input.local.size === 0) return result;
@@ -21392,34 +21461,39 @@ async function inferMoveIntentsFromSnapshot(input) {
     if (!toKeys || toKeys.length !== 1 || fromKeys.length !== 1) {
       toKeys && toKeys.length > 0 && await input.log?.({
         action: "move-intent.infer.skipped",
-        key: fromKeys.join(","),
         reason: "ambiguous-identity-match",
+        operation: "complete-move",
         spaceId: input.spaceId
       });
       continue;
     }
     let fromKey = fromKeys[0], toKey2 = toKeys[0], sourceBaseline = input.baseline[fromKey];
-    if (sourceBaseline)
-      try {
-        await input.recordMoveIntent({
-          syncDir: input.syncDir,
-          from: fromKey,
-          to: toKey2,
-          topicIdentity: identity,
-          sourceBaseline,
-          authGeneration: input.authGeneration
-        }), result.recorded.push(fromKey), await input.log?.({
-          action: "move-intent.infer.recorded",
-          key: fromKey,
-          spaceId: input.spaceId
-        });
-      } catch {
-        result.attentionRequired = !0, result.skipped.push("record-failed"), await input.log?.({
-          action: "move-intent.infer.record-failed",
-          key: fromKey,
-          spaceId: input.spaceId
-        });
+    if (!sourceBaseline) continue;
+    let prepared = await prepareMoveIntentForLocalRename({
+      syncDir: input.syncDir,
+      authContext: input.authContext,
+      from: fromKey,
+      to: toKey2,
+      topicIdentity: identity,
+      sourceBaseline,
+      destination: {
+        policy: "must-match-topic-identity",
+        readState: async () => ({
+          exists: !0,
+          identity: localIdentities.get(toKey2)
+        })
       }
+    });
+    prepared.ok ? (result.recorded.push(fromKey), await input.log?.({
+      action: "move-intent.infer.recorded",
+      operation: "complete-move",
+      spaceId: input.spaceId
+    })) : (result.attentionRequired = !0, result.skipped.push(prepared.reason), await input.log?.({
+      action: "move-intent.infer.skipped",
+      reason: prepared.reason,
+      operation: "complete-move",
+      spaceId: input.spaceId
+    }));
   }
   return result;
 }
@@ -21430,47 +21504,28 @@ async function recordRenameMoveIntents(input) {
     attentionRequired: !1,
     recorded: [],
     skipped: []
-  };
-  if (input.authGeneration.length === 0)
-    return result.attentionRequired = !0, result.skipped.push("missing-auth-generation"), await input.log?.({
-      action: "move-intent.record.skipped",
-      reason: "missing-auth-generation",
-      spaceId: input.spaceId
-    }), result;
-  let baseline = await input.getBaseline();
+  }, baseline = await input.getBaseline();
   for (let event of input.events) {
-    let sourceBaseline = baseline[event.path];
-    if (!sourceBaseline) {
-      result.skipped.push("missing-source-baseline"), await input.log?.({
+    let sourceBaseline = baseline[event.path], prepared = await prepareMoveIntentForLocalRename({
+      syncDir: input.syncDir,
+      authContext: input.authContext,
+      from: event.path,
+      to: event.newPath,
+      topicIdentity: event.topicIdentity,
+      sourceBaseline,
+      destination: {
+        policy: "must-match-topic-identity",
+        readState: async () => ({
+          exists: !0,
+          identity: await input.readLocalIdentity(event.newPath)
+        })
+      },
+      log: input.log
+    });
+    if (!prepared.ok) {
+      prepared.reason !== "missing-source-baseline" && prepared.reason !== "destination-exists" && (result.attentionRequired = !0), result.skipped.push(prepared.reason), await input.log?.({
         action: "move-intent.record.skipped",
-        reason: "missing-source-baseline",
-        operation: "complete-move",
-        spaceId: input.spaceId
-      });
-      continue;
-    }
-    if (await input.readLocalIdentity(event.newPath) !== event.topicIdentity) {
-      result.attentionRequired = !0, result.skipped.push("destination-identity-mismatch"), await input.log?.({
-        action: "move-intent.record.skipped",
-        reason: "destination-identity-mismatch",
-        operation: "complete-move",
-        spaceId: input.spaceId
-      });
-      continue;
-    }
-    try {
-      await recordMoveIntent({
-        syncDir: input.syncDir,
-        from: event.path,
-        to: event.newPath,
-        topicIdentity: event.topicIdentity,
-        sourceBaseline,
-        authGeneration: input.authGeneration
-      });
-    } catch {
-      result.attentionRequired = !0, result.skipped.push("record-failed"), await input.log?.({
-        action: "move-intent.record.skipped",
-        reason: "record-failed",
+        reason: prepared.reason,
         operation: "complete-move",
         spaceId: input.spaceId
       });
@@ -21709,7 +21764,7 @@ import { join as join19 } from "node:path";
 
 // ../../packages/sync/src/fast-sync/delta-apply.ts
 import { mkdir as mkdir9, rm as rm12 } from "node:fs/promises";
-import { createHash as createHash5 } from "node:crypto";
+import { createHash as createHash6 } from "node:crypto";
 import { dirname as dirname8, join as join16 } from "node:path";
 
 // ../../packages/sync/src/fast-sync/tar-safety.ts
@@ -21729,7 +21784,7 @@ async function applyRevisionRecordsToStaging(input) {
       let key = (0, import_realtime_contracts4.assertSafeTarEntryName)(record.entry.key), path = join16(input.stagingPath, key), body = record.body?.kind === "inline-base64" ? Buffer.from(record.body.base64, "base64") : await readBodyOrThrow(input.readBody, key);
       if (body.byteLength !== record.entry.size)
         throw new Error("size mismatch");
-      if (createHash5("sha256").update(body).digest("hex") !== record.contentSha256) throw new Error("sha256 mismatch");
+      if (createHash6("sha256").update(body).digest("hex") !== record.contentSha256) throw new Error("sha256 mismatch");
       await mkdir9(dirname8(path), { recursive: !0 }), await writeFileAtomic(path, body), nextBaseline[key] = {
         md5: record.entry.md5,
         updatedAt: record.entry.updatedAt
@@ -21758,7 +21813,7 @@ async function readBodyOrThrow(readBody, key) {
 
 // ../../packages/sync/src/fast-sync/snapshot-extract.ts
 var import_tar_stream = __toESM(require_tar_stream());
-import { createHash as createHash6 } from "node:crypto";
+import { createHash as createHash7 } from "node:crypto";
 import { createGunzip } from "node:zlib";
 import { mkdir as mkdir10 } from "node:fs/promises";
 import { dirname as dirname9, join as join17 } from "node:path";
@@ -21768,7 +21823,7 @@ async function extractSnapshotBundle(input) {
   await mkdir10(input.stagingPath, { recursive: !0 });
   let expected = new Map(
     input.manifest.manifestEntries.map((entry) => [entry.key, entry])
-  ), seen = /* @__PURE__ */ new Set(), extract = import_tar_stream.default.extract(), bundleHash = createHash6("sha256"), bundleBytes = 0, source = Readable.fromWeb(
+  ), seen = /* @__PURE__ */ new Set(), extract = import_tar_stream.default.extract(), bundleHash = createHash7("sha256"), bundleBytes = 0, source = Readable.fromWeb(
     input.body
   ).on("data", (chunk2) => {
     bundleBytes += chunk2.byteLength, bundleHash.update(chunk2);
@@ -21788,7 +21843,7 @@ async function extractSnapshotBundle(input) {
         for await (let chunk2 of stream) chunks.push(Buffer.from(chunk2));
         let body = Buffer.concat(chunks);
         if (body.byteLength !== entry.size) throw new Error("size mismatch");
-        if (createHash6("md5").update(body).digest("hex") !== entry.md5) throw new Error("md5 mismatch");
+        if (createHash7("md5").update(body).digest("hex") !== entry.md5) throw new Error("md5 mismatch");
         await mkdir10(dirname9(join17(input.stagingPath, key)), { recursive: !0 }), await writeFileAtomic(join17(input.stagingPath, key), body), next();
       })().catch((err) => {
         settled || (settled = !0, reject(err)), extract.destroy(err instanceof Error ? err : new Error(String(err))), gunzip.destroy(), source.destroy();
@@ -21815,7 +21870,7 @@ async function extractSnapshotBundle(input) {
 }
 
 // ../../packages/sync/src/fast-sync/promote-transaction.ts
-import { mkdir as mkdir11, readdir as readdir5, readFile as readFile12, rename as rename5, rm as rm13, stat as stat7 } from "node:fs/promises";
+import { mkdir as mkdir11, readdir as readdir6, readFile as readFile12, rename as rename5, rm as rm13, stat as stat6 } from "node:fs/promises";
 import { dirname as dirname10, join as join18 } from "node:path";
 async function promoteSnapshotTree(input) {
   await mkdir11(input.syncDir, { recursive: !0 });
@@ -21864,14 +21919,14 @@ async function writeMarker2(markerPath, input, phase) {
 }
 async function exists(path) {
   try {
-    return await stat7(path), !0;
+    return await stat6(path), !0;
   } catch {
     return !1;
   }
 }
 async function nonEmpty2(path) {
   try {
-    return (await readdir5(path)).length > 0;
+    return (await readdir6(path)).length > 0;
   } catch {
     return !1;
   }
@@ -22078,7 +22133,24 @@ function createSyncEngine(inputConfig, deps = {}) {
   }, bundleConcurrency = config.bundleConcurrency ?? 2, bundleAllowedExtensions = config.bundleAllowedExtensions ?? [
     ".md",
     ".html"
-  ], mode = config.mode, bootstrapped = !config.bootstrap, fastBootstrapTried = !1, nextFastBootstrapAt, fastBootstrapBlocked = !1, fastBootstrapRetryCount = 0, firstFastBootstrapRetryAt, activeOps = /* @__PURE__ */ new Set();
+  ], mode = config.mode;
+  function effectiveMoveAuthContext() {
+    if (config.moveIntentAuthContext) return config.moveIntentAuthContext;
+    if (config.authGeneration)
+      return {
+        spaceId: config.spaceId,
+        teamId: config.teamId,
+        authGeneration: config.authGeneration,
+        canWrite: mode === "bidirectional",
+        mode,
+        syncState: "active",
+        capturedAt: (/* @__PURE__ */ new Date()).toISOString()
+      };
+  }
+  function moveAuthContextWritable(ctx, nowMs) {
+    return ctx ? isMoveContextWritable(ctx, nowMs) : !1;
+  }
+  let bootstrapped = !config.bootstrap, fastBootstrapTried = !1, nextFastBootstrapAt, fastBootstrapBlocked = !1, fastBootstrapRetryCount = 0, firstFastBootstrapRetryAt, activeOps = /* @__PURE__ */ new Set();
   function describeError(err) {
     return err instanceof Error ? err.message : String(err);
   }
@@ -22184,14 +22256,19 @@ function createSyncEngine(inputConfig, deps = {}) {
         continue;
       }
     }
+    let moveAuthContext = effectiveMoveAuthContext(), moveAuthWritable = moveAuthContextWritable(moveAuthContext, Date.now());
     for (let intent of input.intents) {
       let from = intent.from, to = intent.to;
       if (conflictedFrom.has(from)) continue;
-      if (!config.authGeneration) {
+      if (!moveAuthContext || moveAuthContext.authGeneration.length === 0) {
         setStatus({ pendingError: "move_auth_generation_missing" });
         continue;
       }
-      if (config.authGeneration !== intent.authGeneration) {
+      if (!moveAuthWritable) {
+        await state.dropInvalidMoveIntent(intent.id), setStatus({ pendingError: "move_auth_generation_changed" });
+        continue;
+      }
+      if (moveAuthContext.authGeneration !== intent.authGeneration) {
         await state.dropInvalidMoveIntent(intent.id), setStatus({ pendingError: "move_auth_generation_changed" });
         continue;
       }
@@ -22203,12 +22280,15 @@ function createSyncEngine(inputConfig, deps = {}) {
         await state.dropInvalidMoveIntent(intent.id), setStatus({ pendingError: "move_identity_mismatch" });
         continue;
       }
-      if (!input.baseline[from] && input.baseline[to] && input.local.has(to)) {
+      if (!input.baseline[from] && input.baseline[to] && input.local.has(to) && !input.remote.has(from)) {
         log2({
           action: "move-intent.already-completed",
-          key: from,
           operation: "complete-move"
         }), await state.consumeMoveIntent(intent.id);
+        continue;
+      }
+      if (!input.baseline[from] && input.local.has(to)) {
+        suppress.add(from), validatedIntents.push(intent);
         continue;
       }
       if (!baselinesEqual(input.baseline[from], intent.sourceBaseline)) {
@@ -22232,7 +22312,8 @@ function createSyncEngine(inputConfig, deps = {}) {
         continue;
       }
       if (input.local.has(from) || !input.nextBaseline[to]) continue;
-      if (!baselinesEqual(input.nextBaseline[from], intent.sourceBaseline)) {
+      let nextSourceBaseline = input.nextBaseline[from];
+      if (nextSourceBaseline && !baselinesEqual(nextSourceBaseline, intent.sourceBaseline)) {
         await state.dropInvalidMoveIntent(intent.id), setStatus({ pendingError: "move_source_baseline_stale" });
         continue;
       }
@@ -22245,6 +22326,28 @@ function createSyncEngine(inputConfig, deps = {}) {
         await state.dropInvalidMoveIntent(intent.id), setStatus({ pendingError: "move_source_changed" });
         continue;
       }
+      if (await config.readLocalIdentity?.(to) !== intent.topicIdentity) {
+        await state.dropInvalidMoveIntent(intent.id), setStatus({ pendingError: "move_identity_mismatch" });
+        continue;
+      }
+      if (freshRemote.get(to) && config.readTextIdentity) {
+        let remoteDestinationIdentity, verifyFailed = !1;
+        try {
+          remoteDestinationIdentity = await config.readTextIdentity(
+            await http.getFile(to)
+          );
+        } catch {
+          verifyFailed = !0;
+        }
+        if (verifyFailed) {
+          setStatus({ pendingError: "move_destination_unverified" });
+          continue;
+        }
+        if (remoteDestinationIdentity !== intent.topicIdentity) {
+          await state.dropInvalidMoveIntent(intent.id), setStatus({ pendingError: "move_identity_mismatch" });
+          continue;
+        }
+      }
       setStatus({
         operation: "complete-move",
         operationFileName: displayNameForKey(to)
@@ -22253,9 +22356,18 @@ function createSyncEngine(inputConfig, deps = {}) {
         await deleteRemoteThroughGate(from, {
           kind: "validated-move",
           intentId: intent.id
-        }), delete input.nextBaseline[from], await state.consumeMoveIntent(intent.id), completed += 1;
+        }), delete input.nextBaseline[from], await state.consumeMoveIntent(intent.id), current.pendingError === "move_destination_unverified" && setStatus({ pendingError: null });
+        for (let di of input.deleteIntents) {
+          if (!keyUnderDeletePrefix(from, di.prefix)) continue;
+          [...input.local.keys()].some(
+            (k) => keyUnderDeletePrefix(k, di.prefix)
+          ) || [...input.remote.keys()].some(
+            (k) => k !== from && keyUnderDeletePrefix(k, di.prefix)
+          ) || await state.consumeDeleteIntent(di.id);
+        }
+        completed += 1;
       } catch (err) {
-        handleError(err, from);
+        handleError(err);
       }
     }
     return completed;
@@ -22358,12 +22470,13 @@ function createSyncEngine(inputConfig, deps = {}) {
       (event) => event.kind === "rename"
     );
     if (renames.length) {
-      if (!config.authGeneration) {
+      let moveAuthContext = effectiveMoveAuthContext();
+      if (!moveAuthContext) {
         setStatus({ pendingError: "move_intent_record_failed" });
         return;
       }
       if ((await recordRenameMoveIntents({
-        authGeneration: config.authGeneration,
+        authContext: moveAuthContext,
         events: renames,
         getBaseline: () => state.getBaseline(),
         log: log2,
@@ -23021,9 +23134,9 @@ function createSyncEngine(inputConfig, deps = {}) {
     let baseline = await state.getBaseline(), local = await tree.listSyncable(), remote = /* @__PURE__ */ new Map();
     for (let e of manifestSnapshot ?? await http.getManifest())
       e.key && isSyncable(e.key) && remote.set(e.key, e);
-    let reconcileMode = bootstrapped ? mode : "bootstrap";
-    if (config.localDeletePolicy === "restore-from-remote" && config.authGeneration && (await inferMoveIntentsFromSnapshot({
-      authGeneration: config.authGeneration,
+    let reconcileMode = bootstrapped ? mode : "bootstrap", inferMoveAuthContext = effectiveMoveAuthContext();
+    if (config.localDeletePolicy === "restore-from-remote" && moveAuthContextWritable(inferMoveAuthContext, Date.now()) && (await inferMoveIntentsFromSnapshot({
+      authContext: inferMoveAuthContext,
       baseline,
       local,
       log: log2,
@@ -23035,7 +23148,6 @@ function createSyncEngine(inputConfig, deps = {}) {
         let text = await http.getFile(key);
         return await config.readTextIdentity?.(text);
       },
-      recordMoveIntent,
       remote,
       spaceId: config.spaceId,
       syncDir: config.syncDir,
@@ -23050,7 +23162,8 @@ function createSyncEngine(inputConfig, deps = {}) {
     let activeMoveIntents = config.localDeletePolicy === "restore-from-remote" ? await state.getMoveIntents(/* @__PURE__ */ new Date(), { compact: !0 }) : [], { suppressRestoreForKeys, validatedIntents } = await validatedRestoreSuppressions({
       baseline,
       intents: activeMoveIntents,
-      local
+      local,
+      remote
     }), deleteIntents = reconcileMode === "bidirectional" ? await state.getDeleteIntents(/* @__PURE__ */ new Date()) : [], forceDeleteKeys = /* @__PURE__ */ new Set();
     if (deleteIntents.length > 0) {
       let candidateKeys = /* @__PURE__ */ new Set([
@@ -23065,6 +23178,8 @@ function createSyncEngine(inputConfig, deps = {}) {
           (!R || B && R.md5 === B.md5) && forceDeleteKeys.add(key);
         }
     }
+    for (let intent of validatedIntents)
+      forceDeleteKeys.delete(intent.from);
     let actions = planReconcile(
       { local, remote, baseline },
       (/* @__PURE__ */ new Date()).toISOString(),
@@ -23235,7 +23350,9 @@ function createSyncEngine(inputConfig, deps = {}) {
       }), completionCounts.movesCompleted += await processMoveIntents({
         intents: validatedIntents,
         local,
-        nextBaseline
+        remote,
+        nextBaseline,
+        deleteIntents
       }), emitMoveBatch && setStatus({
         batchProgress: batchProgress({
           batchId: moveBatchId,
@@ -23446,7 +23563,7 @@ function createSyncEngine(inputConfig, deps = {}) {
 }
 
 // ../../packages/core/src/analytics/identity-promoter.ts
-import { mkdir as mkdir13, open as open3, readFile as readFile13, rm as rm14, stat as stat8 } from "node:fs/promises";
+import { mkdir as mkdir13, open as open3, readFile as readFile13, rm as rm14, stat as stat7 } from "node:fs/promises";
 import { randomUUID as randomUUID8 } from "node:crypto";
 import { join as join20 } from "node:path";
 var QUEUE_FILENAME = "analytics-queue.jsonl", PROMOTER_CURSOR_FILENAME = "analytics-promoter-cursor.json";
@@ -23672,7 +23789,7 @@ async function readLastLineId(path, offset) {
 async function readNewLines(path, cursor) {
   let st;
   try {
-    st = await stat8(path);
+    st = await stat7(path);
   } catch {
     return { lines: [], cursor: cursorOf(null, 0, cursor.lastId) };
   }
@@ -23730,7 +23847,7 @@ async function readFromAnchor(path, fileId, lastId) {
 }
 
 // ../../packages/core/src/analytics/queue-reader.ts
-import { open as open4, stat as stat9 } from "node:fs/promises";
+import { open as open4, stat as stat8 } from "node:fs/promises";
 import { join as join21 } from "node:path";
 var QUEUE_FILENAME2 = "analytics-queue.jsonl";
 function queueFilePath2() {
@@ -23749,7 +23866,7 @@ function parseQueueRow(line) {
 async function readNewRows(path, cursor) {
   let st;
   try {
-    st = await stat9(path);
+    st = await stat8(path);
   } catch (err) {
     if (isErrnoCode3(err, "ENOENT"))
       return {
@@ -24276,7 +24393,7 @@ function createTelemetryShipper(cfg) {
 }
 
 // ../../packages/sync/src/auth-generation.ts
-import { createHash as createHash7 } from "node:crypto";
+import { createHash as createHash8 } from "node:crypto";
 function stableCapabilityGeneration(input) {
   let payload = {
     accountSubject: input.accountSubject,
@@ -24287,17 +24404,17 @@ function stableCapabilityGeneration(input) {
     syncState: input.syncState,
     teamId: input.teamId
   };
-  return `cap:${createHash7("sha256").update(JSON.stringify(payload)).digest("hex").slice(0, 32)}`;
+  return `cap:${createHash8("sha256").update(JSON.stringify(payload)).digest("hex").slice(0, 32)}`;
 }
 
 // ../../packages/sync/src/analytics/flush-control.ts
 import {
   mkdir as mkdir16,
   readFile as readFile16,
-  readdir as readdir6,
+  readdir as readdir7,
   rename as rename8,
   rm as rm16,
-  stat as stat10,
+  stat as stat9,
   writeFile as writeFile11
 } from "node:fs/promises";
 import { join as join24 } from "node:path";
@@ -24367,7 +24484,7 @@ async function readFlushResponse(projectsRoot2, requestId) {
 async function listFlushRequests(projectsRoot2) {
   let names;
   try {
-    names = await readdir6(flushDir(projectsRoot2));
+    names = await readdir7(flushDir(projectsRoot2));
   } catch {
     return [];
   }
@@ -24379,7 +24496,7 @@ async function deleteFlushRequest(projectsRoot2, requestId) {
 async function sweepStaleFlushFiles(projectsRoot2, nowMs = Date.now()) {
   let dir = flushDir(projectsRoot2), names;
   try {
-    names = await readdir6(dir);
+    names = await readdir7(dir);
   } catch {
     return;
   }
@@ -24387,7 +24504,7 @@ async function sweepStaleFlushFiles(projectsRoot2, nowMs = Date.now()) {
     if (!name.endsWith(REQ_SUFFIX) && !name.endsWith(RES_SUFFIX)) continue;
     let path = join24(dir, name);
     try {
-      let st = await stat10(path);
+      let st = await stat9(path);
       nowMs - st.mtimeMs > STALE_FLUSH_MAX_AGE_MS && await rm16(path, { force: !0 });
     } catch {
     }
@@ -24395,9 +24512,15 @@ async function sweepStaleFlushFiles(projectsRoot2, nowMs = Date.now()) {
 }
 
 // ../../packages/sync/src/daemon-auth-store.ts
-import { createHash as createHash8 } from "node:crypto";
+import {
+  createCipheriv,
+  createDecipheriv,
+  createHash as createHash9,
+  randomBytes as randomBytes2
+} from "node:crypto";
 import { chmod as chmod5, mkdir as mkdir17, readFile as readFile17, rename as rename9, writeFile as writeFile12, rm as rm17 } from "node:fs/promises";
-import { dirname as dirname11, join as join25 } from "node:path";
+import { basename as basename2, dirname as dirname11, join as join25 } from "node:path";
+var DAEMON_AUTH_KEY_BYTES = 32, DAEMON_AUTH_IV_BYTES = 12, DAEMON_AUTH_KEY_FILENAME = "daemon-auth.key";
 function daemonAuthPath(projectsRoot2) {
   return join25(projectsRoot2, ".daemon", "auth.json");
 }
@@ -24405,21 +24528,139 @@ function refreshJournalPath(authPath) {
   return `${authPath}.refreshing`;
 }
 function createTokenFingerprint(token) {
-  return createHash8("sha256").update(token).digest("hex").slice(0, 16);
+  return createHash9("sha256").update(token).digest("hex").slice(0, 16);
+}
+function daemonAuthKeyPath(authPath) {
+  let daemonDir2 = dirname11(authPath), projectsRoot2 = dirname11(daemonDir2), dataRoot = dirname11(projectsRoot2);
+  return basename2(daemonDir2) === ".daemon" && basename2(projectsRoot2) === "projects" && dataRoot !== dirname11(dataRoot) ? join25(dataRoot, DAEMON_AUTH_KEY_FILENAME) : join25(daemonDir2, "auth.key");
+}
+function parseDaemonAuthKey(raw) {
+  try {
+    let record = JSON.parse(raw);
+    if (record.schemaVersion !== 1 || record.alg !== "AES-256-GCM" || typeof record.key != "string")
+      return null;
+    let key = Buffer.from(record.key, "base64url");
+    return key.length === DAEMON_AUTH_KEY_BYTES ? key : null;
+  } catch {
+    return null;
+  }
+}
+async function readDaemonAuthKey(path) {
+  try {
+    return parseDaemonAuthKey(await readFile17(path, "utf8"));
+  } catch {
+    return null;
+  }
+}
+async function readOrCreateDaemonAuthKey(authPath) {
+  let keyPath = daemonAuthKeyPath(authPath), existing = await readDaemonAuthKey(keyPath);
+  if (existing) return existing;
+  let key = randomBytes2(DAEMON_AUTH_KEY_BYTES), record = {
+    schemaVersion: 1,
+    alg: "AES-256-GCM",
+    key: key.toString("base64url"),
+    createdAt: (/* @__PURE__ */ new Date()).toISOString()
+  };
+  await mkdir17(dirname11(keyPath), { recursive: !0, mode: 448 });
+  try {
+    return await writeFile12(keyPath, JSON.stringify(record, null, 2) + `
+`, {
+      mode: 384,
+      flag: "wx"
+    }), await chmod5(keyPath, 384), key;
+  } catch (error) {
+    if (error.code !== "EEXIST") throw error;
+    let raced = await readDaemonAuthKey(keyPath);
+    if (raced) return raced;
+    throw error;
+  }
+}
+function daemonDeviceSessionAad(record) {
+  return Buffer.from(
+    JSON.stringify({
+      schemaVersion: record.schemaVersion,
+      provider: record.provider,
+      refreshExpiresAt: record.refreshExpiresAt,
+      refreshAbsoluteExpiresAt: record.refreshAbsoluteExpiresAt,
+      deviceId: record.deviceId,
+      sessionId: record.sessionId,
+      tokenFingerprint: record.tokenFingerprint
+    }),
+    "utf8"
+  );
+}
+function isEncryptedDaemonDeviceSession(value2) {
+  let encrypted = value2.refreshTokenEncrypted;
+  return value2.provider === "daemon-device-session" && encrypted !== void 0 && encrypted.schemaVersion === 1 && encrypted.alg === "AES-256-GCM" && typeof encrypted.iv == "string" && typeof encrypted.ciphertext == "string" && typeof encrypted.tag == "string";
+}
+function isPlaintextDaemonDeviceSession(value2) {
+  return value2.provider === "daemon-device-session" && typeof value2.refreshToken == "string";
+}
+async function encryptDaemonDeviceSession(path, record) {
+  let { refreshToken, ...publicRecord } = record, key = await readOrCreateDaemonAuthKey(path), iv = randomBytes2(DAEMON_AUTH_IV_BYTES);
+  try {
+    let cipher = createCipheriv("aes-256-gcm", key, iv);
+    cipher.setAAD(daemonDeviceSessionAad(publicRecord));
+    let ciphertext = Buffer.concat([
+      cipher.update(Buffer.from(refreshToken, "utf8")),
+      cipher.final()
+    ]);
+    return {
+      ...publicRecord,
+      refreshTokenEncrypted: {
+        schemaVersion: 1,
+        alg: "AES-256-GCM",
+        iv: iv.toString("base64url"),
+        ciphertext: ciphertext.toString("base64url"),
+        tag: cipher.getAuthTag().toString("base64url")
+      }
+    };
+  } finally {
+    key.fill(0);
+  }
+}
+async function decryptDaemonDeviceSession(path, record) {
+  let key = await readDaemonAuthKey(daemonAuthKeyPath(path));
+  if (!key) return null;
+  let { refreshTokenEncrypted, ...publicRecord } = record;
+  try {
+    let decipher = createDecipheriv(
+      "aes-256-gcm",
+      key,
+      Buffer.from(refreshTokenEncrypted.iv, "base64url")
+    );
+    decipher.setAAD(daemonDeviceSessionAad(publicRecord)), decipher.setAuthTag(Buffer.from(refreshTokenEncrypted.tag, "base64url"));
+    let refreshToken = Buffer.concat([
+      decipher.update(
+        Buffer.from(refreshTokenEncrypted.ciphertext, "base64url")
+      ),
+      decipher.final()
+    ]).toString("utf8");
+    return {
+      ...publicRecord,
+      refreshToken
+    };
+  } catch {
+    return null;
+  } finally {
+    key.fill(0);
+  }
 }
 async function readDaemonAuth(path) {
   try {
-    let raw = await readFile17(path, "utf8");
-    return JSON.parse(raw);
+    let raw = await readFile17(path, "utf8"), record = JSON.parse(raw);
+    return isEncryptedDaemonDeviceSession(record) ? decryptDaemonDeviceSession(path, record) : record.provider === "daemon-device-session" && !isPlaintextDaemonDeviceSession(record) ? null : record;
   } catch {
     return null;
   }
 }
 async function writeDaemonAuth(path, record) {
   await mkdir17(dirname11(path), { recursive: !0 });
-  let tmp = `${path}.tmp-${process.pid}-${Date.now()}`;
-  await writeFile12(tmp, JSON.stringify(record, null, 2) + `
-`, { mode: 384 }), await chmod5(tmp, 384), await rename9(tmp, path);
+  let tmp = `${path}.tmp-${process.pid}-${Date.now()}`, persisted = record.provider === "daemon-device-session" ? await encryptDaemonDeviceSession(path, record) : record;
+  await writeFile12(tmp, JSON.stringify(persisted, null, 2) + `
+`, {
+    mode: 384
+  }), await chmod5(tmp, 384), await rename9(tmp, path);
 }
 async function clearDaemonAuthIfFingerprint(path, fingerprint2) {
   let current = await readDaemonAuth(path);
@@ -24447,9 +24688,17 @@ var import_realtime_contracts6 = __toESM(require_realtime_contracts());
 import { join as join26 } from "node:path";
 
 // ../../packages/sync/src/daemon-auth-identity.ts
-import { createHash as createHash9 } from "node:crypto";
+import { createHash as createHash10 } from "node:crypto";
 function isNonEmptyString3(value2) {
   return typeof value2 == "string" && value2.trim().length > 0;
+}
+function hasDeviceSessionCredential(record) {
+  if (isNonEmptyString3(record.refreshToken)) return !0;
+  let encrypted = record.refreshTokenEncrypted;
+  if (!encrypted || typeof encrypted != "object" || Array.isArray(encrypted))
+    return !1;
+  let envelope = encrypted;
+  return envelope.schemaVersion === 1 && envelope.alg === "AES-256-GCM" && isNonEmptyString3(envelope.iv) && isNonEmptyString3(envelope.ciphertext) && isNonEmptyString3(envelope.tag);
 }
 function parseDaemonAuthIdentity(raw) {
   if (raw == null)
@@ -24457,13 +24706,13 @@ function parseDaemonAuthIdentity(raw) {
   if (!raw || typeof raw != "object" || Array.isArray(raw))
     return { ok: !1, reason: "malformed-auth" };
   let record = raw;
-  return record.provider === "daemon-device-session" ? isNonEmptyString3(record.sessionId) ? {
+  return record.provider === "daemon-device-session" ? !isNonEmptyString3(record.sessionId) || !hasDeviceSessionCredential(record) ? { ok: !1, reason: "malformed-auth" } : {
     ok: !0,
     identity: {
       providerKind: "daemon-device-session",
       sessionId: record.sessionId
     }
-  } : { ok: !1, reason: "malformed-auth" } : record.provider === "api-key" ? isNonEmptyString3(record.tokenFingerprint) ? {
+  } : record.provider === "api-key" ? isNonEmptyString3(record.tokenFingerprint) ? {
     ok: !0,
     identity: {
       providerKind: "api-key",
@@ -24489,16 +24738,15 @@ function canonicalIdentityString(identity) {
         lengthPrefixed(identity.tokenFingerprint)
       ].join("|");
     case "none":
-      return [
-        "byterover.daemon-auth-identity.v1",
-        lengthPrefixed("none")
-      ].join("|");
+      return ["byterover.daemon-auth-identity.v1", lengthPrefixed("none")].join(
+        "|"
+      );
   }
 }
 function toDaemonAuthMarkerIdentity(identity) {
   return {
     providerKind: identity.providerKind,
-    identityDigest: "v1:" + createHash9("sha256").update(canonicalIdentityString(identity)).digest("hex")
+    identityDigest: "v1:" + createHash10("sha256").update(canonicalIdentityString(identity)).digest("hex")
   };
 }
 function parseDaemonAuthMarkerIdentity(raw) {
@@ -25253,7 +25501,7 @@ import {
   lstat as lstat2,
   mkdir as mkdir22,
   readFile as readFile24,
-  readdir as readdir8,
+  readdir as readdir9,
   realpath as realpath2,
   rm as rm19
 } from "node:fs/promises";
@@ -25305,12 +25553,12 @@ function signDetached(privateKeyPem, message) {
 
 // ../../packages/signing/src/encrypted-key-store.ts
 import {
-  createCipheriv,
-  createDecipheriv,
-  randomBytes as randomBytes2,
+  createCipheriv as createCipheriv2,
+  createDecipheriv as createDecipheriv2,
+  randomBytes as randomBytes3,
   scrypt
 } from "node:crypto";
-import { mkdir as mkdir18, readFile as readFile19, rename as rename10, stat as stat11, unlink, writeFile as writeFile13 } from "node:fs/promises";
+import { mkdir as mkdir18, readFile as readFile19, rename as rename10, stat as stat10, unlink, writeFile as writeFile13 } from "node:fs/promises";
 import { isAbsolute as isAbsolute2, join as join27, resolve as resolve6, sep as sep6 } from "node:path";
 var KDF_PARAMS = {
   N: 32768,
@@ -25375,7 +25623,7 @@ var FileEncryptedKeyStore = class {
     return path;
   }
   async save(id, privateKeyPem, passphrase) {
-    let path = this.pathFor(id), salt = randomBytes2(SALT_BYTES), iv = randomBytes2(IV_BYTES), meta = {
+    let path = this.pathFor(id), salt = randomBytes3(SALT_BYTES), iv = randomBytes3(IV_BYTES), meta = {
       v: RECORD_VERSION,
       alg: ALG,
       kdf: KDF,
@@ -25385,7 +25633,7 @@ var FileEncryptedKeyStore = class {
       id
     }, key = await deriveKey(passphrase, salt);
     try {
-      let cipher = createCipheriv("aes-256-gcm", key, iv);
+      let cipher = createCipheriv2("aes-256-gcm", key, iv);
       cipher.setAAD(aad(meta));
       let ciphertext = Buffer.concat([
         cipher.update(Buffer.from(privateKeyPem, "utf8")),
@@ -25396,7 +25644,7 @@ var FileEncryptedKeyStore = class {
         tag: cipher.getAuthTag().toString("base64url")
       };
       await mkdir18(this.root, { recursive: !0, mode: 448 });
-      let tmp = `${path}.tmp-${randomBytes2(6).toString("hex")}`;
+      let tmp = `${path}.tmp-${randomBytes3(6).toString("hex")}`;
       await writeFile13(tmp, JSON.stringify(record), { mode: 384 }), await rename10(tmp, path);
     } finally {
       key.fill(0);
@@ -25421,7 +25669,7 @@ var FileEncryptedKeyStore = class {
       throw new DecryptError(`key id mismatch for ${id} (possible record swap)`);
     let { ciphertext, tag, ...meta } = record, key = await deriveKey(passphrase, Buffer.from(record.salt, "base64url"));
     try {
-      let decipher = createDecipheriv(
+      let decipher = createDecipheriv2(
         "aes-256-gcm",
         key,
         Buffer.from(record.iv, "base64url")
@@ -25441,7 +25689,7 @@ var FileEncryptedKeyStore = class {
   }
   async has(id) {
     try {
-      return await stat11(this.pathFor(id)), !0;
+      return await stat10(this.pathFor(id)), !0;
     } catch {
       return !1;
     }
@@ -25641,7 +25889,7 @@ function readTopicIdentity(html) {
 
 // src/sync/capability.ts
 import { mkdir as mkdir21, readFile as readFile22, rename as rename12, writeFile as writeFile16 } from "node:fs/promises";
-import { basename as basename2, join as join31 } from "node:path";
+import { basename as basename3, join as join31 } from "node:path";
 import { randomUUID as randomUUID10 } from "node:crypto";
 function parseMintCapabilityProjections(raw) {
   if (!Array.isArray(raw))
@@ -25882,7 +26130,7 @@ async function readCapability(spaceDir) {
   }
   try {
     let record = JSON.parse(raw), baseResult = validateCapabilityRecord(record);
-    return baseResult.kind !== "ok" ? baseResult : basename2(spaceDir) !== record.space_id ? { kind: "invalid", reason: "space_id mismatch" } : baseResult;
+    return baseResult.kind !== "ok" ? baseResult : basename3(spaceDir) !== record.space_id ? { kind: "invalid", reason: "space_id mismatch" } : baseResult;
   } catch (err) {
     if (err instanceof SyntaxError)
       return {
@@ -25894,9 +26142,9 @@ async function readCapability(spaceDir) {
 }
 
 // src/sync/safe-delete.ts
-import { createHash as createHash10 } from "node:crypto";
-import { readFile as readFile23, readdir as readdir7, realpath, rm as rm18 } from "node:fs/promises";
-import { join as join32, sep as sep7, basename as basename3 } from "node:path";
+import { createHash as createHash11 } from "node:crypto";
+import { readFile as readFile23, readdir as readdir8, realpath, rm as rm18 } from "node:fs/promises";
+import { join as join32, sep as sep7, basename as basename4 } from "node:path";
 async function readJson(path) {
   try {
     return JSON.parse(await readFile23(path, "utf8"));
@@ -25910,7 +26158,7 @@ function normalizeContextTreeRelativeKey(relative3, pathSeparator = sep7) {
 async function walkRegularFilesFromRoot(root, dir) {
   let results = [], entries;
   try {
-    entries = await readdir7(dir, { withFileTypes: !0 });
+    entries = await readdir8(dir, { withFileTypes: !0 });
   } catch {
     return results;
   }
@@ -25948,12 +26196,12 @@ async function contextTreeMatchesBaseline(contextTreeDir, baseline) {
     } catch {
       return !1;
     }
-    if (createHash10("md5").update(content).digest("hex") !== expected.md5) return !1;
+    if (createHash11("md5").update(content).digest("hex") !== expected.md5) return !1;
   }
   return !0;
 }
 async function isCloudSpaceCleanForDelete(spaceDir) {
-  if (!isUuid2(basename3(spaceDir))) return !1;
+  if (!isUuid2(basename4(spaceDir))) return !1;
   let metadata = await readCloudMetadata(spaceDir);
   if (metadata.kind !== "ok" || metadata.metadata.team_id === null)
     return !1;
@@ -25978,7 +26226,7 @@ async function safeDeleteCloudSpace(input) {
   if (dir === root) throw new Error("refusing to delete projectsRoot");
   if (!dir.startsWith(root + sep7))
     throw new Error("refusing to delete outside projectsRoot");
-  let folder = basename3(dir);
+  let folder = basename4(dir);
   if (!isUuid2(folder)) throw new Error("not a cloud UUID folder");
   let metadataResult = await readCloudMetadata(dir);
   if (metadataResult.kind !== "ok") throw new Error("invalid metadata");
@@ -26054,7 +26302,7 @@ function readIsTestEnv(env = DEFAULT_ENV2) {
 // src/sync/multi-space-daemon.ts
 var AUTH_EXPIRED_RETRY_MIN_SEC = 120, AUTH_EXPIRED_RETRY_MAX_SEC = 900, CONFLICT_RING_CAP_PER_SPACE = 50, _testStatusWriter, _testEmitConflict, _testResetRing;
 function createMultiSpaceDaemon(deps) {
-  let workers = /* @__PURE__ */ new Map(), spaceStates = /* @__PURE__ */ new Map(), spaceMetadata = /* @__PURE__ */ new Map(), recentConflictsBySpace = /* @__PURE__ */ new Map(), recentCompletion, workerGeneration = 0, refreshPromise = null, tickInFlight = null, authExpiredRetrySec = AUTH_EXPIRED_RETRY_MIN_SEC, followUpTickRequested = !1, authFollowUpInFlight = !1, shuttingDown = !1, firstExchangeAt = null, lastExchangeAt = null, lastError = null, daemonState = "starting", lastToken, wsHub = new WsHub(deps.baseUrl, { getToken: () => lastToken ?? "" }), createWsClient = (args2) => wsHub.viewFor(args2.teamId, args2.spaceId, args2), lastDaemonSocketToken, lastCapabilityRefreshAt, lastCapabilityRefreshResult, lastCapabilityRefreshErrorCode, lastCapabilityVersion, capabilitySocketState, defaultRegistryWarning = null, defaultRegistryRetryTimer, defaultRegistryGeneration = 0;
+  let workers = /* @__PURE__ */ new Map(), spaceStates = /* @__PURE__ */ new Map(), spaceMetadata = /* @__PURE__ */ new Map(), moveIntentAuthContextBySpace = /* @__PURE__ */ new Map(), recentConflictsBySpace = /* @__PURE__ */ new Map(), recentCompletion, workerGeneration = 0, refreshPromise = null, tickInFlight = null, authExpiredRetrySec = AUTH_EXPIRED_RETRY_MIN_SEC, followUpTickRequested = !1, authFollowUpInFlight = !1, shuttingDown = !1, firstExchangeAt = null, lastExchangeAt = null, lastError = null, daemonState = "starting", lastToken, wsHub = new WsHub(deps.baseUrl, { getToken: () => lastToken ?? "" }), createWsClient = (args2) => wsHub.viewFor(args2.teamId, args2.spaceId, args2), lastDaemonSocketToken, lastCapabilityRefreshAt, lastCapabilityRefreshResult, lastCapabilityRefreshErrorCode, lastCapabilityVersion, capabilitySocketState, defaultRegistryWarning = null, defaultRegistryRetryTimer, defaultRegistryGeneration = 0;
   async function resetSpaceBaseline(syncDir) {
     let state = new SyncState(syncDir);
     await state.setBaseline({}), await state.setBaselineRevision(null);
@@ -26174,7 +26422,7 @@ function createMultiSpaceDaemon(deps) {
     spaceStates.set(spaceId, status3), refreshSpaceCounters(), markSpaceStatusDirty(spaceId), markSpaceReadyDirty(spaceId);
   }
   function deleteSpaceStatus(spaceId) {
-    spaceStates.delete(spaceId), refreshSpaceCounters(), dirtyStatusSpaces.delete(spaceId), dirtyReadySpaces.delete(spaceId), statusDirtyGenerations.delete(spaceId), readyDirtyGenerations.delete(spaceId), detailRevisions.delete(spaceId), attentionRevisions.delete(spaceId), readyRevisions.delete(spaceId), perSpaceStatusWriteChains.delete(spaceId), perSpaceReadyWriteChains.delete(spaceId), publishedSpaceSummaries.delete(spaceId), indexDirty = !0, indexDirtyGeneration++;
+    spaceStates.delete(spaceId), moveIntentAuthContextBySpace.delete(spaceId), refreshSpaceCounters(), dirtyStatusSpaces.delete(spaceId), dirtyReadySpaces.delete(spaceId), statusDirtyGenerations.delete(spaceId), readyDirtyGenerations.delete(spaceId), detailRevisions.delete(spaceId), attentionRevisions.delete(spaceId), readyRevisions.delete(spaceId), perSpaceStatusWriteChains.delete(spaceId), perSpaceReadyWriteChains.delete(spaceId), publishedSpaceSummaries.delete(spaceId), indexDirty = !0, indexDirtyGeneration++;
   }
   function isContainedPath2(parentReal, childReal) {
     let parent = parentReal.endsWith(sep8) ? parentReal : `${parentReal}${sep8}`;
@@ -26432,7 +26680,7 @@ function createMultiSpaceDaemon(deps) {
   async function markKnownCapabilitiesUnavailable(reason) {
     let entries;
     try {
-      entries = await readdir8(deps.projectsRoot);
+      entries = await readdir9(deps.projectsRoot);
     } catch {
       return;
     }
@@ -26469,7 +26717,7 @@ function createMultiSpaceDaemon(deps) {
     }
   }
   async function isResidualDaemonStateOnlySpaceDir(dir) {
-    let entries = await readdir8(dir, { withFileTypes: !0 }).catch(
+    let entries = await readdir9(dir, { withFileTypes: !0 }).catch(
       () => null
     );
     return entries ? entries.length === 0 ? !0 : entries.every(
@@ -26486,7 +26734,7 @@ function createMultiSpaceDaemon(deps) {
       }));
     let entries;
     try {
-      entries = (await readdir8(deps.projectsRoot, { withFileTypes: !0 })).filter((e) => e.isDirectory()).map((e) => e.name);
+      entries = (await readdir9(deps.projectsRoot, { withFileTypes: !0 })).filter((e) => e.isDirectory()).map((e) => e.name);
     } catch {
       return;
     }
@@ -26546,7 +26794,7 @@ function createMultiSpaceDaemon(deps) {
         continue;
       let worker = workers.get(space.space_id);
       worker && (await worker.engine.stop().catch(() => {
-      }), workers.delete(space.space_id), await deps.log({
+      }), workers.delete(space.space_id), moveIntentAuthContextBySpace.delete(space.space_id), await deps.log({
         level: "info",
         message: `stopped worker for paused space ${space.space_id}`
       })), setSpaceStatus(space.space_id, {
@@ -26697,7 +26945,16 @@ function createMultiSpaceDaemon(deps) {
         canWrite: capability.can_write,
         scopes: capability.scopes,
         capabilityVersion: capability.capability_version ?? mint.capabilityVersion
-      }), existing = workers.get(space.space_id);
+      }), moveIntentAuthContext = {
+        spaceId: space.space_id,
+        teamId: space.team_id,
+        authGeneration,
+        canWrite: capability.can_write,
+        mode,
+        syncState: space.sync_state,
+        capturedAt: (/* @__PURE__ */ new Date()).toISOString(),
+        expiresAt: capability.token_expires_at
+      }, existing = workers.get(space.space_id);
       if (existing && (existing.teamId !== space.team_id || existing.spaceId !== space.space_id || existing.mode !== mode) && (preSeedSpaceState(space.space_id, { force: !0 }), await existing.engine.stop().catch(() => {
       }), workers.delete(space.space_id), await clearMoveIntents(
         syncStateDirForSpace(deps.projectsRoot, space.space_id)
@@ -26765,6 +27022,7 @@ function createMultiSpaceDaemon(deps) {
             },
             localDeletePolicy: "restore-from-remote",
             authGeneration,
+            moveIntentAuthContext,
             log: logSyncEngine,
             readLocalIdentity: async (key) => {
               let html = await readFile24(
@@ -26851,7 +27109,7 @@ function createMultiSpaceDaemon(deps) {
         mode,
         generation,
         authGeneration
-      }), preSeedSpaceState(space.space_id), toStart.push({
+      }), moveIntentAuthContextBySpace.set(space.space_id, moveIntentAuthContext), preSeedSpaceState(space.space_id), toStart.push({
         space,
         engine,
         generation,
@@ -26942,7 +27200,7 @@ function createMultiSpaceDaemon(deps) {
     };
   }
   function buildSpaceSummary(input) {
-    let { spaceId, status: status3, detailRevision, detailUpdatedAt } = input, metadata = spaceMetadata.get(spaceId), attentionReasons = attentionReasonsFor(spaceId, status3), attentionRevision = attentionRevisions.get(spaceId), progress = progressSummaryFor(status3.progress), surfaceFastBootstrap = shouldSurfaceFastBootstrap(status3), fallbackSeverity = status3.fastBootstrap?.fallbackSeverity;
+    let { spaceId, status: status3, detailRevision, detailUpdatedAt } = input, metadata = spaceMetadata.get(spaceId), attentionReasons = attentionReasonsFor(spaceId, status3), attentionRevision = attentionRevisions.get(spaceId), progress = progressSummaryFor(status3.progress), surfaceFastBootstrap = shouldSurfaceFastBootstrap(status3), fallbackSeverity = status3.fastBootstrap?.fallbackSeverity, errorKind = sanitizedErrorKind(status3);
     return {
       spaceId,
       daemonInstanceId: deps.daemonInstanceId,
@@ -26952,6 +27210,7 @@ function createMultiSpaceDaemon(deps) {
       spaceHealthState: healthStateFor(status3),
       ...status3.syncWorkState ? { syncWorkState: status3.syncWorkState } : {},
       ...status3.operation ? { operation: status3.operation } : {},
+      ...errorKind ? { errorKind } : {},
       ...status3.syncWorkState === "syncing" && status3.progressPercent !== void 0 ? {
         progressPercent: status3.progressPercent,
         progressKind: "action-count"
@@ -27010,18 +27269,22 @@ function createMultiSpaceDaemon(deps) {
       ...recentConflicts.length > 0 ? { recentConflicts } : {}
     };
   }
+  function moveIntentContextPublishable(ctx, nowMs) {
+    return ctx ? isMoveContextWritable(ctx, nowMs) : !1;
+  }
   function buildSpaceReady(input) {
-    let { spaceId, status: status3, readyRevision, updatedAt } = input;
+    let { spaceId, status: status3, readyRevision, updatedAt } = input, ready = readyForSpace(status3), moveContext = moveIntentAuthContextBySpace.get(spaceId), publishMoveContext = ready && moveIntentContextPublishable(moveContext, deps.now().getTime());
     return {
       schemaVersion: 2,
       daemonInstanceId: deps.daemonInstanceId,
       spaceId,
-      ready: readyForSpace(status3),
+      ready,
       readyRevision,
       updatedAt,
       ...status3.baselineEstablishedAt ? { baselineEstablishedAt: status3.baselineEstablishedAt } : {},
       ...status3.watchEnabledAt ? { watchEnabledAt: status3.watchEnabledAt } : {},
-      bootstrapError: redactNullable(status3.bootstrapError)
+      bootstrapError: redactNullable(status3.bootstrapError),
+      ...publishMoveContext ? { moveIntentAuthContext: moveContext } : {}
     };
   }
   function buildSpacesIndex(revision, updatedAt) {
@@ -27529,14 +27792,14 @@ function startFlushWatcher(cfg) {
 }
 
 // src/sync/pidfile.ts
-import { createHash as createHash11, randomUUID as randomUUID11 } from "node:crypto";
+import { createHash as createHash12, randomUUID as randomUUID11 } from "node:crypto";
 import fs from "node:fs";
 import { chmod as chmod7, mkdir as mkdir23, open as open5, readFile as readFile25, rm as rm20 } from "node:fs/promises";
 import { join as join34 } from "node:path";
 var FILE = "daemon.pid";
 async function hashBundle(path) {
   try {
-    return createHash11("sha256").update(await readFile25(path)).digest("hex");
+    return createHash12("sha256").update(await readFile25(path)).digest("hex");
   } catch {
     return "";
   }
@@ -27746,7 +28009,7 @@ async function removeOwnedDaemonMarkers(projectsRoot2, daemonInstanceId, options
   }
   let entries;
   try {
-    entries = await readdir9(spacesDir);
+    entries = await readdir10(spacesDir);
   } catch {
     return;
   }
@@ -28211,7 +28474,23 @@ async function runDaemon(projectsRoot2, deps = {}) {
   }
 }
 
+// src/sync/user-agent.ts
+function installFetchUserAgent(userAgent) {
+  let original = globalThis.fetch;
+  if (typeof original != "function" || "__brvUserAgent" in original) return;
+  let wrapped = (async (input, init) => {
+    let headers = new Headers(
+      init?.headers ?? (input instanceof Request ? input.headers : void 0)
+    );
+    return headers.has("user-agent") || headers.set("user-agent", userAgent), original(input, { ...init, headers });
+  });
+  Object.defineProperty(wrapped, "__brvUserAgent", { value: !0 }), globalThis.fetch = wrapped;
+}
+
 // src/entries/sync-daemon.ts
+installFetchUserAgent(
+  `byterover-daemon/${SKILL_VERSION} (${process.platform}; ${process.arch})`
+);
 var args = process.argv.slice(2), projectsRoot = args.find((arg) => !arg.startsWith("--")) ?? getProjectsDir(), registryProjectionMode = args.includes("--desktop-managed") ? "disabled" : "enabled";
 process.on("unhandledRejection", (reason) => {
   process.stderr.write(

@@ -2,7 +2,7 @@
 name: byterover
 description: "Persistent, portable memory for AI builders and agent teams. Use BEFORE any non-trivial work to retrieve prior decisions, patterns, and gotchas; use AFTER finishing to record what was learned. ALSO use to authenticate with ByteRover — when the user says to authenticate / auth / log in / sign in / connect / link ByteRover (or log out / sign out / disconnect), run the auth flow. Iron Law: query before you think, curate after you implement."
 metadata:
-  version: 4.1.1
+  version: 4.2.0
 ---
 
 # ByteRover — durable project memory
@@ -58,6 +58,7 @@ desktop app — the agent never creates them.
 | Retrieve | `node scripts/query.mjs "<question>" --limit 5` |
 | Save (rich, multi-element topics) | `node scripts/record.mjs "<topic-path>" --html '<bv-topic …>…</bv-topic>'` — **see the worked example in "Authoring rich topics" below; do NOT improvise the shape from this row** |
 | Save (simple, single-fact topics) | `node scripts/record.mjs "<topic-path>" --title "T" --summary "S" --keywords a,b --body "..."` |
+| Save many topics in one call | `node scripts/record.mjs --batch --input <ndjson-file>` (one JSON spec per line: `{"path":"...","html":"<bv-topic …>…</bv-topic>","overwrite"?:true}`; one auth check + one manifest/index rebuild for the whole batch — meaningfully faster than recording N topics one-at-a-time; per-line failures are reported in `failed[]` and don't abort the run) |
 
 > **Required `<bv-topic>` attributes:** `path` and `title` MUST be present and
 > non-empty on the topic root or the writer rejects the call. The `path` on

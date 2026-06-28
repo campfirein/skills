@@ -1,5 +1,11 @@
 # skill
 
+## 4.2.0
+
+### Minor Changes
+
+- `record` now accepts `--batch --input <ndjson-file>` to write many topics in one call. The input file is line-delimited JSON; each line carries `{path, html, overwrite?}`. One auth check and one `rebuildManifest` + `rebuildIndex` cover the whole batch instead of N rebuilds — the dogfooding case (16-topic consolidation seeded into a 500-topic space) drops measurably (in-process bench: 1.46× faster; real-world CLI invocations save additional ~50-100ms node-startup × N, projecting to ~3-4× for the 16-call case). Per-line errors are reported in `failed[]` and don't abort the run; malformed-JSON, missing required fields, and writer rejections all flow to `failed[]` with a per-line error message. Single-record (no `--batch`) behavior unchanged. Bench harness lives in `apps/skill/test/_bench/record-latency.test.ts` (skipped in CI; flip the `.skip` to re-measure).
+
 ## 4.1.1
 
 ### Patch Changes

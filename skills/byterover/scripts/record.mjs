@@ -19059,7 +19059,7 @@ function verifyHtmlTopic(html, publicKeyPem) {
 import { randomUUID as randomUUID7 } from "node:crypto";
 
 // src/config.ts
-var SKILL_VERSION = "4.1.1", AUTH_URL = "https://v4-app.byterover.dev";
+var SKILL_VERSION = "4.2.0", AUTH_URL = "https://v4-app.byterover.dev";
 var ANALYTICS_TELEMETRY_URL = "https://v4-telemetry.byterover.dev", ANALYTICS_ENABLED = ANALYTICS_TELEMETRY_URL.length > 0, rawMaxBytes = 0, EVENT_MAX_BYTES = Number.isInteger(rawMaxBytes) && rawMaxBytes > 0 ? rawMaxBytes : 4096, rawCapabilityRefresh = "", CAPABILITY_REFRESH_ENABLED = !["0", "false", "off"].includes(
   rawCapabilityRefresh.trim().toLowerCase()
 );
@@ -19550,7 +19550,108 @@ async function runCommand(name, argv) {
   let { positionals, flags } = parseArgs(argv);
   switch (name) {
     case "record": {
-      let startedAt = Date.now(), taskId = randomUUID8(), path2 = positionals[0];
+      let startedAt = Date.now(), taskId = randomUUID8();
+      if (flags.batch === !0) {
+        let inputPath = str2(flags.input);
+        if (!inputPath)
+          return {
+            ok: !1,
+            error: "record --batch requires --input <ndjson-file>"
+          };
+        let resolvedRoot2 = await rootForRecord(flags);
+        if (resolvedRoot2.kind === "error") return resolvedRoot2.result;
+        let root2 = resolvedRoot2.root, signer2 = await buildTopicSignerForRoot(root2), lines;
+        try {
+          lines = (await readFile27(inputPath, "utf8")).split(`
+`).map((l) => l.trim()).filter((l) => l.length > 0);
+        } catch (err) {
+          return {
+            ok: !1,
+            error: `record --batch: failed to read --input "${inputPath}": ${err instanceof Error ? err.message : String(err)}`
+          };
+        }
+        let written = [], failed = [], reconcileEvents = [], writtenAny = !1;
+        for (let i = 0; i < lines.length; i++) {
+          let line = lines[i], spec;
+          try {
+            let parsed = JSON.parse(line);
+            if (typeof parsed != "object" || parsed === null || typeof parsed.path != "string" || typeof parsed.html != "string") {
+              failed.push({
+                path: null,
+                error: `line ${i + 1}: missing required "path" or "html" string`
+              });
+              continue;
+            }
+            spec = parsed;
+          } catch (err) {
+            failed.push({
+              path: null,
+              error: `line ${i + 1}: malformed JSON (${err instanceof Error ? err.message : String(err)})`
+            });
+            continue;
+          }
+          let result2 = await writeTopic(root2, {
+            agent: resolveAgent(),
+            confirmOverwrite: spec.overwrite === !0,
+            rawHtml: spec.html,
+            signer: signer2
+          });
+          if (!result2.ok) {
+            failed.push({
+              path: spec.path,
+              error: result2.errors.map((e) => e.message).join("; ")
+            });
+            continue;
+          }
+          writtenAny = !0, result2.created ? await updateSignal(
+            root2,
+            result2.relPath,
+            () => createDefaultRuntimeSignals()
+          ) : await recordCurateUpdateSignal(root2, result2.relPath), written.push({
+            path: result2.relPath,
+            created: result2.created,
+            warnings: [...result2.warnings]
+          }), reconcileEvents.push({
+            kind: result2.created ? "create" : "rewrite",
+            path: result2.relPath
+          });
+        }
+        if (writtenAny) {
+          await rebuildManifest(root2), await rebuildIndex(root2, { now: (/* @__PURE__ */ new Date()).toISOString() });
+          for (let evt of reconcileEvents)
+            await safeReconcile(root2, {
+              kind: evt.kind,
+              path: evt.path,
+              source: "skill"
+            });
+        }
+        return await emit2({
+          name: AnalyticsEventNames.RECORD_RUN_COMPLETED,
+          properties: {
+            duration_ms: Date.now() - startedAt,
+            operations_added: written.filter((w) => w.created).length,
+            operations_deleted: 0,
+            operations_failed: failed.length,
+            operations_merged: 0,
+            operations_updated: written.filter((w) => !w.created).length,
+            outcome: failed.length === 0 ? "completed" : "error",
+            pending_review_count: 0,
+            project_path_hash: await projectHashForRoot(root2),
+            ...await spaceAttributionForRoot(root2),
+            task_id: taskId,
+            task_type: TASK_TYPE.RECORD
+          }
+        }), {
+          ok: failed.length === 0,
+          data: {
+            written,
+            failed,
+            total: lines.length,
+            durationMs: Date.now() - startedAt
+          }
+        };
+      }
+      let path2 = positionals[0];
       if (!path2) return { ok: !1, error: "record requires a topic path" };
       let resolvedRoot = await rootForRecord(flags);
       if (resolvedRoot.kind === "error") return resolvedRoot.result;

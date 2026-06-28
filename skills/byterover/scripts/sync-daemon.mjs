@@ -17771,7 +17771,7 @@ function describeErr4(err) {
 }
 
 // src/config.ts
-var SKILL_VERSION = "4.1.0", AUTH_URL = "https://v4-app.byterover.dev", BASE_URL = "https://v4-be.byterover.dev", CAPABILITY_WS_URL = "https://v4-be.byterover.dev", ANALYTICS_TELEMETRY_URL = "https://v4-telemetry.byterover.dev", ANALYTICS_ENABLED = ANALYTICS_TELEMETRY_URL.length > 0, rawMaxBytes = 0, EVENT_MAX_BYTES = Number.isInteger(rawMaxBytes) && rawMaxBytes > 0 ? rawMaxBytes : 4096, rawCapabilityRefresh = "", CAPABILITY_REFRESH_ENABLED = !["0", "false", "off"].includes(
+var SKILL_VERSION = "4.1.1", AUTH_URL = "https://v4-app.byterover.dev", BASE_URL = "https://v4-be.byterover.dev", CAPABILITY_WS_URL = "https://v4-be.byterover.dev", ANALYTICS_TELEMETRY_URL = "https://v4-telemetry.byterover.dev", ANALYTICS_ENABLED = ANALYTICS_TELEMETRY_URL.length > 0, rawMaxBytes = 0, EVENT_MAX_BYTES = Number.isInteger(rawMaxBytes) && rawMaxBytes > 0 ? rawMaxBytes : 4096, rawCapabilityRefresh = "", CAPABILITY_REFRESH_ENABLED = !["0", "false", "off"].includes(
   rawCapabilityRefresh.trim().toLowerCase()
 );
 
@@ -20998,6 +20998,19 @@ async function clearDeleteIntents(syncDir) {
   );
 }
 
+// ../../packages/sync/src/conflict-copy.ts
+function conflictCopyKey(key, losingMd5) {
+  let short = losingMd5.slice(0, 8), dot = key.lastIndexOf(".");
+  if (dot < 0) return `${key}.conflict-${short}`;
+  let stem = key.slice(0, dot), ext = key.slice(dot);
+  return `${stem}.conflict-${short}${ext}`;
+}
+function resolveConflictPreserve(key, localMd5, remoteMd5) {
+  if (localMd5 === remoteMd5) return null;
+  let canonical = localMd5 > remoteMd5 ? "local" : "remote";
+  return { canonical, sidecarKey: conflictCopyKey(key, canonical === "local" ? remoteMd5 : localMd5) };
+}
+
 // ../../packages/sync/src/reconcile.ts
 function planReconcile(inputs, _nowIso, options = {}) {
   let mode = options.mode ?? "bidirectional", localDeletePolicy = options.localDeletePolicy ?? "propagate";
@@ -21023,7 +21036,7 @@ function planBidirectional(inputs, localDeletePolicy, suppressRestoreForKeys, fo
     if (L && R) {
       if (L.md5 === R.md5) continue;
       let localChanged = !B || L.md5 !== B.md5, remoteChanged = !B || R.md5 !== B.md5;
-      B ? localChanged && remoteChanged ? actions.push(resolveLww(key, L, R)) : remoteChanged ? actions.push({ kind: "pull", key, reason: "remote-change" }) : actions.push({ kind: "push", key }) : actions.push({ kind: "conflict", key, winner: "remote", reason: "first-sync" });
+      B ? localChanged && remoteChanged ? actions.push(preserveBothConflict(key, L, R)) : remoteChanged ? actions.push({ kind: "pull", key, reason: "remote-change" }) : actions.push({ kind: "push", key }) : actions.push(preserveBothConflict(key, L, R));
     } else if (L && !R)
       B && L.md5 !== B.md5 ? actions.push({ kind: "conflict", key, winner: "local", reason: "edit-vs-delete" }) : actions.push(B ? { kind: "delete-local", key } : { kind: "push", key });
     else if (!L && R)
@@ -21045,7 +21058,13 @@ function planBootstrap(inputs) {
   ]), actions = [];
   for (let key of [...keys].sort()) {
     let L = local.get(key), R = remote.get(key), B = baseline[key];
-    R && (!B || R.md5 !== B.md5) && (L && !B && L.md5 !== R.md5 ? actions.push({ kind: "conflict", key, winner: "remote", reason: "first-sync" }) : actions.push({ kind: "pull", key }));
+    R && (!B || R.md5 !== B.md5) && (L && !B && L.md5 !== R.md5 ? actions.push({
+      kind: "conflict",
+      key,
+      winner: "remote",
+      reason: "conflict-copy",
+      sidecarKey: conflictCopyKey(key, L.md5)
+    }) : actions.push({ kind: "pull", key }));
   }
   return actions;
 }
@@ -21065,12 +21084,15 @@ function planPullOnly(inputs) {
   }
   return actions;
 }
-function resolveLww(key, L, R) {
-  let rTime = Date.parse(R.updatedAt), lTime = L.mtimeMs;
-  if (rTime > lTime) return { kind: "conflict", key, winner: "remote", reason: "newer" };
-  if (rTime < lTime) return { kind: "conflict", key, winner: "local", reason: "newer" };
-  let winner = L.md5 > R.md5 ? "local" : "remote";
-  return { kind: "conflict", key, winner, reason: "tie-md5" };
+function preserveBothConflict(key, L, R) {
+  let plan = resolveConflictPreserve(key, L.md5, R.md5);
+  return {
+    kind: "conflict",
+    key,
+    winner: plan.canonical,
+    reason: "conflict-copy",
+    sidecarKey: plan.sidecarKey
+  };
 }
 
 // ../../packages/sync/src/concurrency.ts
@@ -23190,7 +23212,9 @@ function createSyncEngine(inputConfig, deps = {}) {
         for (let key of candidateKeys) {
           if (!keyUnderDeletePrefix(key, intent.prefix)) continue;
           let R = remote.get(key), B = baseline[key];
-          (!R || B && R.md5 === B.md5) && forceDeleteKeys.add(key);
+          if (!(!R || B && R.md5 === B.md5)) continue;
+          let L = local.get(key);
+          (L === void 0 || B && L.md5 === B.md5) && forceDeleteKeys.add(key);
         }
     }
     for (let intent of validatedIntents)
@@ -23466,9 +23490,9 @@ function createSyncEngine(inputConfig, deps = {}) {
         ), delete nextBaseline[act.key], result.deleted.push(act.key), { kind: "applied" });
       }
       case "delete-local": {
-        if (!act.forced) {
-          let cur = await tree.readText(act.key), base = nextBaseline[act.key];
-          if (cur !== void 0 && base && md5Hex(cur) !== base.md5)
+        {
+          let cur = await tree.readText(act.key), base = nextBaseline[act.key], matchesBaseline = cur !== void 0 && base !== void 0 && md5Hex(cur) === base.md5;
+          if (cur !== void 0 && !matchesBaseline)
             return localChangesNotUploaded.push(act.key), ctx.preservedLocalKeys.push(act.key), { kind: "skipped", reason: "local-file-dirty" };
         }
         return await tree.delete(act.key), delete nextBaseline[act.key], result.deleted.push(act.key), ctx.hostDeletedKeys.push(act.key), { kind: "applied" };
@@ -23476,7 +23500,9 @@ function createSyncEngine(inputConfig, deps = {}) {
       case "local-change-not-uploaded":
         return localChangesNotUploaded.push(act.key), nextBaseline[act.key] && !ctx.remote.has(act.key) && ctx.preservedLocalKeys.push(act.key), { kind: "skipped", reason: "local-change-not-uploaded" };
       case "conflict": {
-        if (result.conflicts.push({ ...act, at: (/* @__PURE__ */ new Date()).toISOString() }), act.winner === "remote")
+        if (result.conflicts.push({ ...act, at: (/* @__PURE__ */ new Date()).toISOString() }), act.reason === "conflict-copy" && act.sidecarKey !== void 0)
+          return await applyConflictCopy(act, act.sidecarKey, ctx);
+        if (act.winner === "remote")
           return { kind: "applied", bytes: await pull(act.key, ctx) };
         {
           let text = await tree.readText(act.key);
@@ -23487,6 +23513,30 @@ function createSyncEngine(inputConfig, deps = {}) {
         }
       }
     }
+  }
+  async function applyConflictCopy(act, sidecarKey, ctx) {
+    let { nextBaseline, result } = ctx, localText = await tree.readText(act.key), remoteEntry = ctx.remote.get(act.key);
+    if (localText === void 0 || !remoteEntry) {
+      if (act.winner === "remote")
+        return { kind: "applied", bytes: await pull(act.key, ctx) };
+      if (localText === void 0)
+        return { kind: "skipped", reason: "local-file-missing" };
+      let put = await http.putFile(act.key, localText);
+      return nextBaseline[act.key] = { md5: put.md5, updatedAt: put.updatedAt }, result.pushed.push(act.key), { kind: "applied", bytes: Buffer.byteLength(localText, "utf8") };
+    }
+    let remoteText = await http.getFile(act.key), canonicalText = act.winner === "local" ? localText : remoteText, losingText = act.winner === "local" ? remoteText : localText;
+    if (await tree.writeAtomic(sidecarKey, losingText), ctx.preservedLocalKeys.push(sidecarKey), act.winner === "local") {
+      let put = await http.putFile(act.key, canonicalText);
+      nextBaseline[act.key] = { md5: put.md5, updatedAt: put.updatedAt }, result.pushed.push(act.key);
+    } else
+      await tree.writeAtomic(act.key, canonicalText), nextBaseline[act.key] = {
+        md5: remoteEntry.md5,
+        updatedAt: remoteEntry.updatedAt
+      }, result.pulled.push(act.key), ctx.pulledKeys.push(act.key);
+    return {
+      kind: "applied",
+      bytes: Buffer.byteLength(canonicalText, "utf8") + Buffer.byteLength(losingText, "utf8")
+    };
   }
   async function pull(key, ctx) {
     let entry = ctx.remote.get(key), body = await http.getFile(key);

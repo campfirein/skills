@@ -19059,7 +19059,7 @@ function verifyHtmlTopic(html, publicKeyPem) {
 import { randomUUID as randomUUID7 } from "node:crypto";
 
 // src/config.ts
-var SKILL_VERSION = "4.1.0", AUTH_URL = "https://v4-app.byterover.dev";
+var SKILL_VERSION = "4.1.1", AUTH_URL = "https://v4-app.byterover.dev";
 var ANALYTICS_TELEMETRY_URL = "https://v4-telemetry.byterover.dev", ANALYTICS_ENABLED = ANALYTICS_TELEMETRY_URL.length > 0, rawMaxBytes = 0, EVENT_MAX_BYTES = Number.isInteger(rawMaxBytes) && rawMaxBytes > 0 ? rawMaxBytes : 4096, rawCapabilityRefresh = "", CAPABILITY_REFRESH_ENABLED = !["0", "false", "off"].includes(
   rawCapabilityRefresh.trim().toLowerCase()
 );
@@ -20221,6 +20221,22 @@ async function runCommand(name, argv) {
       let root = resolvedRoot.root, blocked = await legacyGuard(root);
       if (blocked) return blocked;
       let signer = await buildTopicSignerForRoot(root), removeMode = flags.remove === !0, bidirectional = flags.bidirectional === !0;
+      if (!removeMode) {
+        let bAbs = resolveWithinTree(root, bRel);
+        if (!existsSync4(bAbs))
+          return {
+            ok: !1,
+            error: `no topic at "${bRel}"`
+          };
+        if (bidirectional) {
+          let aAbs = resolveWithinTree(root, aRel);
+          if (!existsSync4(aAbs))
+            return {
+              ok: !1,
+              error: `no topic at "${aRel}"`
+            };
+        }
+      }
       async function applyLinkSide(fromRel, targetRel) {
         let abs = resolveWithinTree(root, fromRel), html;
         try {

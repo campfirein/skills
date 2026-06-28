@@ -1,5 +1,11 @@
 # skill
 
+## 4.1.1
+
+### Patch Changes
+
+- `link` now refuses to add a `related=` edge to a target topic that doesn't exist on disk — the previous behavior silently created a dangling ref. Both single and `--bidirectional` add modes pre-flight target existence and return `{ok: false, error: 'no topic at "<missing>"'}` before any write, so partial-write windows are gone. `--remove` is exempt: removing a ref to a missing target is the recovery path for cleaning up already-dangling edges. Mirrors `move`'s dangling-ref discipline.
+
 ## 4.1.0
 
 ### Minor Changes

@@ -19059,7 +19059,7 @@ function verifyHtmlTopic(html, publicKeyPem) {
 import { randomUUID as randomUUID7 } from "node:crypto";
 
 // src/config.ts
-var SKILL_VERSION = "4.0.10", AUTH_URL = "https://v4-app.byterover.dev";
+var SKILL_VERSION = "4.0.11", AUTH_URL = "https://v4-app.byterover.dev";
 var ANALYTICS_TELEMETRY_URL = "https://v4-telemetry.byterover.dev", ANALYTICS_ENABLED = ANALYTICS_TELEMETRY_URL.length > 0, rawMaxBytes = 0, EVENT_MAX_BYTES = Number.isInteger(rawMaxBytes) && rawMaxBytes > 0 ? rawMaxBytes : 4096, rawCapabilityRefresh = "", CAPABILITY_REFRESH_ENABLED = !["0", "false", "off"].includes(
   rawCapabilityRefresh.trim().toLowerCase()
 );
@@ -20231,7 +20231,12 @@ async function runCommand(name, argv2) {
           }
         }), blocked;
       try {
-        let data = await readTopic(root, path2), meta = await topicMetadata(root, path2);
+        let data = await readTopic(root, path2), rawHtml;
+        if (flags.raw === !0) {
+          let abs = resolveWithinTree(root, canonicalRel(path2));
+          rawHtml = await readFile27(abs, "utf8");
+        }
+        let meta = await topicMetadata(root, path2);
         return await emit2({
           name: AnalyticsEventNames.READ_COMPLETED,
           properties: {
@@ -20255,7 +20260,10 @@ async function runCommand(name, argv2) {
             task_type: TASK_TYPE.READ,
             ...await spaceAttributionForRoot(root)
           }
-        }), { ok: !0, data };
+        }), {
+          ok: !0,
+          data: rawHtml !== void 0 ? { ...data, rawHtml } : data
+        };
       } catch (err) {
         throw await emit2({
           name: AnalyticsEventNames.READ_COMPLETED,

@@ -1,5 +1,11 @@
 # skill
 
+## 4.0.11
+
+### Patch Changes
+
+- `read` now accepts `--raw` to surface a `rawHtml` field containing the on-disk HTML byte-for-byte. Without the flag, the `elements[].text` payload is whitespace-collapsed by `getInnerText` — re-recording from a `read` result silently degrades inner `<ul>`/`<li>`/`<strong>` structure. With `--raw`, agents can round-trip topics through `record --html` without losing formatting and without bypassing the engine. Purely additive: existing callers see the same payload shape; `rawHtml` is absent unless requested.
+
 ## 4.0.10
 
 ### Patch Changes

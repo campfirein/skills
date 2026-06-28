@@ -2,7 +2,7 @@
 name: byterover
 description: "Persistent, portable memory for AI builders and agent teams. Use BEFORE any non-trivial work to retrieve prior decisions, patterns, and gotchas; use AFTER finishing to record what was learned. ALSO use to authenticate with ByteRover — when the user says to authenticate / auth / log in / sign in / connect / link ByteRover (or log out / sign out / disconnect), run the auth flow. Iron Law: query before you think, curate after you implement."
 metadata:
-  version: 4.0.10
+  version: 4.0.11
 ---
 
 # ByteRover — durable project memory
@@ -63,7 +63,7 @@ desktop app — the agent never creates them.
 > non-empty on the topic root or the writer rejects the call. The `path` on
 > `<bv-topic>` should match the positional `<topic-path>` you pass to
 > `record.mjs`. See [vocabulary.md](vocabulary.md) for the full attribute spec.
-| Read | `node scripts/brv.mjs read "<topic-path>.html"` |
+| Read | `node scripts/brv.mjs read "<topic-path>.html" [--raw]` (use `--raw` to get the on-disk HTML byte-for-byte — required when round-tripping through `record --html`, since `elements[].text` flattens inner `<ul>`/`<li>`/`<strong>` formatting) |
 | List | `node scripts/brv.mjs list` |
 | Rebuild manifest + index | `node scripts/manifest.mjs` |
 | Detect consolidation opportunities | `node scripts/dream.mjs --mode merge\|link\|prune\|synthesize` (proposes — never executes) |

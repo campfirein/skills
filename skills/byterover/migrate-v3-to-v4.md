@@ -2,7 +2,7 @@
 name: migrate-v3-to-v4
 description: "Migrate a self-hosted ByteRover v3 VPS to v4 — ALL of the user's spaces — driven by you (the agent). For every v3 project on the box (a folder with `.brv/context-tree/*.md`) it creates the v4 space, converts the markdown to v4 HTML, and materializes it, using the bundled `migrate-v3` command (which follows the desktop migration logic). The only input is a v4 API key (the auth step). Use when a user wants to migrate a self-hosted / VPS ByteRover v3 instance to v4. Runs ON the VPS where the v3 data + install live."
 metadata:
-  version: 4.0.10
+  version: 4.0.11
 ---
 
 # Migrate ByteRover v3 → v4 (self-hosted / VPS)

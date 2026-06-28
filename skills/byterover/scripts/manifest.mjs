@@ -20166,7 +20166,12 @@ async function runCommand(name, argv) {
           }
         }), blocked;
       try {
-        let data = await readTopic(root, path2), meta = await topicMetadata(root, path2);
+        let data = await readTopic(root, path2), rawHtml;
+        if (flags.raw === !0) {
+          let abs = resolveWithinTree(root, canonicalRel(path2));
+          rawHtml = await readFile27(abs, "utf8");
+        }
+        let meta = await topicMetadata(root, path2);
         return await emit2({
           name: AnalyticsEventNames.READ_COMPLETED,
           properties: {
@@ -20190,7 +20195,10 @@ async function runCommand(name, argv) {
             task_type: TASK_TYPE.READ,
             ...await spaceAttributionForRoot(root)
           }
-        }), { ok: !0, data };
+        }), {
+          ok: !0,
+          data: rawHtml !== void 0 ? { ...data, rawHtml } : data
+        };
       } catch (err) {
         throw await emit2({
           name: AnalyticsEventNames.READ_COMPLETED,

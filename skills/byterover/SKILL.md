@@ -1,8 +1,8 @@
 ---
 name: byterover
-description: "Persistent, portable memory for Al builders and agent teams. Use BEFORE any non-trivial work to retrieve prior decisions, patterns, and gotchas; use AFTER finishing to record what was learned. ALSO use to authenticate with ByteRover — when the user says to authenticate / auth / log in / sign in / connect / link ByteRover (or log out / sign out / disconnect), run the auth flow. Iron Law: query before you think, curate after you implement."
+description: "Persistent, portable memory for AI builders and agent teams. Use BEFORE any non-trivial work to retrieve prior decisions, patterns, and gotchas; use AFTER finishing to record what was learned. ALSO use to authenticate with ByteRover — when the user says to authenticate / auth / log in / sign in / connect / link ByteRover (or log out / sign out / disconnect), run the auth flow. Iron Law: query before you think, curate after you implement."
 metadata:
-  version: 4.0.9
+  version: 4.0.10
 ---
 
 # ByteRover — durable project memory
@@ -67,7 +67,7 @@ desktop app — the agent never creates them.
 | List | `node scripts/brv.mjs list` |
 | Rebuild manifest + index | `node scripts/manifest.mjs` |
 | Detect consolidation opportunities | `node scripts/dream.mjs --mode merge\|link\|prune\|synthesize` (proposes — never executes) |
-| Fold one topic into another | `node scripts/merge.mjs <survivor> <loser>` |
+| Fold one topic into another | `node scripts/merge.mjs <survivor> <loser> [--title "…"] [--summary "…"] [--tags a,b] [--keywords a,b] [--reason "…"] [--related @x.html,@y.html]` (use `--title` to give the survivor a new title that reflects the merged scope — without it, the survivor keeps its own title even when the merged content is broader) |
 | Remove redundant topics | `node scripts/prune.mjs <topic-path>...` (variadic, atomic — aborts on first failure with a partial report) |
 | Combine many topics into a new one | `node scripts/synthesize.mjs <new-path> --html '<bv-topic …>…</bv-topic>' --absorb a.html,b.html,c.html` |
 | Rename / move / re-parent a topic within the current space | `node scripts/move.mjs <topic-path> --to-path <new-path>` (atomic — siblings' `related=` refs are rewritten to the new path; signal sidecar carries over; covers all of rename, move-to-new-parent, deep re-parent, and combined) |

@@ -16791,9 +16791,24 @@ async function projectActiveTeamRegistry(input) {
         space_id,
         addedAt: addedAtByActiveMirrorFolder.get(folder) ?? now
       });
-    input.defaultSpaceId === null ? delete reg.defaultSpaceId : input.defaultSpaceId !== void 0 && (reg.defaultSpaceId = input.defaultSpaceId), restoreSpaceIds.size > 0 && (reg.deletedSpaces = reg.deletedSpaces.filter(
-      (deleted) => !restoreSpaceIds.has(deleted.space_id)
-    ));
+    input.defaultSpaceId === null ? delete reg.defaultSpaceId : input.defaultSpaceId !== void 0 && (reg.defaultSpaceId = input.defaultSpaceId), restoreSpaceIds.size > 0 && dropSoftTombstones(reg, (space_id) => restoreSpaceIds.has(space_id));
+  });
+}
+function dropSoftTombstones(reg, match) {
+  reg.deletedSpaces = reg.deletedSpaces.filter(
+    (d) => d.hard || !match(d.space_id)
+  );
+}
+async function markSpaceDeleted(space_id, hard) {
+  if (!isUuid(space_id))
+    throw new Error("markSpaceDeleted: space_id must be a UUID string");
+  await mutateRegistry((reg) => {
+    let existing = reg.deletedSpaces.find((d) => d.space_id === space_id);
+    existing !== void 0 ? (existing.hard = existing.hard || hard, existing.deletedAt = (/* @__PURE__ */ new Date()).toISOString()) : reg.deletedSpaces.push({
+      deletedAt: (/* @__PURE__ */ new Date()).toISOString(),
+      hard,
+      space_id
+    });
   });
 }
 async function getDefaultSpaceId() {
@@ -17756,7 +17771,7 @@ function describeErr4(err) {
 }
 
 // src/config.ts
-var SKILL_VERSION = "4.0.9", AUTH_URL = "https://v4-app.byterover.dev", BASE_URL = "https://v4-be.byterover.dev", CAPABILITY_WS_URL = "https://v4-be.byterover.dev", ANALYTICS_TELEMETRY_URL = "https://v4-telemetry.byterover.dev", ANALYTICS_ENABLED = ANALYTICS_TELEMETRY_URL.length > 0, rawMaxBytes = 0, EVENT_MAX_BYTES = Number.isInteger(rawMaxBytes) && rawMaxBytes > 0 ? rawMaxBytes : 4096, rawCapabilityRefresh = "", CAPABILITY_REFRESH_ENABLED = !["0", "false", "off"].includes(
+var SKILL_VERSION = "4.0.10", AUTH_URL = "https://v4-app.byterover.dev", BASE_URL = "https://v4-be.byterover.dev", CAPABILITY_WS_URL = "https://v4-be.byterover.dev", ANALYTICS_TELEMETRY_URL = "https://v4-telemetry.byterover.dev", ANALYTICS_ENABLED = ANALYTICS_TELEMETRY_URL.length > 0, rawMaxBytes = 0, EVENT_MAX_BYTES = Number.isInteger(rawMaxBytes) && rawMaxBytes > 0 ? rawMaxBytes : 4096, rawCapabilityRefresh = "", CAPABILITY_REFRESH_ENABLED = !["0", "false", "off"].includes(
   rawCapabilityRefresh.trim().toLowerCase()
 );
 
@@ -26757,7 +26772,14 @@ function createMultiSpaceDaemon(deps) {
       }), workers.delete(entry), recentConflictsBySpace.delete(entry), await deps.log({
         level: "info",
         message: `stopped worker for removed space ${entry}`
-      })), !await deps.isCleanForDelete(dir)) {
+      })), await markSpaceDeleted(entry, !1).catch(async (err) => {
+        await deps.log({
+          level: "warn",
+          message: `failed to tombstone removed space ${entry}: ${redactSecrets(
+            err instanceof Error ? err.message : String(err)
+          )}`
+        });
+      }), !await deps.isCleanForDelete(dir)) {
         setSpaceStatus(entry, {
           space_id: entry,
           state: "orphaned_cloud_space",

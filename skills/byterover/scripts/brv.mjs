@@ -13597,6 +13597,16 @@ async function findBindingForCwd(cwd) {
     b.removedAt === void 0 && isAncestorOrEqual(b.folder, canonicalCwd) && (best === null || b.folder.length > best.folder.length) && (best = b);
   return best;
 }
+function dropSoftTombstones(reg, match) {
+  reg.deletedSpaces = reg.deletedSpaces.filter(
+    (d) => d.hard || !match(d.space_id)
+  );
+}
+async function unmarkSpaceDeleted(space_id) {
+  await mutateRegistry((reg) => {
+    dropSoftTombstones(reg, (id) => id === space_id);
+  });
+}
 async function isSpaceDeleted(space_id) {
   let found = (await readRegistry()).deletedSpaces.find((d) => d.space_id === space_id);
   return found ? { deleted: !0, hard: found.hard } : { deleted: !1, hard: !1 };
@@ -13846,8 +13856,13 @@ function unionCsvAttribute(survivorAttr, loserAttr, extra) {
 function buildMergedAttributes(survivor, loser, survivorCanon, options) {
   let attrs = { ...survivor.attributes };
   attrs.path = survivorCanon, delete attrs.createdat, delete attrs.updatedat, delete attrs.sig, delete attrs.kid;
-  let survivorTitle = (survivor.attributes.title ?? "").trim(), loserTitle = (loser.attributes.title ?? "").trim();
-  survivorTitle.length === 0 && loserTitle.length > 0 && (attrs.title = loserTitle);
+  let explicitTitle = options.title?.trim();
+  if (explicitTitle !== void 0 && explicitTitle.length > 0)
+    attrs.title = explicitTitle;
+  else {
+    let survivorTitle = (survivor.attributes.title ?? "").trim(), loserTitle = (loser.attributes.title ?? "").trim();
+    survivorTitle.length === 0 && loserTitle.length > 0 && (attrs.title = loserTitle);
+  }
   let summary = options.summary ?? survivor.attributes.summary ?? loser.attributes.summary;
   return summary !== void 0 && summary.length > 0 && (attrs.summary = summary), setOrDelete(
     attrs,
@@ -19044,7 +19059,7 @@ function verifyHtmlTopic(html, publicKeyPem) {
 import { randomUUID as randomUUID7 } from "node:crypto";
 
 // src/config.ts
-var SKILL_VERSION = "4.0.9", AUTH_URL = "https://v4-app.byterover.dev";
+var SKILL_VERSION = "4.0.10", AUTH_URL = "https://v4-app.byterover.dev";
 var ANALYTICS_TELEMETRY_URL = "https://v4-telemetry.byterover.dev", ANALYTICS_ENABLED = ANALYTICS_TELEMETRY_URL.length > 0, rawMaxBytes = 0, EVENT_MAX_BYTES = Number.isInteger(rawMaxBytes) && rawMaxBytes > 0 ? rawMaxBytes : 4096, rawCapabilityRefresh = "", CAPABILITY_REFRESH_ENABLED = !["0", "false", "off"].includes(
   rawCapabilityRefresh.trim().toLowerCase()
 );
@@ -20530,7 +20545,12 @@ async function runCommand(name, argv2) {
       if (resolvedRoot.kind === "error") return resolvedRoot.result;
       let root = resolvedRoot.root, blocked = await legacyGuard(root);
       if (blocked) return blocked;
-      let signer = await buildTopicSignerForRoot(root);
+      let signer = await buildTopicSignerForRoot(root), titleFlag = str2(flags.title);
+      if (titleFlag !== void 0 && titleFlag.trim().length === 0)
+        return {
+          ok: !1,
+          error: "merge --title cannot be empty"
+        };
       await recordDeleteIntentBestEffort(root, canonicalRel(loserPath));
       let result = await applyMerge(
         root,
@@ -20543,7 +20563,8 @@ async function runCommand(name, argv2) {
           signer,
           summary: str2(flags.summary),
           survivorPath,
-          tags: str2(flags.tags)
+          tags: str2(flags.tags),
+          title: titleFlag
         },
         (/* @__PURE__ */ new Date()).toISOString()
       );
@@ -20624,6 +20645,8 @@ async function runCommand(name, argv2) {
           return runSpaceUnbind();
         case "rename":
           return runSpaceRename(args[0], args[1], flags);
+        case "restore":
+          return runSpaceRestore(args[0]);
         case "identity":
           return runSpaceIdentity();
         case "verify":
@@ -20635,12 +20658,12 @@ async function runCommand(name, argv2) {
         case void 0:
           return {
             ok: !1,
-            error: "space: subcommand required (list|current|bind|unbind|rename|identity|verify|disclose|reidentify)"
+            error: "space: subcommand required (list|current|bind|unbind|rename|restore|identity|verify|disclose|reidentify)"
           };
         default:
           return {
             ok: !1,
-            error: `space: unknown subcommand "${sub}" (list|current|bind|unbind|rename|identity|verify|disclose|reidentify)`
+            error: `space: unknown subcommand "${sub}" (list|current|bind|unbind|rename|restore|identity|verify|disclose|reidentify)`
           };
       }
     }
@@ -21012,6 +21035,29 @@ async function runSpaceUnbind() {
     ok: !0
   };
 }
+async function runSpaceRestore(space_id) {
+  if (!space_id)
+    return {
+      ok: !1,
+      error: "space restore: <space_id> is required",
+      code: "missing-space-id"
+    };
+  if (!isUuid(space_id))
+    return {
+      ok: !1,
+      error: `space restore: "${space_id}" is not a valid space_id (expected a UUID)`,
+      code: "invalid-space-id"
+    };
+  let before = await isSpaceDeleted(space_id);
+  return before.deleted && before.hard ? {
+    ok: !1,
+    error: `space restore: "${space_id}" was hard-deleted and cannot be restored.`,
+    code: "space-hard-deleted"
+  } : (await unmarkSpaceDeleted(space_id), {
+    data: { space_id, restored: before.deleted },
+    ok: !0
+  });
+}
 async function pathExists(p) {
   try {
     return await stat8(p), !0;
@@ -21095,6 +21141,7 @@ Commands:
   space bind [<name>]                bind cwd to a space; pins the current resolution if <name> omitted
   space unbind                       remove the cwd's .brvspace marker and active binding (data preserved)
   space rename <old> <new>           rename a space and record an alias so existing markers keep working
+  space restore <space_id>           clear the soft-deletion tombstone for a space the backend removed (re-opens it)
 
 All commands print a JSON result to stdout. Topics are stored as <bv-*> HTML.`;
 async function main(argv2) {

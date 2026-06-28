@@ -1,5 +1,11 @@
 # skill
 
+## 4.0.10
+
+### Patch Changes
+
+- `merge` now accepts `--title "…"` for the survivor, alongside the existing `--summary`, `--tags`, `--keywords`, `--reason`, `--related` flags. The survivor's title goes stale immediately after most merges (the merged content is broader than either input), and there was no way to fix it in the same call — `merge a b --title "Combined topic"` closes that gap. Without the flag, behavior is unchanged: survivor keeps its own title, falling back to the loser's only when the survivor's is empty.
+
 ## 4.0.9
 
 ### Patch Changes

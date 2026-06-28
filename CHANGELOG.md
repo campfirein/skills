@@ -1,5 +1,11 @@
 # skill
 
+## 4.1.0
+
+### Minor Changes
+
+- Add `brv link "<a>" "<b>" [--bidirectional] [--remove]` for adding or removing a `related=` cross-link between two topics atomically. Uses a byte-preserving attribute-patch primitive — safe for topics whose summaries contain `>` characters (e.g. `->` arrows), which the prior workaround of regex-rewriting the `<bv-topic>` opening tag silently corrupted. Idempotent: re-linking an existing edge returns `op: "noop"`; removing a non-existent edge is also a noop. Closes the "amend the graph" gap that was the highest-leverage agent maintenance op surfaced by real curation work — paired with the recently-shipped `read --raw` and `merge --title`, this completes the amend surface that lets agents maintain a knowledge base instead of just write into one.
+
 ## 4.0.11
 
 ### Patch Changes

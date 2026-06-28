@@ -20138,6 +20138,74 @@ async function runCommand(name, argv) {
         }
       };
     }
+    case "link": {
+      let aPath = positionals[0], bPath = positionals[1];
+      if (!aPath || !bPath)
+        return {
+          ok: !1,
+          error: "link requires two topic paths"
+        };
+      let aRel = canonicalRel(aPath), bRel = canonicalRel(bPath);
+      if (aRel === bRel)
+        return {
+          ok: !1,
+          error: "link cannot link a topic to itself"
+        };
+      let resolvedRoot = await rootForRecord(flags);
+      if (resolvedRoot.kind === "error") return resolvedRoot.result;
+      let root = resolvedRoot.root, blocked = await legacyGuard(root);
+      if (blocked) return blocked;
+      let signer = await buildTopicSignerForRoot(root), removeMode = flags.remove === !0, bidirectional = flags.bidirectional === !0;
+      async function applyLinkSide(fromRel, targetRel) {
+        let abs = resolveWithinTree(root, fromRel), html;
+        try {
+          html = await readFile27(abs, "utf8");
+        } catch {
+          return { error: `no topic at "${fromRel}"` };
+        }
+        let existing = parseRelatedAttr(
+          readTopicRootAttribute(html, "related")
+        ), hasIt = existing.some((r) => r.targetPath === targetRel);
+        if (removeMode && !hasIt)
+          return { op: "noop", relPath: fromRel };
+        if (!removeMode && hasIt)
+          return { op: "noop", relPath: fromRel };
+        let targetRef = `@${targetRel}`, nextTokens = removeMode ? existing.filter((r) => r.targetPath !== targetRel).map((r) => r.raw) : [...existing.map((r) => r.raw), targetRef], patched = nextTokens.length === 0 ? removeBvTopicRootAttributes(html, ["related"]) : patchBvTopicRootAttributes(html, {
+          related: nextTokens.join(",")
+        }), writeResult = await writeTopic(root, {
+          agent: resolveAgent(),
+          confirmOverwrite: !0,
+          rawHtml: patched,
+          signer
+        });
+        return writeResult.ok ? {
+          op: removeMode ? "removed" : "added",
+          relPath: writeResult.relPath
+        } : {
+          error: writeResult.errors.map((e) => e.message).join("; ")
+        };
+      }
+      let edges = [], aOutcome = await applyLinkSide(aRel, bRel);
+      if ("error" in aOutcome)
+        return { ok: !1, error: aOutcome.error };
+      if (edges.push({ from: aRel, to: bRel, op: aOutcome.op }), bidirectional) {
+        let bOutcome = await applyLinkSide(bRel, aRel);
+        if ("error" in bOutcome)
+          return { ok: !1, error: bOutcome.error };
+        edges.push({ from: bRel, to: aRel, op: bOutcome.op });
+      }
+      let mutated = edges.filter((e) => e.op !== "noop");
+      if (mutated.length > 0) {
+        await rebuildManifest(root), await rebuildIndex(root, { now: (/* @__PURE__ */ new Date()).toISOString() });
+        for (let edge of mutated)
+          await safeReconcile(root, {
+            kind: "rewrite",
+            path: edge.from,
+            source: "skill"
+          });
+      }
+      return { ok: !0, data: { edges } };
+    }
     case "read": {
       let startedAt = Date.now(), taskId = randomUUID8(), path2 = positionals[0];
       if (!path2)
